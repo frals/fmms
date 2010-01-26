@@ -208,7 +208,7 @@ class fMMS_GUI(hildon.Program):
 			if img.size[0] > newWidth:
 				newWidth = int(self.config.get_img_resize_width())
 				newHeight = int(newWidth * img.size[1] / img.size[0])
-				log.info("Resizing image: %s * %s", (str(newWidth), str(newHeight)))
+				log.info("Resizing image: %s * %s", str(newWidth), str(newHeight))
 
 				# Image.BILINEAR, Image.BICUBIC, Image.ANTIALIASING
 				rimg = img.resize((newWidth, newHeight), Image.BILINEAR)
@@ -223,8 +223,7 @@ class fMMS_GUI(hildon.Program):
 			return rattachment
 		
 		except Exception, e:
-			message = str(type(exc)) + str(exc)
-			log.exception(message)
+			log.exception("resizer: %s %s", type(exc), exc)
 			raise
 	
 	def send_mms_clicked(self, widget):
@@ -256,13 +255,11 @@ class fMMS_GUI(hildon.Program):
 			log.info("attachment: %s", attachment)
 			filetype = mimetypes.guess_type(attachment)[0]
 			self.attachmentIsResized = False
-			print filetype.startswith("image")
 			if self.config.get_img_resize_width() != 0 and filetype.startswith("image"):
 				try:
 					attachment = self.resize_img(attachment)
 				except Exception, e:
-					message = "resize exception:", type(exc), exc
-					log.exception(message)
+					log.exception("resize failed: %s %s", type(exc), exc)
 					note = osso.SystemNote(self.osso_c)
 					errmsg = str(e.args)
 					note.system_note_dialog("Resizing failed:\nError: " + errmsg , 'notice')
@@ -272,7 +269,7 @@ class fMMS_GUI(hildon.Program):
 		sender = self.config.get_phonenumber()
 		tb = self.tvMessage.get_buffer()
 		message = tb.get_text(tb.get_start_iter(), tb.get_end_iter())
-		log.info("sender: %s attachment %s to %s message %s", (sender, attachment, to, message))
+		log.info("sender: %s attachment %s to %s message %s", sender, attachment, to, message)
 
 		""" Construct and send the message, off you go! """
 		# TODO: remove hardcoded subject
@@ -290,15 +287,13 @@ class fMMS_GUI(hildon.Program):
 			banner = hildon.hildon_banner_show_information(self.window, "", "MMSC REPLIED:" + message + "\nBODY: " + reply)
                         
 		except TypeError, exc:
-			message = "sender:", type(exc), exc
-			log.exception(message)
+			log.exception("sender: %s %s", type(exc), exc)
 			note = osso.SystemNote(self.osso_c)
 			errmsg = "Invalid attachment"
 			note.system_note_dialog("Sending failed:\nError: " + errmsg + " \nPlease make sure the file is valid" , 'notice')
 			#raise
 		except socket.error, exc:
-			message = "sender:", type(exc), exc
-			log.exception(message)
+			log.exception("sender: %s %s", type(exc), exc)
 			code = str(exc.args[0])
 			text = str(exc.args[1])
 			note = osso.SystemNote(self.osso_c)
@@ -306,8 +301,7 @@ class fMMS_GUI(hildon.Program):
 			note.system_note_dialog("Sending failed:\nError: " + errmsg + " \nPlease make sure APN settings are correct" , 'notice')
 			#raise
 		except Exception, exc:
-			message = "sender:", type(exc), exc
-			log.exception(message)
+			log.exception("sender: %s %s", type(exc), exc)
 			raise
 		finally:
 			hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
