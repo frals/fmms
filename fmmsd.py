@@ -11,6 +11,10 @@ import dbus.mainloop.glib
 import dbus.service
 
 from wappushhandler import PushHandler
+import controller as fMMSController
+
+import logging
+log = logging.getLogger('fmms.%s' % __name__)
 
 class MMSHandler(dbus.service.Object):
 	def __init__(self):

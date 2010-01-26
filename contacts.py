@@ -8,7 +8,6 @@
 import evolution
 import gtk
 
-
 import logging
 log = logging.getLogger('fmms.%s' % __name__)
 

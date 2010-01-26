@@ -123,8 +123,11 @@ class fMMS_GUI(hildon.Program):
 			self.config.set_firstlaunch(0)
 	
 	def cb_on_focus(self, widget, event):
-		self.liststore.clear()
-		self.add_buttons_liststore()
+		# TODO: re-set iter
+		#log.info("got focus")
+		#self.liststore.clear()
+		#self.add_buttons_liststore()
+		pass
 	
 	def cb_open_fmms(self, interface, method, args, user_data):
 		if method != 'open_mms' and method != 'open_gui':

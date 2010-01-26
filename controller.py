@@ -10,7 +10,7 @@ And, yes, I know this is not really a controller.
 """
 import logging
 import logging.config
-logging.config.fileConfig('logger.conf')
+logging.config.fileConfig('/opt/fmms/logger.conf')
 log = logging.getLogger('fmms.%s' % __name__)
 
 
