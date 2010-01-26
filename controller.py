@@ -181,9 +181,9 @@ class fMMS_controller():
 		p = PushHandler()
 		path = p._get_mms_message(url, trans_id)
 		log.info("decoding mms... %s", trans_id)
-		message = self.cont.decode_binary_mms(path)
+		message = self.decode_binary_mms(path)
 		log.info("storing mms...%s", trans_id)
-		mmsid = self.cont.store_mms_message(pushid, message)
+		mmsid = self.store_mms_message(pushid, message)
 		
 		
 	def get_mms_attachments(self, transactionid, allFiles=False):

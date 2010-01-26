@@ -289,12 +289,17 @@ class DatabaseHandler:
 		try:
 			time = mmslist['Date']
 			del mmslist['Date']
+			dateset = True
 		except:
-			time = "datetime('now')"
+			dateset = False
 		isread = MSG_UNREAD
 		contact = 0
-		vals = (pushid, transid, time, isread, direction, size, contact, fpath)
-		c.execute("insert into mms (pushid, transactionid, msg_time, read, direction, size, contact, file) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", vals)
+		if dateset == False:
+			vals = (pushid, transid, isread, direction, size, contact, fpath)
+			c.execute("insert into mms (pushid, transactionid, msg_time, read, direction, size, contact, file) VALUES (?, ?, datetime('now'), ?, ?, ?, ?, ?)", vals)
+		else:
+			vals = (pushid, transid, time, isread, direction, size, contact, fpath)
+			c.execute("insert into mms (pushid, transactionid, msg_time, read, direction, size, contact, file) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", vals)
 		mmsid = c.lastrowid
 		conn.commit()
 		log.info("inserted row as: %s", mmsid)
