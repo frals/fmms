@@ -22,6 +22,9 @@ import fmms_viewer as fMMSViewer
 import controller as fMMSController
 import contacts as ContactH
 
+import logging
+log = logging.getLogger('fmms.%s' % __name__)
+
 class fMMS_GUI(hildon.Program):
 
 	def __init__(self):
@@ -33,10 +36,10 @@ class fMMS_GUI(hildon.Program):
 		self.osso_c = osso.Context("fMMS", "0.1.0", False)
 	
 		if not os.path.isdir(self._mmsdir):
-			print "creating dir", self._mmsdir
+			log.info("creating dir %s", self._mmsdir)
 			os.makedirs(self._mmsdir)
 		if not os.path.isdir(self._pushdir):
-			print "creating dir", self._pushdir
+			log.info("creating dir %s", self._pushdir)
 			os.makedirs(self._pushdir)
 	
 		hildon.Program.__init__(self)
@@ -113,7 +116,6 @@ class fMMS_GUI(hildon.Program):
 		self.add_window(self.window)
 		
 		if self.config.get_firstlaunch() == 1:
-			print "firstlaunch"
 			note = osso.SystemNote(self.osso_c)
 			firstlaunchmessage = "NOTE: Currently you have to connect manually to the MMS APN when sending and receiving.\nAlso, only implemented attachment is image."
 			note.system_note_dialog(firstlaunchmessage , 'notice')
@@ -139,7 +141,6 @@ class fMMS_GUI(hildon.Program):
 			else:
 				return
 		elif method == 'open_gui':
-			print "open_gui called"
 			self.liststore.clear()
 			self.add_buttons_liststore()
 			return
@@ -284,25 +285,25 @@ class fMMS_GUI(hildon.Program):
 		
 	def config_menu_button_clicked(self, action):
 		if action == gtk.RESPONSE_APPLY:
-			print self.apn.get_selector().get_current_text()
+			log.info("%s", self.apn.get_selector().get_current_text())
 			ret_setapn = self.config.get_apnid_from_name(self.apn.get_selector().get_current_text())
 			if ret_setapn != None:
 				self.config.set_apn(ret_setapn)
-				print "Set apn to: %s" % ret_setapn
+				log.info("Set apn to: %s" % ret_setapn)
 				ret = self.config.set_mmsc(self.mmsc.get_text())
-				print "Set mmsc to %s" % self.mmsc.get_text()
+				log.info("Set mmsc to %s" % self.mmsc.get_text())
 				self.config.set_phonenumber(self.number.get_text())
-				print "Set phonenumber to %s" % self.number.get_text()
+				log.info("Set phonenumber to %s" % self.number.get_text())
 				self.config.set_img_resize_width(self.imgwidth.get_text())
-				print "Set image width to %s" % self.imgwidth.get_text()
+				log.info("Set image width to %s" % self.imgwidth.get_text())
 				banner = hildon.hildon_banner_show_information(self.window, "", "Settings saved")
 				return 0
 			else:
-				print "Set mmsc to %s" % self.mmsc.get_text()
+				log.info("Set mmsc to %s" % self.mmsc.get_text())
 				self.config.set_phonenumber(self.number.get_text())
-				print "Set phonenumber to %s" % self.number.get_text()
+				log.info("Set phonenumber to %s" % self.number.get_text())
 				self.config.set_img_resize_width(self.imgwidth.get_text())
-				print "Set image width to %s" % self.imgwidth.get_text()
+				log.info("Set image width to %s" % self.imgwidth.get_text())
 				banner = hildon.hildon_banner_show_information(self.window, "", "Could not save APN settings. Did you enter a correct APN?")
 				banner.set_timeout(5000)
 				return -1
@@ -342,7 +343,7 @@ class fMMS_GUI(hildon.Program):
 					phototest = self.ch.get_photo_from_name(sendername, 64)
 					if phototest != None:	
 						photo = phototest
-						#print "loaded photo:", photo.get_width(), photo.get_height()
+						#log.info("loaded photo: %s %s", photo.get_width(), photo.get_height())
 	
 				#title = sender + " - " + mtime
 				
@@ -378,8 +379,7 @@ class fMMS_GUI(hildon.Program):
 			self.cont.wipe_message(fname)
 			banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Message deleted")
 		except Exception, e:
-			print "Exception caught:"
-			print type(e), e
+			log.exception("%s %s", type(e), e)
 			raise
 			banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Failed to delete message.")
 
@@ -398,7 +398,7 @@ class fMMS_GUI(hildon.Program):
 			(model, miter) = self.treeview.get_selection().get_selected()
 			# the 4th value is the filename (start counting at 0)
 			filename = model.get_value(miter, 3)
-			print "deleting", filename
+			log.info("deleting %s", filename)
 			self.delete_push_mms(filename)
 			self.liststore.remove(miter)
 		dialog.destroy()
@@ -422,7 +422,7 @@ class fMMS_GUI(hildon.Program):
 			(model, miter) = self.treeview.get_selection().get_selected()
 			# the 4th value is the filename (start counting at 0)
 			filename = model.get_value(miter, 3)
-			print "redownloading", filename
+			log.info("redownloading %s", filename)
 			try:
 				self.delete_mms(filename)
 				banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Trying to download MMS...")
@@ -433,7 +433,7 @@ class fMMS_GUI(hildon.Program):
 				self.cont.get_mms_from_push(filename)
 				self.show_mms(self.treeview, model.get_path(miter))
 			except Exception, e:
-				print type(e), e
+				log.exception("%s %s", type(e), e)
 				#raise
 				banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Operation failed")
 			hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
@@ -468,7 +468,7 @@ class fMMS_GUI(hildon.Program):
 		banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Opening message")
 		self.force_ui_update()
 		
-		print path
+		log.info("showing mms: %s", path)
 		model = treeview.get_model()
 		miter = model.get_iter(path)
 		# the 4th value is the transactionid (start counting at 0)
@@ -477,7 +477,7 @@ class fMMS_GUI(hildon.Program):
 		try:
 			viewer = fMMSViewer.fMMS_Viewer(transactionid)
 		except Exception, e:
-			print type(e), e
+			log.exception("%s %s", type(e), e)
 			#raise
 		
 		
