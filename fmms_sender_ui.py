@@ -23,6 +23,8 @@ import fmms_config as fMMSconf
 import contacts as ContactH
 import controller as fMMSController
 
+import logging
+log = logging.getLogger('fmms.%s' % __name__)
 
 class fMMS_GUI(hildon.Program):
 	def __init__(self, spawner=None):
@@ -52,8 +54,6 @@ class fMMS_GUI(hildon.Program):
 		bTo.connect('clicked', self.open_contacts_dialog)
 		self.eNumber = hildon.Entry(gtk.HILDON_SIZE_FINGER_HEIGHT)
 		
-		#topHBox.add(bTo)
-		#topHBox.add(eNumber)
 		topHBox1.pack_start(bTo, False, True, 0)
 		topHBox1.pack_start(self.eNumber, True, True, 0)
 		
@@ -62,11 +62,9 @@ class fMMS_GUI(hildon.Program):
 		pan = hildon.PannableArea()
 		pan.set_property("mov-mode", hildon.MOVEMENT_MODE_BOTH)		
 		
-		#midHBox = gtk.HBox()
 		self.tvMessage = hildon.TextView()
 		self.tvMessage.set_wrap_mode(gtk.WRAP_WORD)
 		
-		#midHBox.pack_start(self.tvMessage, True, True, 0)
 		pan.add_with_viewport(self.tvMessage)
 		
 		""" Begin botsection """
@@ -89,14 +87,9 @@ class fMMS_GUI(hildon.Program):
 
 		""" Show it all! """
 		allBox.pack_start(topHBox1, False, False)
-		#allBox.pack_start(topHBox2, False, False)
-		#allBox.pack_start(midHBox, True, True)
 		allBox.pack_start(pan, True, True)
 		allBox.pack_start(botHBox, False, False)
 		
-		#self.pan = pan
-		#self.pan.add_with_viewport(allBox)
-		#self.window.add(self.pan)
 		self.window.add(allBox)
 		self.window.show_all()
 		self.add_window(self.window)
@@ -138,10 +131,8 @@ class fMMS_GUI(hildon.Program):
 	def contact_selector_changed(self, selector):
 		username = selector.get_current_text()
 		nrlist = self.ch.get_numbers_from_name(username)
-		print nrlist
 		nrdialog = gtk.Dialog("Pick a number")
 		for number in nrlist:
-			print number
 			numberbox = gtk.HBox()
 			typelabel = gtk.Label(nrlist[number].capitalize())
 			typelabel.set_width_chars(24)
@@ -154,7 +145,6 @@ class fMMS_GUI(hildon.Program):
 		nrdialog.show_all()
 		# this is blocking until we get a return
 		ret = nrdialog.run()
-		print "changed ret:", ret
 		nrdialog.destroy()
 		return ret
 	
@@ -205,21 +195,20 @@ class fMMS_GUI(hildon.Program):
 	def resize_img(self, filename):
 		try:
 			if not os.path.isdir(self.config.get_imgdir()):
-				print "creating dir", self.config.get_imgdir()
+				log.info("creating dir %s", self.config.get_imgdir())
 				os.makedirs(self.config.get_imgdir())
 			
 			hildon.hildon_banner_show_information(self.window, "", "fMMS: Resizing image, this might take a while...")
 			self.force_ui_update()
 			
 			img = Image.open(filename)
-			print "height", img.size[1]
-			print "width", img.size[0]
+			log.info("width %s", str(img.size[0]))
+			log.info("height %s", str(img.size[1]))
 			newWidth = int(self.config.get_img_resize_width())
 			if img.size[0] > newWidth:
-				print "resizing"
 				newWidth = int(self.config.get_img_resize_width())
 				newHeight = int(newWidth * img.size[1] / img.size[0])
-				print "Resizing image:", str(newWidth), "*", str(newHeight)
+				log.info("Resizing image: %s * %s", (str(newWidth), str(newHeight)))
 
 				# Image.BILINEAR, Image.BICUBIC, Image.ANTIALIASING
 				rimg = img.resize((newWidth, newHeight), Image.BILINEAR)
@@ -229,13 +218,13 @@ class fMMS_GUI(hildon.Program):
 				rimg.save(rattachment)
 				self.attachmentIsResized = True
 			else:
-				print "not resizing"
 				rattachment = filename
 				
 			return rattachment
 		
 		except Exception, e:
-			print "resizing failed:", e, e.args
+			message = str(type(exc)) + str(exc)
+			log.exception(message)
 			raise
 	
 	def send_mms_clicked(self, widget):
@@ -264,16 +253,16 @@ class fMMS_GUI(hildon.Program):
 			attachment = None
 			self.attachmentIsResized = False
 		else:
-			print attachment
+			log.info("attachment: %s", attachment)
 			filetype = mimetypes.guess_type(attachment)[0]
-			print self.config.get_img_resize_width()
 			self.attachmentIsResized = False
 			print filetype.startswith("image")
 			if self.config.get_img_resize_width() != 0 and filetype.startswith("image"):
 				try:
 					attachment = self.resize_img(attachment)
 				except Exception, e:
-					print e, e.args
+					message = "resize exception:", type(exc), exc
+					log.exception(message)
 					note = osso.SystemNote(self.osso_c)
 					errmsg = str(e.args)
 					note.system_note_dialog("Resizing failed:\nError: " + errmsg , 'notice')
@@ -283,10 +272,11 @@ class fMMS_GUI(hildon.Program):
 		sender = self.config.get_phonenumber()
 		tb = self.tvMessage.get_buffer()
 		message = tb.get_text(tb.get_start_iter(), tb.get_end_iter())
-		print sender, attachment, to, message
+		log.info("sender: %s attachment %s to %s message %s", (sender, attachment, to, message))
 
 		""" Construct and send the message, off you go! """
 		# TODO: remove hardcoded subject
+		# TODO: let controller do this
 		try:
 			sender = MMSSender(to, "MMS", message, attachment, sender)
 			(status, reason, output) = sender.sendMMS()
@@ -300,13 +290,15 @@ class fMMS_GUI(hildon.Program):
 			banner = hildon.hildon_banner_show_information(self.window, "", "MMSC REPLIED:" + message + "\nBODY: " + reply)
                         
 		except TypeError, exc:
-			print type(exc), exc
+			message = "sender:", type(exc), exc
+			log.exception(message)
 			note = osso.SystemNote(self.osso_c)
 			errmsg = "Invalid attachment"
 			note.system_note_dialog("Sending failed:\nError: " + errmsg + " \nPlease make sure the file is valid" , 'notice')
 			#raise
 		except socket.error, exc:
-			print type(exc), exc
+			message = "sender:", type(exc), exc
+			log.exception(message)
 			code = str(exc.args[0])
 			text = str(exc.args[1])
 			note = osso.SystemNote(self.osso_c)
@@ -314,15 +306,15 @@ class fMMS_GUI(hildon.Program):
 			note.system_note_dialog("Sending failed:\nError: " + errmsg + " \nPlease make sure APN settings are correct" , 'notice')
 			#raise
 		except Exception, exc:
-			print type(exc)
-			print exc
+			message = "sender:", type(exc), exc
+			log.exception(message)
 			raise
 		finally:
 			hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
 			self.bSend.set_sensitive(True)
 			
 		if self.attachmentIsResized == True:
-			print "Removing temporary image..."
+			log.info("Removing temporary image: %s", attachment)
 			os.remove(attachment)
 		#self.window.destroy()
 		
