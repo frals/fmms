@@ -7,7 +7,11 @@
 """
 import evolution
 import gtk
-	
+
+
+import logging
+log = logging.getLogger('fmms.%s' % __name__)
+
 class ContactHandler:
 	
 	
@@ -44,7 +48,6 @@ class ContactHandler:
 		vcardlist = res.get_vcard_string().replace('\r', '').split('\n')
 		for line in vcardlist:
 			if line.startswith("TEL"):
-				#print line
 				nr = line.split(":")[1]
 				ltype = line.split(":")[0].split("=")
 				phonetype = "Unknown"
@@ -87,12 +90,13 @@ class ContactHandler:
 					
 		return None
 	
+	# TODO: get from uid instead of name
 	def get_photo_from_name(self, pname, imgsize):
 		res = self.ab.search(pname)
 		### do some nice stuff here
-		#l = [x.get_name() for x in res]
-		#print "search for:", pname, "gave res: ", l
-		if res != None:
+		l = [x.get_name() for x in res]
+		log.info("search for: %s gave: %s (%s)", pname, l, l.__class__)
+		if res != None and res.__class__ == list:
 			img = res[0].get_photo(imgsize)
 			if img == None:
 				vcardlist = res[0].get_vcard_string().replace('\r', '').split('\n') # vcard for first result
@@ -104,8 +108,6 @@ class ContactHandler:
 						if height != imgsize:
 							newheight = imgsize
 							newwidth = int(newheight * img.get_width() / height)
-							#print "h:", height, "w:", img.get_width()
-							#print "newh:", newheight, "neww:", newwidth
 							img = img.scale_simple(newwidth, newheight, gtk.gdk.INTERP_BILINEAR)
 			return img
 		else:
