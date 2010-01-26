@@ -24,6 +24,9 @@ from mms import mms_pdu
 import fmms_config as fMMSconf
 import controller as fMMSController
 
+import logging
+log = logging.getLogger('fmms.%s' % __name__)
+
 magic = 0xacdcacdc
 
 _DBG = True
@@ -37,13 +40,13 @@ class PushHandler:
 		self._pushdir = self.config.get_pushdir()
 		self._apn = self.config.get_apn()
 		self._apn_nicename = self.config.get_apn_nicename()
-		self._incoming = '/home/user/.fmms/temp/LAST_INCOMING'
+		self._incoming = self.config.get_imgdir() + "/LAST_INCOMING"
 		
 		if not os.path.isdir(self._mmsdir):
-			print "creating dir", self._mmsdir
+			log.info("creating dir %s", self._mmsdir)
 			os.makedirs(self._mmsdir)
 		if not os.path.isdir(self._pushdir):
-			print "creating dir", self._pushdir
+			log.info("creating dir %s", self._pushdir)
 			os.makedirs(self._pushdir)
 
 	""" handle incoming push over sms """
@@ -52,9 +55,8 @@ class PushHandler:
 		args = (source, src_port, dst_port, wsp_header, wsp_payload)
 		
 		# TODO: dont hardcode
-		if not os.path.isdir('/home/user/.fmms/temp'):
-			print "creating dir /home/user/.fmms/temp"
-			os.makedirs("/home/user/.fmms/temp")
+		if not os.path.isdir(self.config.get_imgdir()):
+			os.makedirs(self.config.get_imgdir())
 		
 		f = open(self._incoming, 'w')
 		for arg in args:
@@ -63,8 +65,8 @@ class PushHandler:
 		f.close()
 
 		if(_DBG):
-			print "SRC: ", source, ":", src_port
-			print "DST: ", dst_port
+			log.info("SRC: %s:%s", source, src_port)
+			log.info("DST: %s", dst_port)
 			#print "WSPHEADER: ", wsp_header
 			#print "WSPPAYLOAD: ", wsp_payload
 
@@ -76,24 +78,24 @@ class PushHandler:
 		for d in wsp_payload:
 			binarydata.append(int(d))
 
-		print "decoding..."
+		log.info("decoding...")
 		
 		
 		(data, sndr, url, trans_id) = self.cont.decode_mms_from_push(binarydata)
 		
-		print "saving..."
+		log.info("saving...")
 		# Controller should save it
 		pushid = self.cont.save_push_message(data)
-		print "notifying push..."
+		log.info("notifying push...")
 		# Send a notify we got the SMS Push and parsed it A_OKEY!
 		self.notify_mms(dbus_loop, sndr, "SMS Push for MMS received")
-		print "fetching mms..."
+		log.info("fetching mms...")
 		path = self._get_mms_message(url, trans_id)
-		print "decoding mms... path:", path
+		log.info("decoding mms... path: %s", path)
 		message = self.cont.decode_binary_mms(path)
-		print "storing mms..."
+		log.info("storing mms...")
 		mmsid = self.cont.store_mms_message(pushid, message)
-		print "notifying mms..."
+		log.info("notifying mms...")
 		self.notify_mms(dbus_loop, sndr, "New MMS", trans_id);
 		return 0
 
@@ -102,11 +104,8 @@ class PushHandler:
 	# TODO: implement this
 	def _incoming_ip_push(self, src_ip, dst_ip, src_port, dst_port, wsp_header, wsp_payload):
 		if(_DBG):
-			print "SRC: " + src_ip + ":" + src_port + "\n"
-			print "DST: " + dst_ip + ":" + dst_port + "\n"
-			print "WSPHEADER: " + wsp_header + "\n"
-			print "WSPPAYLOAD: " + wsp_payload + "\n"
-			print
+			log.info("SRC: %s:%s", src_ip, src_port)
+			log.info("DST: %s:%s", dst_ip, dst_port)
 
 
 	""" notifies the user with a org.freedesktop.Notifications.Notify, really fancy """
@@ -118,14 +117,13 @@ class PushHandler:
 		if path == None:
 			interface.Notify('MMS', 0, '', message, sender, choices, {"category": "sms-message", "dialog-type": 4, "led-pattern": "PatternCommunicationEmail", "dbus-callback-default": "se.frals.fmms /se/frals/fmms se.frals.fmms open_gui"}, -1)
 		else:
-			# TODO: callback should open fMMS gui
 			interface.Notify("MMS", 0, '', message, sender, choices, {"category": "email-message", "dialog-type": 4, "led-pattern": "PatternCommunicationEmail", "dbus-callback-default": "se.frals.fmms /se/frals/fmms se.frals.fmms open_mms string:\"" + path + "\""}, -1)
 
 
 	""" get the mms message from content-location """
 	""" thanks benaranguren on talk.maemo.org for patch including x-wap-profile header """
 	def _get_mms_message(self, location, transaction):
-		print "getting file: ", location
+		log.info("getting file: ", location)
 		try:
 			# TODO: remove hardcoded sleep
 			con = ConnectToAPN(self._apn_nicename)
@@ -134,20 +132,20 @@ class PushHandler:
 			
 			try:
 				notifyresp = self._send_notify_resp(transaction)
-				print "notifyresp sent"
-			except:
-				print "notify sending failed..."
+				log.info("notifyresp sent")
+			except Exception, e:
+				log.exception("notify sending failed: %s %s", type(e), e)
 			
 			# TODO: configurable time-out?
-			timeout = 60
+			timeout = 30
 			socket.setdefaulttimeout(timeout)
 			(proxyurl, proxyport) = self.config.get_proxy_from_apn()
 			
 			if proxyurl == "" or proxyurl == None:
-				print "connecting without proxy"
+				log.info("connecting without proxy")
 			else:
 				proxyfull = str(proxyurl) + ":" + str(proxyport)
-				print "connecting with proxy", proxyfull	
+				log.info("connecting with proxy %s", proxyfull)
 				proxy = urllib2.ProxyHandler({"http": proxyfull})
 				opener = urllib2.build_opener(proxy)
 				urllib2.install_opener(opener)
@@ -166,19 +164,19 @@ class PushHandler:
 			dirname = self.cont.save_binary_mms(mmsdataall, transaction)
 			
 			if(_DBG):
-				print "fetched ", location, " and wrote to file"
+				log.info("fetched %s and wrote to file", location)
 				
 			# send acknowledge we got it ok
 			try:
 				ack = self._send_acknowledge(transaction)
-				print "ack sent"
+				log.info("ack sent")
 			except:
-				print "sending ack failed"
+				log.exception("sending ack failed: %s %s", type(e), e)
 			
 			con.disconnect()			
 			
 		except Exception, e:
-			print e, e.args
+			log.exception("fatal: %s %s", type(e), e)
 			bus = dbus.SystemBus()
 			proxy = bus.get_object('org.freedesktop.Notifications', '/org/freedesktop/Notifications')
 			interface = dbus.Interface(proxy,dbus_interface='org.freedesktop.Notifications')
@@ -195,11 +193,10 @@ class PushHandler:
 		mms.headers['MMS-Version'] = "1.3"
 		mms.headers['Status'] = "Deferred"
 		
-		print "setting up notify sender"
 		sender = MMSSender(customMMS=True)
-		print "sending notify..."
+		log.info("sending notify...")
 		out = sender.sendMMS(mms)
-		print "m-notifyresp-ind:", out
+		log.info("m-notifyresp-ind: %s", out)
 		return out
 	
 	
@@ -209,11 +206,10 @@ class PushHandler:
 		mms.headers['Transaction-Id'] = transid
 		mms.headers['MMS-Version'] = "1.3"
 		
-		print "setting up ack sender"
 		ack = MMSSender(customMMS=True)
-		print "sending ack..."
+		log.info("sending ack...")
 		out = ack.sendMMS(mms)
-		print "m-acknowledge-ind:", out
+		log.info("m-acknowledge-ind: %s", out)
 		return out
 
        
@@ -223,7 +219,8 @@ class ConnectToAPN:
 	    self.connection = conic.Connection()
 	    
 	def connection_cb(self, connection, event, magic):
-	    print "connection_cb(%s, %s, %x)" % (connection, event, magic)
+	    #print "connection_cb(%s, %s, %x)" % (connection, event, magic)
+	    pass
 
 	
 	def disconnect(self):
@@ -284,7 +281,7 @@ class MMSSender:
 	def sendMMS(self, customData=None):
 		mmsid = None
 		if customData != None:
-			print "using custom mms"
+			log.info("using custom mms")
 			self._mms = customData
 	
 		mmsc = self.config.get_mmsc()
@@ -302,12 +299,12 @@ class MMSSender:
 			mmsc = mmsc.partition('/')
 			mmschost = mmsc[0]
 			path = "/" + str(mmsc[2])
-			print "mmschost:", mmschost, "path:", path, "pathlen:", len(path)
+			log.info("mmschost: %s path: %s pathlen: %s", mmschost, path, len(path))
 			conn = httplib.HTTPConnection(mmschost)
 			conn.request('POST', path , mms, headers)
 		else:
-			print "connecting via proxy " + proxyurl + ":" + str(proxyport)
-			print "mmschost:", mmsc
+			log.info("connecting via proxy %s:%s" proxyurl, str(proxyport))
+			log.info("mmschost: %s", mmsc)
 			conn = httplib.HTTPConnection(proxyurl + ":" + str(proxyport))
 			conn.request('POST', mmsc, mms, headers)
 
@@ -318,7 +315,7 @@ class MMSSender:
 			mmsid = cont.store_outgoing_mms(message)	
 			
 		res = conn.getresponse()
-		print "MMSC STATUS:", res.status, res.reason
+		log.info("MMSC STATUS: %s %s", res.status, res.reason)
 		out = res.read()
 		try:
 			decoder = mms_pdu.MMSDecoder()
@@ -335,5 +332,5 @@ class MMSSender:
 			print type(e), e
 			outparsed = out
 			
-		print "MMSC RESPONDED:", outparsed
+		log.info("MMSC RESPONDED: %s", outparsed)
 		return res.status, res.reason, outparsed
