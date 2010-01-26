@@ -8,6 +8,12 @@ And, yes, I know this is not really a controller.
 @author: Nick Leppänen Larsson <frals@frals.se>
 @license: GNU GPL
 """
+import logging
+import logging.config
+logging.config.fileConfig('logger.conf')
+log = logging.getLogger('fmms.%s' % __name__)
+
+
 import os
 import array
 import re
@@ -19,6 +25,7 @@ import fmms_config as fMMSconf
 import dbhandler as DBHandler
 from mms.message import MMSMessage
 from mms import mms_pdu
+
 
 #TODO: constants.py?
 MSG_DIRECTION_IN = 0
@@ -47,19 +54,19 @@ class fMMS_controller():
 
 		try:
 			url = wsplist["Content-Location"]
-			print "content-location:", url
+			log.info("content-location: %s", url)
 			trans_id = wsplist["Transaction-Id"]
 			trans_id = str(trans_id)
-			print "transid:", trans_id
+			log.info("transid: %s", trans_id)
 		except Exception, e:
-			print "no content-location/transid in push; aborting...", type(e), e
+			log.exception("no content-location/transid in push; aborting: %s %s", type(e), e)
 			interface.SystemNoteInfoprint ("fMMS: Failed to parse SMS PUSH.")
 			raise
 		try:
 			sndr = wsplist["From"]
-			print "Sender:", sndr
+			log.info("Sender: %s", sndr)
 		except Exception, e:
-			print "No sender value defined", type(e), e
+			log.exception("No sender value defined: %s %s", type(e), e)
 			sndr = "Unknown sender"
 
 		self.save_binary_push(binarydata, trans_id)
@@ -76,10 +83,10 @@ class fMMS_controller():
 		try:
 			fp = open(self._pushdir + transaction, 'wb')
 			fp.write(data)
-			print "saved binary push", fp
+			log.info("saved binary push: %s", fp)
 			fp.close()
 		except Exception, e:
-			print "failed to save binary push:", type(e), e
+			log.exception("failed to save binary push: %s %s", type(e), e)
 			raise
 	
 	def save_push_message(self, data):
@@ -108,7 +115,7 @@ class fMMS_controller():
 		
 		fp = open(dirname + "/message", 'wb')
 		fp.write(data)
-		print "saved binary mms", fp
+		log.info("saved binary mms %s", fp)
 		fp.close()
 		return dirname
 		
@@ -120,7 +127,7 @@ class fMMS_controller():
 
 		fp = open(dirname + "/message", 'wb')
 		fp.write(data)
-		print "saved binary mms", fp
+		log.info("saved binary mms %s", fp)
 		fp.close()
 		return dirname
 	
@@ -128,13 +135,13 @@ class fMMS_controller():
 		""" decodes and saves the binary mms"""
 		# Decode the specified file
 		# This also creates all the parts as files in path
-		print "decode_binary_mms running"
+		log.info("decode_binary_mms running")
 		try:
 			message = MMSMessage.fromFile(path + "/message")
 		except Exception, e:
-			print type(e), e
+			log.exception("decode binary failed:", type(e), e)
 			raise
-		print "returning message!"
+		log.info("returning message!")
 		return message
 	
 	
@@ -173,9 +180,9 @@ class fMMS_controller():
 		from wappushhandler import PushHandler
 		p = PushHandler()
 		path = p._get_mms_message(url, trans_id)
-		print "decoding mms..."
+		log.info("decoding mms... %s", trans_id)
 		message = self.cont.decode_binary_mms(path)
-		print "storing mms..."
+		log.info("storing mms...%s", trans_id)
 		mmsid = self.cont.store_mms_message(pushid, message)
 		
 		
@@ -187,9 +194,9 @@ class fMMS_controller():
 	
 	def delete_mms_message(self, fname):
 		fullpath = self._mmsdir + fname
-		print fullpath
+		log.info("fullpath: %s", fullpath)
 		if os.path.isdir(fullpath):
-			print "starting deletion of", fullpath
+			log.info("starting deletion of %s", fullpath)
 			filelist = self.get_mms_attachments(fname, allFiles=True)
 			if filelist == None:
 				filelist = []
@@ -200,23 +207,24 @@ class fMMS_controller():
 					fullfn = fullpath + "/" + fn
 					os.remove(fullfn)
 				except:
-					print "failed to remove", fullfn
+					log.info("failed to remove: %s", fullfn)
 			try:
-				print "trying to remove", fullpath
+				log.info("trying to remove: %s", fullpath)
 				os.rmdir(fullpath)
 			except OSError, e:
-				print "failed to remove dir:", type(e), e
+				log.exception("failed to remove: %s %s", type(e), e)
 				raise
 		self.store.delete_mms_message(fname)
 		
 	def delete_push_message(self, fname):
 		fullpath = self._pushdir + fname
-		print fullpath
+		log.info("fullpath: %s", fullpath)
 		if os.path.isfile(fullpath):
-			print "removing", fullpath
+			log.info("removing: %s", fullpath)
 			try:
 				os.remove(fullpath)
 			except Exception, e:
+				log.exception("%s %s", type(e), e)
 				raise
 		self.store.delete_push_message(fname)
 		
