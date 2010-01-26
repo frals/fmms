@@ -12,6 +12,9 @@ from gnome import gnomevfs
 
 import fmms_config as fMMSconf
 
+import logging
+log = logging.getLogger('fmms.%s' % __name__)
+
 
 # TODO: constants.py?
 MSG_DIRECTION_IN = 0
@@ -148,14 +151,14 @@ class DatabaseHandler:
 			msgtype = pushlist['Message-Type']
 			del pushlist['Message-Type']
 		except:
-			print "No transid/contentloc/message-type, bailing out!"
+			log.exception("No transid/contentloc/message-type, bailing out!")
 			raise
 		fpath = self.pushdir + transid
 		vals = (transid, contentloc, msgtype, fpath)
 		c.execute("insert into push (transactionid, content_location, msg_time, msg_type, file) VALUES (?, ?, datetime('now'), ?, ?)", vals)
 		pushid = c.lastrowid
 		conn.commit()
-		print "inserted row as:", pushid
+		log.info("inserted row as: %s", pushid)
 		
 		for line in pushlist:
 			vals = (pushid, line, str(pushlist[line]))
@@ -177,14 +180,14 @@ class DatabaseHandler:
 			msgtype = pushlist['Message-Type']
 			del pushlist['Message-Type']
 		except:
-			print "No transid/message-type, bailing out!"
+			log.exception("No transid/message-type, bailing out!")
 			raise
 		fpath = self.outdir + transid
 		vals = (transid, 0, msgtype, fpath)
 		c.execute("insert into push (transactionid, content_location, msg_time, msg_type, file) VALUES (?, ?, datetime('now'), ?, ?)", vals)
 		pushid = c.lastrowid
 		conn.commit()
-		print "inserted row as:", pushid
+		log.info("inserted row as: %s", pushid)
 
 		for line in pushlist:
 			vals = (pushid, line, str(pushlist[line]))
@@ -225,6 +228,7 @@ class DatabaseHandler:
 		try:
 			c.execute("select * from push_headers WHERE push_id = ?;", (pushid, ))
 		except Exception, e:
+			log.exception("%s %s", type(e), e)
 			raise
 		
 		for line in c:
@@ -265,10 +269,8 @@ class DatabaseHandler:
 		Returns the newly inserted rows id.
 		
 		"""		
-		#print direction
 		mmslist = message.headers
 		attachments = message.attachments
-		#mmslist = message
 		c = self.conn.cursor()
 		conn = self.conn
 		try:
@@ -282,7 +284,7 @@ class DatabaseHandler:
 			fpath = basedir + "/message"
 			size = os.path.getsize(fpath)
 		except:
-			print "No transid/message-type, bailing out!"
+			log.exception("No transid/message-type, bailing out!")
 			raise
 		try:
 			time = mmslist['Date']
@@ -295,7 +297,7 @@ class DatabaseHandler:
 		c.execute("insert into mms (pushid, transactionid, msg_time, read, direction, size, contact, file) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", vals)
 		mmsid = c.lastrowid
 		conn.commit()
-		print "inserted row as:", mmsid
+		log.info("inserted row as: %s", mmsid)
 		
 		# insert all headers
 		for line in mmslist:
@@ -303,10 +305,9 @@ class DatabaseHandler:
 			c.execute("insert into mms_headers (mms_id, header, value) VALUES (?, ?, ?)", vals)
 			conn.commit()
 		attachpaths = basedir + "/"
-		#print attachpaths
 		# insert the attachments
 		for line in attachments:
-			print line
+			log.info("inserting attachment: %s", line)
 			filetype = gnomevfs.get_mime_type(attachpaths + line)
 			(fname, ext) = os.path.splitext(line)
 			hidden = 0
@@ -316,7 +317,6 @@ class DatabaseHandler:
 			vals = (mmsid, line, hidden)
 			c.execute("insert into attachments (mmsidattach, file, hidden) VALUES (?, ?, ?)", vals)
 			conn.commit()
-			#print "inserted", vals
 			
 		return mmsid
 
