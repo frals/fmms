@@ -123,7 +123,7 @@ class PushHandler:
 	""" get the mms message from content-location """
 	""" thanks benaranguren on talk.maemo.org for patch including x-wap-profile header """
 	def _get_mms_message(self, location, transaction):
-		log.info("getting file: ", location)
+		log.info("getting file: %s", location)
 		try:
 			# TODO: remove hardcoded sleep
 			con = ConnectToAPN(self._apn_nicename)
@@ -303,7 +303,7 @@ class MMSSender:
 			conn = httplib.HTTPConnection(mmschost)
 			conn.request('POST', path , mms, headers)
 		else:
-			log.info("connecting via proxy %s:%s" proxyurl, str(proxyport))
+			log.info("connecting via proxy %s:%s", proxyurl, str(proxyport))
 			log.info("mmschost: %s", mmsc)
 			conn = httplib.HTTPConnection(proxyurl + ":" + str(proxyport))
 			conn.request('POST', mmsc, mms, headers)
