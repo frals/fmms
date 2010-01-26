@@ -10,6 +10,7 @@ And, yes, I know this is not really a controller.
 """
 import os
 import array
+import re
 
 import dbus
 from dbus.mainloop.glib import DBusGMainLoop
@@ -223,50 +224,17 @@ class fMMS_controller():
 		self.delete_mms_message(transactionid)
 		self.delete_push_message(transactionid)
 	
-	""" DEPRECATED AS OF 0.2.10
-	gets a mms from a previously received push """
-	""" this function requires the fname to be the fullpath """
-	# TODO: dont require fullpath
-	"""def get_mms_from_push(self, fname):
-		
-		plist = self.read_push_as_list(fname)
-		try:
-			sndr = plist['From']
-		except:
-			sndr = "Unknown"
-		url = plist['Content-Location']
-		print url
-		trans_id = plist['Transaction-Id']
-		print trans_id
-		
-		from wappushhandler import PushHandler
-		push = PushHandler()
-		path = push._get_mms_message(url, trans_id)
-		Push.decodeMMS(path)
-		
-		return 0"""
-	
-	""" Old function relying on files... Deprecated as of 0.2.10
-	def is_fetched_push(self, filename):
-		this function takes the FILENAME, not the full path
-		path = self._mmsdir + filename
-		if os.path.isdir(path):
-			if os.path.isfile(self._mmsdir + filename + "/message"):
-				return True
+
+	def validate_phonenumber(self, nr):
+		nr = str(nr)
+		nr = nr.replace("+", "")
+		nr = nr.replace(" ", "")
+		if re.search(r"(\D)+", nr) == None:
+			return True
 		else:
-		return False"""
-	
-	
-	"""def read_push_as_list(self, fname):
-			# reads a saved push message into a dict
-			fp = open(fname, 'r')
-			pdict = {}
-			for line in fp:
-				line = line.replace("\n", "")
-				lsplit = line.partition(" ")
-				pdict[lsplit[0]] = lsplit[2]
-			fp.close()
-		return pdict"""
+		 	return False
+		
+		
 	
 if __name__ == '__main__':
 	c = fMMS_controller()

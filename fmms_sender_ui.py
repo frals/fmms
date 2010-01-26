@@ -21,7 +21,7 @@ import dbus
 from wappushhandler import MMSSender
 import fmms_config as fMMSconf
 import contacts as ContactH
-
+import controller as fMMSController
 
 
 class fMMS_GUI(hildon.Program):
@@ -31,6 +31,7 @@ class fMMS_GUI(hildon.Program):
 		
 		self.config = fMMSconf.fMMS_config()
 		self.ch = ContactH.ContactHandler()
+		self.cont = fMMSController.fMMS_controller()
 		
 		self.window = hildon.StackableWindow()
 		self.window.set_title("fMMS - New MMS")
@@ -79,7 +80,7 @@ class fMMS_GUI(hildon.Program):
 		self.lSize = gtk.Label('')
 		
 		self.bSend = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL, "    Send    ")
-		self.bSend.connect('clicked', self.send_mms)
+		self.bSend.connect('clicked', self.send_mms_clicked)
 		
 		botHBox.pack_start(self.bAttachment)
 		botHBox.pack_start(self.lSize)
@@ -237,14 +238,26 @@ class fMMS_GUI(hildon.Program):
 			print "resizing failed:", e, e.args
 			raise
 	
+	def send_mms_clicked(self, widget):
+		# Disable send-button
+		self.bSend.set_sensitive(False)
+		self.send_mms(widget)
+		hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
+		self.bSend.set_sensitive(True)
+	
 	""" sends the message (no shit?) """
 	def send_mms(self, widget):
 		hildon.hildon_gtk_window_set_progress_indicator(self.window, 1)
-		# Disable send-button
-		self.bSend.set_sensitive(False)
 		self.force_ui_update()
 		
 		self.osso_c = osso.Context("fMMS", "0.1.0", False)
+		
+		
+		to = self.eNumber.get_text()
+		if not self.cont.validate_phonenumber(to):
+			note = osso.SystemNote(self.osso_c)
+			note.system_note_dialog("Invalid phonenumber, must only contain + and digits" , 'notice')
+			return
 		
 		attachment = self.bAttachment.get_label()
 		if attachment == "Attachment" or attachment == None:
