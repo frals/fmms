@@ -138,10 +138,11 @@ class fMMS_controller():
 	
 	
 	def is_mms_read(self, transactionid):
-		if self.store.is_message_read(transactionid) == True:
-			return "Read"
-		else:
-			return "Unread"
+		return self.store.is_message_read(transactionid)
+
+	
+	def mark_mms_read(self, transactionid):
+		self.store.mark_message_read(transactionid)
 	
 	
 	def store_mms_message(self, pushid, message):

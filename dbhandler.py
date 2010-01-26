@@ -197,7 +197,14 @@ class DatabaseHandler:
 		c = self.conn.cursor()
 		c.execute("update mms set pushid = ? where id = ?", (pushid, mmsid))
 		self.conn.commit()
-		
+	
+	
+	def mark_message_read(self, transactionid):
+		c = self.conn.cursor()
+		c.execute("update mms set read = 1 where transactionid = ?", (transactionid, ))
+		self.conn.commit()
+	
+	
 
 	def get_push_message(self, transid):
 		""" retrieves a push message from the db and returns it as a dict """

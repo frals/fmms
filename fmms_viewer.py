@@ -42,6 +42,9 @@ class fMMS_Viewer(hildon.Program):
 		pan.add_with_viewport(vbox)
 		self.window.add(pan)
 
+		if not self.cont.is_mms_read(fname) and self.cont.get_direction_mms(fname) == fMMSController.MSG_DIRECTION_IN:
+			self.cont.mark_mms_read(fname)
+
 		mms_menu = self.create_mms_menu(fname)
 		self.window.set_app_menu(mms_menu)
 		self.window.show_all()

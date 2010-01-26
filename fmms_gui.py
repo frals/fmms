@@ -100,12 +100,15 @@ class fMMS_GUI(hildon.Program):
 		self.treeview.tap_and_hold_setup(self.liststore_menu)
 		#treeview.connect('tap-and-hold', self.liststore_mms_clicked)
 		
-	
+		
 		pan.add_with_viewport(self.treeview)
 		self.window.add(pan)
 	
 		self.menu = self.create_menu()
 		self.window.set_app_menu(self.menu)
+		
+		self.window.connect('focus-in-event', self.cb_on_focus)
+		
 		self.window.show_all()
 		self.add_window(self.window)
 		
@@ -116,18 +119,25 @@ class fMMS_GUI(hildon.Program):
 			note.system_note_dialog(firstlaunchmessage , 'notice')
 			self.create_config_dialog()
 			self.config.set_firstlaunch(0)
-		
+	
+	def cb_on_focus(self, widget, event):
+		self.liststore.clear()
+		self.add_buttons_liststore()
+	
 	def cb_open_fmms(self, interface, method, args, user_data):
 		if method != 'open_mms' and method != 'open_gui':
 			return
 		if method == 'open_mms':
-			try:
-				checkfile = os.path.isfile(self._pushdir + args[0])
-				if checkfile == True:
-					filename = args[0]
-			except:
+			filename = args[0]
+			if self.cont.is_fetched_push_by_transid(filename):
+				hildon.hildon_gtk_window_set_progress_indicator(self.window, 1)
+				banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Opening message")
+				self.force_ui_update()
+				viewer = fMMSViewer.fMMS_Viewer(filename)
+				hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
 				return
-			viewer = fMMSViewer.fMMS_Viewer(filename)
+			else:
+				return
 		elif method == 'open_gui':
 			print "open_gui called"
 			self.liststore.clear()
@@ -308,7 +318,14 @@ class fMMS_GUI(hildon.Program):
 				fname = varlist['Transaction-Id']
 				direction = self.cont.get_direction_mms(fname)
 				# TODO Use fancy icon for showing read/unread
-				isread = " (" + self.cont.is_mms_read(fname) + ")"
+				
+				
+				if self.cont.is_mms_read(fname):
+					isread = " (Read)"
+				else:
+					isread = " (Unread)"
+				
+				
 				try:
 					sender = varlist['From']
 					sender = sender.replace("/TYPE=PLMN", "")
