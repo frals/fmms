@@ -17,6 +17,8 @@ from wappushhandler import PushHandler
 import fmms_config as fMMSconf
 import controller as fMMSController
 
+import logging
+log = logging.getLogger('fmms.%s' % __name__)
 
 class fMMS_Viewer(hildon.Program):
 
@@ -88,12 +90,9 @@ class fMMS_Viewer(hildon.Program):
 		dialogVBox = gtk.VBox()
 		
 		pan = hildon.PannableArea()
-		#pan.set_property("mov-mode", hildon.MOVEMENT_MODE_BOTH)
 		pan.set_property("size-request-policy", hildon.SIZE_REQUEST_CHILDREN)
 		
 		allVBox = gtk.VBox()
-		#leftBox = gtk.VBox()
-		#rightBox = gtk.VBox()
 		headerlist = self.cont.get_mms_headers(fname)
 		for line in headerlist:
 			hbox = gtk.HBox()
@@ -106,12 +105,8 @@ class fMMS_Viewer(hildon.Program):
 			hbox.pack_start(titel, False, False, 0)
 			hbox.pack_start(label, False, False, 0)
 			allVBox.pack_start(hbox)
-			#leftBox.pack_start(titel, False, False, 0)
-			#rightBox.pack_start(label, False, False, 0)
-			#pan.add(label)
-			
-		#allHBox.pack_start(leftBox, False, False, 0)
-		#allHBox.pack_start(rightBox, True, True, 0)
+
+
 		allVBox.show_all()
 		
 		pan.add_with_viewport(allVBox)
@@ -142,7 +137,7 @@ class fMMS_Viewer(hildon.Program):
 		else:
 			path = self._mmsdir + filename
 		filelist = self.cont.get_mms_attachments(filename)
-		print "filelist:", filelist
+		log.info("filelist: %s", filelist)
 		for fname in filelist:
 			(name, ext) = os.path.splitext(fname)
 			fnpath = os.path.join(path, fname)
@@ -150,7 +145,7 @@ class fMMS_Viewer(hildon.Program):
 			isImage = False
 			try:
 				filetype = gnomevfs.get_mime_type(fnpath)
-				print "filetype:", filetype
+				log.info("filetype: %s", filetype)
 				if filetype != None:
 					if filetype.startswith("image") or filetype.startswith("sketch"):
 						isImage = True
@@ -158,7 +153,7 @@ class fMMS_Viewer(hildon.Program):
 						isText = True
 			except Exception, e:
 				filetype = None
-				print type(e), e
+				log.exception("%s %s", type(e), e)
 			
 			if isImage or ext == ".wbmp":
 				""" insert the image in an eventbox so we can get signals """
@@ -176,7 +171,6 @@ class fMMS_Viewer(hildon.Program):
 				fp = open(path + "/" + fname, 'r')
 				contents = fp.read()
 				fp.close()
-				#print contents
 				textbuffer.insert(textbuffer.get_end_iter(), contents)
 			elif name != "message" and name != "headers" and not ext.startswith(".smil") and filetype != "application/smil":
 				attachButton = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL, fname)
@@ -190,7 +184,7 @@ class fMMS_Viewer(hildon.Program):
 		
 	""" action on click on image/button """
 	def mms_img_clicked(self, widget, data):
-		print widget, data
+		log.info("img clicked: %s", data)
 		path = "file://" + data
 		# gnomevfs seems to be better than mimetype when guessing mimetype for us
 		file_mimetype = gnomevfs.get_mime_type(path)
@@ -206,13 +200,12 @@ class fMMS_Viewer(hildon.Program):
 			# move .mms to ~/MyDocs? change button to copy file to ~/MyDocs?
 			#rpc = osso.Rpc(self.osso_c)
 			#path = os.path.dirname(path).replace("file://", "")
-			print path
+			log.info("path %s", path)
 			#rpc.rpc_run("com.nokia.osso_filemanager", "/com/nokia/osso_filemanager", "com.nokia.osso_filemanager", "open_folder", (str, path))
 
 
 	""" long press on image creates this """
 	def mms_img_menu(self, data=None):
-		print "menu created"
 		menu = gtk.Menu()
 		menu.set_title("hildon-context-sensitive-menu")
 
