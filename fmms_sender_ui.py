@@ -26,8 +26,8 @@ import controller as fMMSController
 import logging
 log = logging.getLogger('fmms.%s' % __name__)
 
-class fMMS_GUI(hildon.Program):
-	def __init__(self, spawner=None):
+class fMMS_SenderUI(hildon.Program):
+	def __init__(self, spawner=None, tonumber=None):
 		hildon.Program.__init__(self)
 		program = hildon.Program.get_instance()
 		
@@ -53,6 +53,8 @@ class fMMS_GUI(hildon.Program):
 		bTo = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL, "     To     ")
 		bTo.connect('clicked', self.open_contacts_dialog)
 		self.eNumber = hildon.Entry(gtk.HILDON_SIZE_FINGER_HEIGHT)
+		if tonumber != None:
+			self.eNumber.set_text(tonumber)
 		
 		topHBox1.pack_start(bTo, False, True, 0)
 		topHBox1.pack_start(self.eNumber, True, True, 0)
@@ -327,5 +329,5 @@ class fMMS_GUI(hildon.Program):
 		gtk.main()
 		
 if __name__ == "__main__":
-	app = fMMS_GUI()
+	app = fMMS_SenderUI()
 	app.run()

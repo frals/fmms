@@ -170,6 +170,15 @@ class fMMS_controller():
 	
 	def get_direction_mms(self, transid):
 		return self.store.get_direction_mms(transid)
+		
+	def get_replyuri_from_transid(self, transid):
+		uri = self.store.get_replyuri_from_transid(transid)
+		try:
+			uri = uri.replace("/TYPE=PLMN", "")
+			return uri
+		except Exception, e:
+			log.exception("failed to get replyuri, got: %s (%s)", uri, uri.__class__)
+			return ""
 	
 	def get_mms_from_push(self, transactionid):
 		plist = self.store.get_push_message(transactionid)

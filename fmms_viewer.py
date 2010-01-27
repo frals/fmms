@@ -18,6 +18,7 @@ import dbus
 from wappushhandler import PushHandler
 import fmms_config as fMMSconf
 import controller as fMMSController
+import fmms_sender_ui as fMMSSenderUI
 
 import logging
 log = logging.getLogger('fmms.%s' % __name__)
@@ -72,17 +73,26 @@ class fMMS_Viewer(hildon.Program):
 		headers.set_label("Headers")
 		headers.connect('clicked', self.mms_menu_button_clicked, fname)
 		
+		reply = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
+		reply.set_label("Reply")
+		reply.connect('clicked', self.mms_menu_button_clicked, fname)
+		
+		menu.append(reply)
 		menu.append(headers)
 	
 		menu.show_all()
 		
 		return menu		
 	
+	
 	""" actions for mms menu """
 	def mms_menu_button_clicked(self, button, fname):
 		buttontext = button.get_label()
 		if buttontext == "Headers":
 			ret = self.create_headers_dialog(fname)
+		elif buttontext == "Reply":
+			number = self.cont.get_replyuri_from_transid(fname)
+			fMMSSenderUI.fMMS_SenderUI(tonumber=number).run()
 
 	""" show headers in a dialog """
 	def create_headers_dialog(self, fname):

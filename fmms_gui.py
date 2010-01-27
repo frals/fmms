@@ -147,6 +147,10 @@ class fMMS_GUI(hildon.Program):
 			self.liststore.clear()
 			self.add_buttons_liststore()
 			return
+		elif method == 'send_mms':
+			log.info("launching sender with args: %s", args)
+			fMMSSenderUI.fMMS_SenderUI(tonumber=args[0]).run()
+			return
 		
 	def create_menu(self):
 		menu = hildon.AppMenu()
@@ -176,7 +180,7 @@ class fMMS_GUI(hildon.Program):
 		if buttontext == "Configuration":
 			ret = self.create_config_dialog()
 		elif buttontext == "New MMS":
-			ret = fMMSSenderUI.fMMS_GUI(self.window).run()
+			ret = fMMSSenderUI.fMMS_SenderUI(self.window).run()
 		elif buttontext == "About":
 			ret = self.create_about_dialog()
 		

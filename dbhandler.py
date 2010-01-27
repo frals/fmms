@@ -379,6 +379,19 @@ class DatabaseHandler:
 		except:
 			return None
 	
+	def get_replyuri_from_transid(self, transid):
+		mmsid = self.get_mmsid_from_transactionid(transid)
+		if mmsid == None:
+			return None
+		c = self.conn.cursor()
+		c.execute("select value from mms_headers where mms_id = ? and header = 'From'", (mmsid, ))
+		res = c.fetchone()
+		try:
+			uri = res['value']
+			return uri
+		except:
+			return None
+	
 	
 	def get_pushid_from_transactionid(self, transactionid):
 		c = self.conn.cursor()

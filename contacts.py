@@ -94,8 +94,8 @@ class ContactHandler:
 		res = self.ab.search(pname)
 		### do some nice stuff here
 		l = [x.get_name() for x in res]
-		log.info("search for: %s gave: %s (%s)", pname, l, l.__class__)
-		if res != None and res.__class__ == list:
+		log.info("search for: %s gave: %s (%s) (length: %s)", pname, l, l.__class__, len(l))
+		if res != None and res.__class__ == list and len(res) > 0:
 			img = res[0].get_photo(imgsize)
 			if img == None:
 				vcardlist = res[0].get_vcard_string().replace('\r', '').split('\n') # vcard for first result
