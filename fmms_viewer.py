@@ -6,12 +6,14 @@
 @license: GNU GPL
 """
 import os
+import sys
 
 import gtk
 import hildon
 import gobject
 import osso
 from gnome import gnomevfs
+import dbus
 
 from wappushhandler import PushHandler
 import fmms_config as fMMSconf
@@ -185,22 +187,26 @@ class fMMS_Viewer(hildon.Program):
 	""" action on click on image/button """
 	def mms_img_clicked(self, widget, data):
 		log.info("img clicked: %s", data)
-		path = "file://" + data
+		path = str("file://" + data)
 		# gnomevfs seems to be better than mimetype when guessing mimetype for us
 		file_mimetype = gnomevfs.get_mime_type(path)
+		log.info("path: %s", path)
+		log.info("mimetype: %s", file_mimetype)
 		if file_mimetype != None:
 			if file_mimetype.startswith("video") or file_mimetype.startswith("audio"):
+				self.osso_c = osso.Context("fMMSViewer", "0.3", False)
 				rpc = osso.Rpc(self.osso_c)
 				rpc.rpc_run("com.nokia.mediaplayer", "/com/nokia/mediaplayer", "com.nokia.mediaplayer", "mime_open", (str, path))	
 			elif file_mimetype.startswith("image"):
+				self.osso_c = osso.Context("fMMSViewer", "0.3", False)
 				rpc = osso.Rpc(self.osso_c)
-				rpc.rpc_run("com.nokia.image_viewer", "/com/nokia/image_viewer", "com.nokia.image_viewer", "mime_open", (str, path))
+				ret = rpc.rpc_run("com.nokia.image_viewer", "/com/nokia/image_viewer", "com.nokia.image_viewer", "mime_open", (str, path))
 		else:
 			# TODO: how to solve this?
 			# move .mms to ~/MyDocs? change button to copy file to ~/MyDocs?
 			#rpc = osso.Rpc(self.osso_c)
 			#path = os.path.dirname(path).replace("file://", "")
-			log.info("path %s", path)
+			log.info("path %s", str(path))
 			#rpc.rpc_run("com.nokia.osso_filemanager", "/com/nokia/osso_filemanager", "com.nokia.osso_filemanager", "open_folder", (str, path))
 
 
@@ -221,5 +227,5 @@ class fMMS_Viewer(hildon.Program):
 		gtk.main()
 		
 if __name__ == "__main__":
-	app = fMMS_Viewer("fname", True)
+	app = fMMS_Viewer(sys.argv[1], True)
 	app.run()
