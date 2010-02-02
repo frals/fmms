@@ -142,6 +142,9 @@ class fMMS_Viewer(hildon.Program):
 		textview.set_editable(False)
 		textview.set_cursor_visible(False)
 		textview.set_wrap_mode(gtk.WRAP_WORD)
+		black = gtk.gdk.Color(red=0, green=0, blue=0)
+		textview.modify_base(gtk.STATE_NORMAL, black)
+		textview.modify_text(gtk.STATE_NORMAL, gtk.gdk.color_parse("white"))
 		textbuffer = gtk.TextBuffer()
 		direction = self.cont.get_direction_mms(filename)
 		if direction == fMMSController.MSG_DIRECTION_OUT:
