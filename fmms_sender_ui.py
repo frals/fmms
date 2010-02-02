@@ -72,19 +72,25 @@ class fMMS_SenderUI(hildon.Program):
 		""" Begin botsection """
 		
 		botHBox = gtk.HBox()
+		botHBox.set_homogeneous(True)
 		#self.bAttachment = gtk.FileChooserButton('')
 		#self.bAttachment.connect('file-set', self.update_size)
 		self.bAttachment = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL, "Attachment")
 		self.bAttachment.connect('clicked', self.open_file_dialog)
+		self.attachmentFile = ""
 		
-		self.lSize = gtk.Label('')
+		self.lSize = gtk.Label()
+		self.lSize.set_markup("Size:\n<small>0 kB</small>")
+		#self.lSize.set_width_chars(24)
+		self.lSize.set_alignment(0.5, 0.5)
 		
-		self.bSend = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL, "    Send    ")
+		
+		self.bSend = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL, "Send")
 		self.bSend.connect('clicked', self.send_mms_clicked)
 		
-		botHBox.pack_start(self.bAttachment)
-		botHBox.pack_start(self.lSize)
-		botHBox.pack_end(self.bSend, False, False, 5)
+		botHBox.pack_start(self.bAttachment, True, True, 0)
+		botHBox.pack_start(self.lSize, True, True, 0)
+		botHBox.pack_start(self.bSend, True, True, 0)
 		
 
 		""" Show it all! """
@@ -185,8 +191,9 @@ class fMMS_SenderUI(hildon.Program):
 				banner = hildon.hildon_banner_show_information(self.window, "", "10MB attachment limit in effect, please try another file")
 				self.bAttachment.set_label("Attachment")
 			else:
-				self.bAttachment.set_label(fcd.get_filename())
+				self.bAttachment.set_label(os.path.basename(fcd.get_filename()))
 				self.update_size(fcd.get_filename())
+				self.attachmentFile = fcd.get_filename()
 			fcd.destroy()
 		else:
 			fcd.destroy()
@@ -249,8 +256,8 @@ class fMMS_SenderUI(hildon.Program):
 			note.system_note_dialog("Invalid phonenumber, must only contain + and digits" , 'notice')
 			return
 		
-		attachment = self.bAttachment.get_label()
-		if attachment == "Attachment" or attachment == None:
+		attachment = self.attachmentFile
+		if attachment == "" or attachment == None:
 			attachment = None
 			self.attachmentIsResized = False
 		else:
@@ -317,9 +324,9 @@ class fMMS_SenderUI(hildon.Program):
 	def update_size(self, fname):
 		try:
 			size = os.path.getsize(fname) / 1024
-			self.lSize.set_markup("Size:\n<small>" + str(size) + "kB</small>")	
+			self.lSize.set_markup("Size:\n<small>" + str(size) + " kB</small>")	
 		except TypeError:
-			self.lSize.set_markup("")
+			self.lSize.set_markup("Size:\n<small>0 kB</small>")
 
 	def quit(self, *args):
 		gtk.main_quit()
