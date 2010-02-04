@@ -65,6 +65,7 @@ class fMMS_SenderUI(hildon.Program):
 		pan.set_property("mov-mode", hildon.MOVEMENT_MODE_BOTH)		
 		
 		self.tvMessage = hildon.TextView()
+		self.tvMessage.set_property("name", "hildon-fullscreen-textview")
 		self.tvMessage.set_wrap_mode(gtk.WRAP_WORD)
 		
 		pan.add_with_viewport(self.tvMessage)

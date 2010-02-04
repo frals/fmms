@@ -103,8 +103,30 @@ class fMMS_GUI(hildon.Program):
 		self.treeview.tap_and_hold_setup(self.liststore_menu)
 		#treeview.connect('tap-and-hold', self.liststore_mms_clicked)
 		
+		self.hugeBox = gtk.VBox()
+
 		
-		pan.add_with_viewport(self.treeview)
+		mmsBox = gtk.HBox()
+		icon_theme = gtk.icon_theme_get_default()
+		envelopePixbuf = icon_theme.load_icon("general_sms_button", 48, 0)
+		envelopeImage = gtk.Image()
+		envelopeImage.set_from_pixbuf(envelopePixbuf)
+		envelopeImage.set_alignment(1, 0.5)
+		mmsLabel = gtk.Label("New MMS")
+		mmsLabel.set_alignment(0, 0.5)
+		
+		mmsBox.pack_start(envelopeImage, True, True, 0)
+		mmsBox.pack_start(mmsLabel, True, True, 0)
+		self.newMsgButton = hildon.GtkButton(gtk.HILDON_SIZE_FINGER_HEIGHT)
+		
+		self.newMsgButton.add(mmsBox)
+		self.newMsgButton.connect('clicked', self.new_mms_button_clicked)
+		
+		
+		self.hugeBox.pack_start(self.newMsgButton, True, True, 0)
+		self.hugeBox.pack_start(self.treeview, True, True, 0)
+		#pan.add_with_viewport(self.treeview)
+		pan.add_with_viewport(self.hugeBox)
 		self.window.add(pan)
 	
 		self.menu = self.create_menu()
@@ -136,7 +158,7 @@ class fMMS_GUI(hildon.Program):
 			filename = args[0]
 			if self.cont.is_fetched_push_by_transid(filename):
 				hildon.hildon_gtk_window_set_progress_indicator(self.window, 1)
-				banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Opening message")
+				#banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Opening message")
 				self.force_ui_update()
 				viewer = fMMSViewer.fMMS_Viewer(filename)
 				hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
@@ -179,10 +201,11 @@ class fMMS_GUI(hildon.Program):
 		buttontext = button.get_label()
 		if buttontext == "Configuration":
 			ret = self.create_config_dialog()
-		elif buttontext == "New MMS":
-			ret = fMMSSenderUI.fMMS_SenderUI(self.window).run()
 		elif buttontext == "About":
 			ret = self.create_about_dialog()
+	
+	def new_mms_button_clicked(self, button):
+		ret = fMMSSenderUI.fMMS_SenderUI(self.window).run()
 		
 	def create_about_dialog(self):
 		dialog = gtk.AboutDialog()                                                 
@@ -472,7 +495,7 @@ class fMMS_GUI(hildon.Program):
 	def show_mms(self, treeview, path):
 		# Show loading indicator
 		hildon.hildon_gtk_window_set_progress_indicator(self.window, 1)
-		banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Opening message")
+		#banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Opening message")
 		self.force_ui_update()
 		
 		log.info("showing mms: %s", path)
