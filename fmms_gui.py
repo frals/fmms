@@ -127,6 +127,7 @@ class fMMS_GUI(hildon.Program):
 		self.hugeBox.pack_start(self.treeview, True, True, 0)
 		#pan.add_with_viewport(self.treeview)
 		pan.add_with_viewport(self.hugeBox)
+		
 		self.window.add(pan)
 	
 		self.menu = self.create_menu()
@@ -177,10 +178,6 @@ class fMMS_GUI(hildon.Program):
 	def create_menu(self):
 		menu = hildon.AppMenu()
 		
-		send = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
-		send.set_label("New MMS")
-		send.connect('clicked', self.menu_button_clicked)
-		
 		config = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
 		config.set_label("Configuration")
 		config.connect('clicked', self.menu_button_clicked)
@@ -189,7 +186,6 @@ class fMMS_GUI(hildon.Program):
 		about.set_label("About")
 		about.connect('clicked', self.menu_button_clicked)
 		
-		menu.append(send)
 		menu.append(config)
 		menu.append(about)
 		
@@ -348,13 +344,10 @@ class fMMS_GUI(hildon.Program):
 				mtime = varlist['Time']
 				fname = varlist['Transaction-Id']
 				direction = self.cont.get_direction_mms(fname)
-				# TODO Use fancy icon for showing read/unread
 				
-				
+				isread = False
 				if self.cont.is_mms_read(fname):
-					isread = " (Read)"
-				else:
-					isread = " (Unread)"
+					isread = True
 				
 				
 				try:
@@ -364,12 +357,13 @@ class fMMS_GUI(hildon.Program):
 					sender = "0000000"
 				
 				if direction == fMMSController.MSG_DIRECTION_OUT:
-					sender = "You (Outgoing)"
+					# TODO: Change to show receivers name
+					sender = "You"
 				
 				sendername = self.ch.get_name_from_number(sender)
 				photo = icon_theme.load_icon("general_default_avatar", 48, 0)
 				if sendername != None:
-					sender = sendername + ' <span size="smaller">(' + sender + ')</span>'
+					sender = sendername
 					phototest = self.ch.get_photo_from_name(sendername, 64)
 					if phototest != None:	
 						photo = phototest
@@ -377,11 +371,13 @@ class fMMS_GUI(hildon.Program):
 	
 				#title = sender + " - " + mtime
 				
-				if self.cont.is_fetched_push_by_transid(fname):
+				if direction == fMMSController.MSG_DIRECTION_OUT:
+					icon = icon_theme.load_icon("chat_replied_sms", 48, 0)
+				elif self.cont.is_fetched_push_by_transid(fname) and isread:
 					icon = icon_theme.load_icon("general_sms", 48, 0)
 				else:
 					icon = icon_theme.load_icon("chat_unread_sms", 48, 0)
-				self.liststore.append([icon, sender + isread + '  <span foreground="#666666" size="smaller"><sup>' + mtime + '</sup></span>\n<span foreground="#666666" size="x-small">' + fname + '</span>', photo, fname])
+				self.liststore.append([icon, sender + ' <span foreground="#666666" size="smaller"><sup>' + mtime + '</sup></span>\n<span foreground="#666666" size="x-small">' + fname + '</span>', photo, fname])
 	
 	""" lets call it quits! """
 	def quit(self, *args):
