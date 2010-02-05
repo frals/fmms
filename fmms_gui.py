@@ -25,6 +25,7 @@ import contacts as ContactH
 import logging
 log = logging.getLogger('fmms.%s' % __name__)
 
+
 class fMMS_GUI(hildon.Program):
 
 	def __init__(self):
@@ -94,7 +95,7 @@ class fMMS_GUI(hildon.Program):
 		placeholder_col.pack_end(photocell, False)
 		placeholder_col.set_attributes(photocell, pixbuf=2)
 		
-		selection = self.treeview.get_selection()
+		#selection = self.treeview.get_selection()
 		#selection.set_mode(gtk.SELECTION_SINGLE)
 		self.treeview.connect('hildon-row-tapped', self.show_mms)
 		
@@ -468,16 +469,17 @@ class fMMS_GUI(hildon.Program):
 	""" long press on image creates this """
 	def liststore_mms_menu(self):
 		menu = gtk.Menu()
-		menu.set_title("hildon-context-sensitive-menu")
+		menu.set_property("name", "hildon-context-sensitive-menu")
+		
 
-		redlItem = gtk.MenuItem("Redownload")
+		"""redlItem = gtk.MenuItem("Redownload")
 		menu.append(redlItem)
 		redlItem.connect("activate", self.liststore_redl_clicked)
 		redlItem.show()
 		
 		separator = gtk.MenuItem()
 		menu.append(separator)
-		separator.show()
+		separator.show()"""
 		
 		openItem = gtk.MenuItem("Delete")
 		menu.append(openItem)
