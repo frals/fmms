@@ -73,9 +73,9 @@ class fMMS_GUI(hildon.Program):
 		textcell.set_property('xalign', 0.0)
 		
 		self.liststore = gtk.ListStore(gtk.gdk.Pixbuf, str, gtk.gdk.Pixbuf, str)
-		self.treeview = hildon.GtkTreeView(gtk.HILDON_UI_MODE_EDIT)
+		self.treeview = hildon.GtkTreeView(gtk.HILDON_UI_MODE_NORMAL)
+		self.treeview.set_property("name", "GtkTreeView")
 		self.treeview.set_model(self.liststore)
-
 		
 		icon_col = gtk.TreeViewColumn('Icon')
 		sender_col = gtk.TreeViewColumn('Sender')
@@ -95,7 +95,7 @@ class fMMS_GUI(hildon.Program):
 		placeholder_col.pack_end(photocell, False)
 		placeholder_col.set_attributes(photocell, pixbuf=2)
 		
-		#selection = self.treeview.get_selection()
+		selection = self.treeview.get_selection()
 		#selection.set_mode(gtk.SELECTION_SINGLE)
 		self.treeview.connect('hildon-row-tapped', self.show_mms)
 		
@@ -514,7 +514,7 @@ class fMMS_GUI(hildon.Program):
 	def run(self):
 		self.window.show_all()
 		gtk.main()
-		
+				
 if __name__ == "__main__":
 	app = fMMS_GUI()
 	app.run()

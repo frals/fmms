@@ -19,6 +19,7 @@ from wappushhandler import PushHandler
 import fmms_config as fMMSconf
 import controller as fMMSController
 import fmms_sender_ui as fMMSSenderUI
+import contacts as ContactH
 
 import logging
 log = logging.getLogger('fmms.%s' % __name__)
@@ -27,6 +28,7 @@ class fMMS_Viewer(hildon.Program):
 
 	def __init__(self, fname, standalone=False):
 		self.cont = fMMSController.fMMS_controller()
+		self.ch = ContactH.ContactHandler()
 		self.standalone = standalone
 		self.config = fMMSconf.fMMS_config()
 		self._mmsdir = self.config.get_mmsdir()
@@ -138,6 +140,35 @@ class fMMS_Viewer(hildon.Program):
 		if not self.cont.is_fetched_push_by_transid(filename):	
 			self.cont.get_mms_from_push(filename)
 				
+
+		headerlist = self.cont.get_mms_headers(filename)
+		sender = headerlist['From'].replace("/TYPE=PLMN", "")
+		sendername = self.ch.get_name_from_number(sender)
+		if sendername != None:
+			sender = sendername
+			
+          	self.window.set_title("MMS - " + str(sender))
+		topbox = gtk.HBox()
+		label = gtk.Label('<span foreground="#666666">From</span>')
+		label.set_use_markup(True)
+                label.set_alignment(0, 0.5)
+		namelabel = gtk.Label(sender)
+                #namelabel.set_justification(gtk.JUSTIFY_LEFT)
+                namelabel.set_alignment(0, 0.5)
+                # TODO: format time, get from db?
+                timelabel = gtk.Label('<span foreground="#666666">' + str(headerlist['Time']) + "</span>")
+                timelabel.set_use_markup(True)
+                timelabel.set_alignment(1, 0.5)
+                
+		topbox.pack_start(label, False, False, 20)
+		topbox.pack_start(namelabel, True, True, 0)
+		topbox.pack_end(timelabel, False, False, 10)
+		
+		container.pack_start(topbox, False, False, 5)
+		sep = gtk.HSeparator()
+		container.pack_start(sep, False, False, 0)
+		# TODO: add correct padding to first item in next container
+				
 		textview = gtk.TextView()
 		textview.set_editable(False)
 		textview.set_cursor_visible(False)
@@ -195,7 +226,7 @@ class fMMS_Viewer(hildon.Program):
 				container.pack_end(attachButton, False, False, 0)
 				
 		textview.set_buffer(textbuffer)
-		container.add(textview)
+		container.pack_start(textview)
 		hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
 		
 		
@@ -228,7 +259,7 @@ class fMMS_Viewer(hildon.Program):
 	""" long press on image creates this """
 	def mms_img_menu(self, data=None):
 		menu = gtk.Menu()
-		menu.set_title("hildon-context-sensitive-menu")
+		menu.set_property("name", "hildon-context-sensitive-menu")
 
 		openItem = gtk.MenuItem("Open")
 		menu.append(openItem)
