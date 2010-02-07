@@ -107,7 +107,6 @@ class fMMS_controller():
 	def read_push_as_list(self, transactionid):
 		return self.store.get_push_message(transactionid)
 	
-	
 	def save_binary_mms(self, data, transaction):
 		dirname = self._mmsdir + transaction
 		if not os.path.isdir(dirname):

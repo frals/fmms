@@ -42,6 +42,10 @@ class DatabaseHandler:
 		except:
 			self.create_database_layout()
 
+	def alter_database_layout_1(self):
+		c = self.conn
+		c.execute("""UPDATE """)
+		c.execute("""ALTER TABLE """)
 		
 	def create_database_layout(self):
 		c = self.conn
@@ -322,7 +326,26 @@ class DatabaseHandler:
 			vals = (mmsid, line, hidden)
 			c.execute("insert into attachments (mmsidattach, file, hidden) VALUES (?, ?, ?)", vals)
 			conn.commit()
+		
+		try:
+			description = str(mmslist['Subject'])
+		except:
+			description = ""			
+			# get the textfiles
+			for line in attachments:
+				filetype = gnomevfs.get_mime_type(attachpaths + line)
+				log.info("filetype: %s", filetype)
+				if filetype.startswith("text"):
+					filep = open(attachpaths + line, 'r')
+					description += filep.read()
+					filep.close()
 			
+		# insert the message to be shown in the mainview
+		vals = (mmsid, "Description", description)
+		log.info("inserting description: %s", description)
+		c.execute("insert into mms_headers (mms_id, header, value) VALUES (?, ?, ?)", vals)
+		conn.commit()
+
 		return mmsid
 
 	def get_mms_attachments(self, transactionid, allFiles=False):

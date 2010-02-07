@@ -285,7 +285,10 @@ class fMMS_SenderUI(hildon.Program):
 		# TODO: remove hardcoded subject
 		# TODO: let controller do this
 		try:
-			sender = MMSSender(to, "MMS", message, attachment, sender)
+			subject = message[:10]
+			if len(message) > 10:
+				subject += "..."
+			sender = MMSSender(to, subject, message, attachment, sender)
 			(status, reason, output) = sender.sendMMS()
 			### TODO: Clean up and make this look decent
 			message = str(status) + "_" + str(reason)

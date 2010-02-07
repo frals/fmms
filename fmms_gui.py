@@ -56,7 +56,7 @@ class fMMS_GUI(hildon.Program):
 		self.window.connect("delete_event", self.quit)
 		
 		pan = hildon.PannableArea()
-		pan.set_property("mov-mode", hildon.MOVEMENT_MODE_BOTH)
+		#pan.set_property("mov-mode", hildon.MOVEMENT_MODE_BOTH)
 		
 		
 		### TODO: dont hardcode the values here.. oh well
@@ -74,7 +74,7 @@ class fMMS_GUI(hildon.Program):
 		
 		self.liststore = gtk.ListStore(gtk.gdk.Pixbuf, str, gtk.gdk.Pixbuf, str)
 		self.treeview = hildon.GtkTreeView(gtk.HILDON_UI_MODE_NORMAL)
-		self.treeview.set_property("name", "GtkTreeView")
+		#self.treeview.set_property("name", "GtkTreeView")
 		self.treeview.set_model(self.liststore)
 		
 		icon_col = gtk.TreeViewColumn('Icon')
@@ -124,12 +124,17 @@ class fMMS_GUI(hildon.Program):
 		self.newMsgButton.connect('clicked', self.new_mms_button_clicked)
 		
 		
-		self.hugeBox.pack_start(self.newMsgButton, True, True, 0)
-		self.hugeBox.pack_start(self.treeview, True, True, 0)
+		#self.hugeBox.pack_start(self.newMsgButton, True, True, 0)
+		#self.hugeBox.pack_start(self.treeview, True, True, 0)
 		#pan.add_with_viewport(self.treeview)
-		pan.add_with_viewport(self.hugeBox)
+		#pan.add_with_viewport(self.hugeBox)
+		pan.add(self.treeview)
 		
-		self.window.add(pan)
+		
+		self.hugeBox.pack_start(self.newMsgButton, False, False, 0)
+		self.hugeBox.pack_start(pan, True, True, 0)
+		#self.window.add(pan)
+		self.window.add(self.hugeBox)
 	
 		self.menu = self.create_menu()
 		self.window.set_app_menu(self.menu)
@@ -149,9 +154,13 @@ class fMMS_GUI(hildon.Program):
 	def cb_on_focus(self, widget, event):
 		# TODO: re-set iter
 		#log.info("got focus")
-		#self.liststore.clear()
-		#self.add_buttons_liststore()
-		pass
+		#(model, itera) = self.treeview.get_selection().get_selected()
+		#print itera
+		self.liststore.clear()
+		self.add_buttons_liststore()
+		#self.treeview.get_selection().select_iter(itera)
+		#pass
+		return True
 	
 	def cb_open_fmms(self, interface, method, args, user_data):
 		if method != 'open_mms' and method != 'open_gui':
@@ -378,7 +387,18 @@ class fMMS_GUI(hildon.Program):
 					icon = icon_theme.load_icon("general_sms", 48, 0)
 				else:
 					icon = icon_theme.load_icon("chat_unread_sms", 48, 0)
-				self.liststore.append([icon, sender + ' <span foreground="#666666" size="smaller"><sup>' + mtime + '</sup></span>\n<span foreground="#666666" size="x-small">' + fname + '</span>', photo, fname])
+					
+				try:
+					headerlist = self.cont.get_mms_headers(fname)
+					description = headerlist['Description']
+				except:
+					try:
+						description = varlist['Subject']
+					except:
+						description = ""
+				
+				
+				self.liststore.append([icon, sender + ' <span foreground="#666666" size="smaller"><sup>' + mtime + '</sup></span>\n<span foreground="#666666" size="x-small">' + description + '</span>', photo, fname])
 	
 	""" lets call it quits! """
 	def quit(self, *args):
@@ -413,6 +433,9 @@ class fMMS_GUI(hildon.Program):
 
 	""" action on delete contextmenu click """
 	def liststore_delete_clicked(self, widget):
+		(model, miter) = self.treeview.get_selection().get_selected()
+		# the 4th value is the filename (start counting at 0)
+		filename = model.get_value(miter, 3)
 		dialog = gtk.Dialog()
 		dialog.set_title("Confirm")
 		dialog.add_button(gtk.STOCK_YES, 1)
@@ -422,12 +445,9 @@ class fMMS_GUI(hildon.Program):
 		dialog.show_all()
 		ret = dialog.run()
 		if ret == 1:
-			(model, miter) = self.treeview.get_selection().get_selected()
-			# the 4th value is the filename (start counting at 0)
-			filename = model.get_value(miter, 3)
 			log.info("deleting %s", filename)
 			self.delete_push_mms(filename)
-			self.liststore.remove(miter)
+			#self.liststore.remove(miter)
 		dialog.destroy()
 		return
 	
