@@ -20,6 +20,7 @@ import re
 
 import dbus
 from dbus.mainloop.glib import DBusGMainLoop
+import gtk
 
 import fmms_config as fMMSconf
 import dbhandler as DBHandler
@@ -41,6 +42,33 @@ class fMMS_controller():
 		self._pushdir = self.config.get_pushdir()
 		self._outdir = self.config.get_outdir()
 		self.store = DBHandler.DatabaseHandler()
+	
+	def get_primary_font(self):
+		return self.get_font_desc('SystemFont')
+		
+	def get_secondary_font(self):
+		return self.get_font_desc('SmallSystemFont')
+	
+	def get_primary_color(self):
+		return self.get_color('ButtonTextColor')
+		
+	def get_secondary_color(self):
+		return self.get_color('SecondaryTextColor')
+	
+	# credits to gpodder for this
+	def get_font_desc(self, logicalfontname):
+		settings = gtk.settings_get_default()
+		font_style = gtk.rc_get_style_by_paths(settings, logicalfontname, \
+							None, None)
+		font_desc = font_style.font_desc
+		return font_desc
+	
+	# credits to gpodder for this
+	def get_color(self, logicalcolorname):
+		settings = gtk.settings_get_default()
+		color_style = gtk.rc_get_style_by_paths(settings, 'GtkButton', \
+							'osso-logical-colors', gtk.Button)
+		return color_style.lookup_color(logicalcolorname)
 	
 	
 	def decode_mms_from_push(self, binarydata):
