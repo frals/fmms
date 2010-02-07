@@ -75,16 +75,14 @@ class ContactHandler:
 	""" takes a number on international format (ie +46730111111) """
 	def get_name_from_number(self, number):
 		### do some voodoo here
-		# ugly way of removing country code since this
-		# can be 2 or 3 chars we remove 4 just in case
-		# 3 and the + char = 4
-		numberstrip = number[4:-1]
+		# match against the last 7 digits
+		numberstrip = number[-7:]
 		for person in self.phonedict:	
 			for cbnr in self.phonedict[person]:
 				if cbnr != None:
 					cbnr = cbnr.replace(" ", "")
-					cbnr = cbnr.lstrip('0')
-					if cbnr == number or numberstrip.endswith(cbnr) or number.endswith(cbnr):
+					cbnr = cbnr[-7:]
+					if cbnr == number or numberstrip.endswith(cbnr) or number.endswith(cbnr) and len(cbnr) >= 7:
 						return person
 					
 		return None
@@ -115,4 +113,3 @@ class ContactHandler:
 		
 if __name__ == '__main__':
 	cb = ContactHandler()
-	#c = ab.get_contact("id")
