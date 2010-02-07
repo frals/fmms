@@ -7,6 +7,7 @@
 """
 import os
 import sys
+import time
 
 import gtk
 import hildon
@@ -37,19 +38,21 @@ class fMMS_Viewer(hildon.Program):
 		self.osso_c = osso.Context("fMMS", "0.1.0", False)
 		
 		self.window = hildon.StackableWindow()
-		self.window.set_title("Showing MMS: " + fname)
+		self.window.set_title("Showing MMS")
 		self.window.connect("delete_event", self.quit)
 		
 		vbox = gtk.VBox()
 		pan = hildon.PannableArea()
 		pan.set_property("mov-mode", hildon.MOVEMENT_MODE_BOTH)
 
+		self._direction = self.cont.get_direction_mms(fname)
+
 		self._parse_mms(fname, vbox)
 
 		pan.add_with_viewport(vbox)
 		self.window.add(pan)
 
-		if not self.cont.is_mms_read(fname) and self.cont.get_direction_mms(fname) == fMMSController.MSG_DIRECTION_IN:
+		if not self.cont.is_mms_read(fname) and self._direction == fMMSController.MSG_DIRECTION_IN:
 			self.cont.mark_mms_read(fname)
 
 		mms_menu = self.create_mms_menu(fname)
@@ -137,7 +140,9 @@ class fMMS_Viewer(hildon.Program):
 		hildon.hildon_gtk_window_set_progress_indicator(self.window, 1)
 		self.force_ui_update()
 		
-		if not self.cont.is_fetched_push_by_transid(filename):	
+		if not self.cont.is_fetched_push_by_transid(filename):
+			banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Trying to download MMS...")
+			self.force_ui_update()
 			self.cont.get_mms_from_push(filename)
 				
 
@@ -149,14 +154,38 @@ class fMMS_Viewer(hildon.Program):
 			
           	self.window.set_title("MMS - " + str(sender))
 		topbox = gtk.HBox()
-		label = gtk.Label('<span foreground="#666666">From</span>')
+		if self._direction == fMMSController.MSG_DIRECTION_IN:
+			label = gtk.Label('<span foreground="#666666">From</span>')
+			sender = headerlist['From'].replace("/TYPE=PLMN", "")
+		else:
+			label = gtk.Label('<span foreground="#666666">To</span>')
+			sender = headerlist['To'].replace("/TYPE=PLMN", "")
+		
 		label.set_use_markup(True)
-                label.set_alignment(0, 0.5)
+		label.set_alignment(0, 0.5)
+
+		sendername = self.ch.get_name_from_number(sender)
+		if sendername != None:
+			sender = sendername
+
+		self.window.set_title("MMS - " + str(sender))
+
 		namelabel = gtk.Label(sender)
                 #namelabel.set_justification(gtk.JUSTIFY_LEFT)
                 namelabel.set_alignment(0, 0.5)
-                # TODO: format time, get from db?
-                timelabel = gtk.Label('<span foreground="#666666">' + str(headerlist['Time']) + "</span>")
+
+                mtime = headerlist['Time']
+		try:
+			mtime = time.strptime(mtime)
+		except ValueError, e:
+			mtime = time.strptime(mtime, "%Y-%m-%d %H:%M:%S")
+		except Exception, e:
+			log.exception("%s %s", type(e), e)
+			pass
+			
+		mtime = time.strftime("%Y-%m-%d | %H:%M", mtime)
+                timestring = '<span foreground="#666666">' + mtime + "</span>"
+                timelabel = gtk.Label(timestring)
                 timelabel.set_use_markup(True)
                 timelabel.set_alignment(1, 0.5)
                 
