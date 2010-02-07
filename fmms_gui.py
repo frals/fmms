@@ -7,6 +7,7 @@
 """
 import os
 import time
+import cgi
 
 import gtk
 import hildon
@@ -34,7 +35,7 @@ class fMMS_GUI(hildon.Program):
 		self._mmsdir = self.config.get_mmsdir()
 		self._pushdir = self.config.get_pushdir()
 		self.ch = ContactH.ContactHandler()
-		self.osso_c = osso.Context("fMMS", "0.1.0", False)
+		self.osso_c = osso.Context("fMMS", self.config.get_version(), False)
 	
 		if not os.path.isdir(self._mmsdir):
 			log.info("creating dir %s", self._mmsdir)
@@ -72,9 +73,8 @@ class fMMS_GUI(hildon.Program):
 		textcell.set_fixed_size(650, 64)
 		textcell.set_property('xalign', 0.0)
 		
-		self.liststore = gtk.ListStore(gtk.gdk.Pixbuf, str, gtk.gdk.Pixbuf, str)
+		self.liststore = gtk.ListStore(gtk.gdk.Pixbuf, str, gtk.gdk.Pixbuf, str, str)
 		self.treeview = hildon.GtkTreeView(gtk.HILDON_UI_MODE_NORMAL)
-		#self.treeview.set_property("name", "GtkTreeView")
 		self.treeview.set_model(self.liststore)
 		
 		icon_col = gtk.TreeViewColumn('Icon')
@@ -95,17 +95,11 @@ class fMMS_GUI(hildon.Program):
 		placeholder_col.pack_end(photocell, False)
 		placeholder_col.set_attributes(photocell, pixbuf=2)
 		
-		selection = self.treeview.get_selection()
-		#selection.set_mode(gtk.SELECTION_SINGLE)
 		self.treeview.connect('hildon-row-tapped', self.show_mms)
-		
-		
 		self.liststore_menu = self.liststore_mms_menu()
 		self.treeview.tap_and_hold_setup(self.liststore_menu)
-		#treeview.connect('tap-and-hold', self.liststore_mms_clicked)
 		
 		self.hugeBox = gtk.VBox()
-
 		
 		mmsBox = gtk.HBox()
 		icon_theme = gtk.icon_theme_get_default()
@@ -150,17 +144,15 @@ class fMMS_GUI(hildon.Program):
 			note.system_note_dialog(firstlaunchmessage , 'notice')
 			self.create_config_dialog()
 			self.config.set_firstlaunch(0)
-	
+		
+		
 	def cb_on_focus(self, widget, event):
-		# TODO: re-set iter
-		#log.info("got focus")
 		#(model, itera) = self.treeview.get_selection().get_selected()
-		#print itera
 		self.liststore.clear()
 		self.add_buttons_liststore()
-		#self.treeview.get_selection().select_iter(itera)
 		#pass
 		return True
+	
 	
 	def cb_open_fmms(self, interface, method, args, user_data):
 		if method != 'open_mms' and method != 'open_gui':
@@ -185,6 +177,7 @@ class fMMS_GUI(hildon.Program):
 			fMMSSenderUI.fMMS_SenderUI(tonumber=args[0]).run()
 			return
 		
+		
 	def create_menu(self):
 		menu = hildon.AppMenu()
 		
@@ -203,6 +196,7 @@ class fMMS_GUI(hildon.Program):
 		
 		return menu
 		
+		
 	def menu_button_clicked(self, button):
 		buttontext = button.get_label()
 		if buttontext == "Configuration":
@@ -210,8 +204,10 @@ class fMMS_GUI(hildon.Program):
 		elif buttontext == "About":
 			ret = self.create_about_dialog()
 	
+	
 	def new_mms_button_clicked(self, button):
 		ret = fMMSSenderUI.fMMS_SenderUI(self.window).run()
+		
 		
 	def create_about_dialog(self):
 		dialog = gtk.AboutDialog()                                                 
@@ -225,6 +221,7 @@ class fMMS_GUI(hildon.Program):
 		dialog.connect("response", lambda d, r: d.destroy())                      
 		dialog.show() 
  
+
 	def create_config_dialog(self):
 		dialog = gtk.Dialog()
 		dialog.set_title("Configuration")
@@ -343,22 +340,31 @@ class fMMS_GUI(hildon.Program):
 				banner = hildon.hildon_banner_show_information(self.window, "", "Could not save APN settings. Did you enter a correct APN?")
 				banner.set_timeout(5000)
 				return -1
-		
+
 
 	""" add each item to our liststore """
 	def add_buttons_liststore(self):
 			icon_theme = gtk.icon_theme_get_default()
 			
 			pushlist = self.cont.get_push_list()
+			
+			primarytxt = self.cont.get_primary_font().to_string()
+			primarycolor = self.cont.get_primary_color().to_string()
+			secondarytxt = self.cont.get_secondary_font().to_string()
+			secondarycolor = self.cont.get_secondary_color().to_string()
 			for varlist in pushlist:
-				mtime = varlist['Time']
+                                mtime = varlist['Time']
+                                # TODO: Remove date if date == today
+                                # TODO: get locale format?
+                                mtime = time.strptime(mtime, "%Y-%m-%d %H:%M:%S")
+                                mtime = time.strftime("%Y-%m-%d | %H:%M", mtime)
+
 				fname = varlist['Transaction-Id']
 				direction = self.cont.get_direction_mms(fname)
-				
+
 				isread = False
 				if self.cont.is_mms_read(fname):
 					isread = True
-				
 				
 				try:
 					sender = varlist['From']
@@ -377,9 +383,6 @@ class fMMS_GUI(hildon.Program):
 					phototest = self.ch.get_photo_from_name(sendername, 64)
 					if phototest != None:	
 						photo = phototest
-						#log.info("loaded photo: %s %s", photo.get_width(), photo.get_height())
-	
-				#title = sender + " - " + mtime
 				
 				if direction == fMMSController.MSG_DIRECTION_OUT:
 					icon = icon_theme.load_icon("chat_replied_sms", 48, 0)
@@ -390,15 +393,17 @@ class fMMS_GUI(hildon.Program):
 					
 				try:
 					headerlist = self.cont.get_mms_headers(fname)
-					description = headerlist['Description']
+					description = cgi.escape(headerlist['Description'])
 				except:
 					try:
 						description = varlist['Subject']
 					except:
 						description = ""
-				
-				
-				self.liststore.append([icon, sender + ' <span foreground="#666666" size="smaller"><sup>' + mtime + '</sup></span>\n<span foreground="#666666" size="x-small">' + description + '</span>', photo, fname])
+				primarytext = ' <span font_desc="%s" foreground="%s"><sup>%s</sup></span>' % (secondarytxt, secondarycolor, mtime)
+				secondarytext = '\n<span font_desc="%s" foreground="%s">%s</span>' % (secondarytxt, secondarycolor, description)
+				stringline = sender + primarytext + secondarytext
+				self.liststore.append([icon, stringline, photo, fname, sender])
+
 	
 	""" lets call it quits! """
 	def quit(self, *args):
@@ -419,6 +424,7 @@ class fMMS_GUI(hildon.Program):
 	""" delete mms message (eg for redownload) """
 	def delete_mms(self, fname):
 		self.cont.delete_mms_message(fname)
+
 	
 	""" delete push & mms """
 	def delete_push_mms(self, fname):
@@ -433,9 +439,13 @@ class fMMS_GUI(hildon.Program):
 
 	""" action on delete contextmenu click """
 	def liststore_delete_clicked(self, widget):
-		(model, miter) = self.treeview.get_selection().get_selected()
-		# the 4th value is the filename (start counting at 0)
+		selection = self.treeview.get_selection()
+		(model, miter) = selection.get_selected()
+		print model, miter
+		# the 4th value is the transactionid (start counting at 0)
 		filename = model.get_value(miter, 3)
+		print filename
+		
 		dialog = gtk.Dialog()
 		dialog.set_title("Confirm")
 		dialog.add_button(gtk.STOCK_YES, 1)
@@ -451,55 +461,11 @@ class fMMS_GUI(hildon.Program):
 		dialog.destroy()
 		return
 	
-	""" action on redl contextmenu click """
-	def liststore_redl_clicked(self, widget):
-		hildon.hildon_gtk_window_set_progress_indicator(self.window, 1)
-		dialog = gtk.Dialog()
-		dialog.set_title("WARNING")
-		dialog.add_button(gtk.STOCK_YES, 1)
-		dialog.add_button(gtk.STOCK_NO, 0)
-		label = gtk.Label("If the message is no longer on your MMSC,\n the message will be lost. Continue?")
-		dialog.vbox.add(label)
-		dialog.show_all()
-		ret = dialog.run()
-		dialog.destroy()
-		self.force_ui_update()
-		
-		if ret == 1:
-			(model, miter) = self.treeview.get_selection().get_selected()
-			# the 4th value is the filename (start counting at 0)
-			filename = model.get_value(miter, 3)
-			log.info("redownloading %s", filename)
-			try:
-				self.delete_mms(filename)
-				banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Trying to download MMS...")
-				self.force_ui_update()
-				
-				# TODO: FIXME
-				
-				self.cont.get_mms_from_push(filename)
-				self.show_mms(self.treeview, model.get_path(miter))
-			except Exception, e:
-				log.exception("%s %s", type(e), e)
-				#raise
-				banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Operation failed")
-			hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
-		return
 
 	""" long press on image creates this """
 	def liststore_mms_menu(self):
 		menu = gtk.Menu()
 		menu.set_property("name", "hildon-context-sensitive-menu")
-		
-
-		"""redlItem = gtk.MenuItem("Redownload")
-		menu.append(redlItem)
-		redlItem.connect("activate", self.liststore_redl_clicked)
-		redlItem.show()
-		
-		separator = gtk.MenuItem()
-		menu.append(separator)
-		separator.show()"""
 		
 		openItem = gtk.MenuItem("Delete")
 		menu.append(openItem)
@@ -509,11 +475,11 @@ class fMMS_GUI(hildon.Program):
 		menu.show_all()
 		return menu
 
+
 	""" show the selected mms """		
 	def show_mms(self, treeview, path):
 		# Show loading indicator
 		hildon.hildon_gtk_window_set_progress_indicator(self.window, 1)
-		#banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Opening message")
 		self.force_ui_update()
 		
 		log.info("showing mms: %s", path)
@@ -527,9 +493,8 @@ class fMMS_GUI(hildon.Program):
 		except Exception, e:
 			log.exception("%s %s", type(e), e)
 			#raise
-		
-		
 		hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
+
 
 	def run(self):
 		self.window.show_all()
