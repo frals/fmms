@@ -73,7 +73,7 @@ class fMMS_SenderUI(hildon.Program):
 		""" Begin botsection """
 		
 		botHBox = gtk.HBox()
-		botHBox.set_homogeneous(True)
+		#botHBox.set_homogeneous(True)
 		#self.bAttachment = gtk.FileChooserButton('')
 		#self.bAttachment.connect('file-set', self.update_size)
 		self.bAttachment = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL, "Attachment")
@@ -81,8 +81,8 @@ class fMMS_SenderUI(hildon.Program):
 		self.attachmentFile = ""
 		
 		self.lSize = gtk.Label()
-		self.lSize.set_markup("Size:\n<small>0 kB</small>")
-		#self.lSize.set_width_chars(24)
+		#self.lSize.set_markup("Size:\n<small>0 kB</small>")
+		self.lSize.set_width_chars(36)
 		self.lSize.set_alignment(0.5, 0.5)
 		
 		
@@ -99,7 +99,11 @@ class fMMS_SenderUI(hildon.Program):
 		allBox.pack_start(pan, True, True)
 		allBox.pack_start(botHBox, False, False)
 		
-		self.window.add(allBox)
+		align = gtk.Alignment(1, 1, 1, 1)
+		align.set_padding(2, 2, 10, 10)		
+		align.add(allBox)
+		
+		self.window.add(align)
 		self.window.show_all()
 		self.add_window(self.window)
 	
@@ -193,7 +197,7 @@ class fMMS_SenderUI(hildon.Program):
 				self.bAttachment.set_label("Attachment")
 			else:
 				self.bAttachment.set_label(os.path.basename(fcd.get_filename()))
-				self.update_size(fcd.get_filename())
+				#self.update_size(fcd.get_filename())
 				self.attachmentFile = fcd.get_filename()
 			fcd.destroy()
 		else:
@@ -325,12 +329,12 @@ class fMMS_SenderUI(hildon.Program):
 			os.remove(attachment)
 		#self.window.destroy()
 		
-	def update_size(self, fname):
+	"""def update_size(self, fname):
 		try:
 			size = os.path.getsize(fname) / 1024
 			self.lSize.set_markup("Size:\n<small>" + str(size) + " kB</small>")	
 		except TypeError:
-			self.lSize.set_markup("Size:\n<small>0 kB</small>")
+			self.lSize.set_markup("Size:\n<small>0 kB</small>")"""
 
 	def quit(self, *args):
 		gtk.main_quit()

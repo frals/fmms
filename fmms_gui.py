@@ -121,7 +121,7 @@ class fMMS_GUI(hildon.Program):
 		hugeBox.pack_start(pan, True, True, 0)
 
 		align = gtk.Alignment(1, 1, 1, 1)
-		align.set_padding(0, 0, 20, 20)		
+		align.set_padding(2, 2, 10, 10)		
 		align.add(hugeBox)
 		
 		self.window.add(align)
