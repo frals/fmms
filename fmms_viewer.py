@@ -82,12 +82,51 @@ class fMMS_Viewer(hildon.Program):
 		reply.set_label("Reply")
 		reply.connect('clicked', self.mms_menu_button_clicked, fname)
 		
+		delete = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
+		delete.set_label("Delete")
+		delete.connect('clicked', self.mms_menu_button_clicked, fname)
+		
 		menu.append(reply)
 		menu.append(headers)
+		menu.append(delete)
 	
 		menu.show_all()
 		
 		return menu		
+	
+	
+	def delete_dialog(self, filename):
+		dialog = gtk.Dialog()
+		dialog.set_title("Confirm")
+		dialog.add_button(gtk.STOCK_YES, 1)
+		dialog.add_button(gtk.STOCK_NO, 0)
+		label = gtk.Label("Are you sure you want to delete the message?")
+		dialog.vbox.add(label)
+		dialog.show_all()
+		ret = dialog.run()
+		if ret == 1:
+			hildon.hildon_gtk_window_set_progress_indicator(self.window, 1)
+			banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Trying to delete message")
+			banner.set_timeout(3000)
+			self.force_ui_update()
+			log.info("deleting %s", filename)
+			self.force_ui_update()
+			self.delete_push_mms(filename)
+		dialog.destroy()
+	
+	
+	""" delete push & mms """
+	def delete_push_mms(self, fname):
+		log.info("deleting message: %s", fname)
+		try:
+			self.cont.wipe_message(fname)
+			banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Message deleted")
+			self.force_ui_update()
+			self.window.destroy()
+		except Exception, e:
+			log.exception("%s %s", type(e), e)
+			banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Failed to delete message.")
+		
 	
 	
 	""" actions for mms menu """
@@ -98,6 +137,8 @@ class fMMS_Viewer(hildon.Program):
 		elif buttontext == "Reply":
 			number = self.cont.get_replyuri_from_transid(fname)
 			fMMSSenderUI.fMMS_SenderUI(tonumber=number).run()
+		elif buttontext == "Delete":
+			self.delete_dialog(fname)
 
 	""" show headers in a dialog """
 	def create_headers_dialog(self, fname):
