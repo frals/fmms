@@ -153,10 +153,11 @@ class PushHandler:
 			#headers = {'x-wap-profile': 'http://mms.frals.se/n900.rdf'}
 			#User-Agent: NokiaN95/11.0.026; Series60/3.1 Profile/MIDP-2.0 Configuration/CLDC-1.1 
 			headers = {'User-Agent' : 'NokiaN95/11.0.026; Series60/3.1 Profile/MIDP-2.0 Configuration/CLDC-1.1', 'x-wap-profile' : 'http://mms.frals.se/n900.rdf'}
+			log.info("trying url: %s", location)
 			req = urllib2.Request(location, headers=headers)
 			mmsdata = urllib2.urlopen(req)
 			try:
-				print mmsdata.info()
+				log.info("mmsc info: %s", mmsdata.info())
 			except:
 				pass
 			
