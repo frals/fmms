@@ -57,8 +57,7 @@ class fMMS_GUI(hildon.Program):
 		self.window.connect("delete_event", self.quit)
 		
 		pan = hildon.PannableArea()
-		#pan.set_property("mov-mode", hildon.MOVEMENT_MODE_BOTH)
-		
+		pan.set_property("mov-mode", hildon.MOVEMENT_MODE_VERT)
 		
 		### TODO: dont hardcode the values here.. oh well
 		iconcell = gtk.CellRendererPixbuf()
@@ -70,7 +69,7 @@ class fMMS_GUI(hildon.Program):
 		photocell.set_property('xalign', 1.0)
 		photocell.set_fixed_size(64, 64)
 		textcell.set_property('mode', gtk.CELL_RENDERER_MODE_INERT)
-		textcell.set_fixed_size(650, 64)
+		textcell.set_fixed_size(610, 64)
 		textcell.set_property('xalign', 0.0)
 		
 		self.liststore = gtk.ListStore(gtk.gdk.Pixbuf, str, gtk.gdk.Pixbuf, str, str)
@@ -95,9 +94,9 @@ class fMMS_GUI(hildon.Program):
 		placeholder_col.pack_end(photocell, False)
 		placeholder_col.set_attributes(photocell, pixbuf=2)
 		
-		self.treeview.connect('hildon-row-tapped', self.show_mms)
 		self.liststore_menu = self.liststore_mms_menu()
 		self.treeview.tap_and_hold_setup(self.liststore_menu)
+		self.treeview.connect('hildon-row-tapped', self.show_mms)
 		
 		self.hugeBox = gtk.VBox()
 		
@@ -112,23 +111,31 @@ class fMMS_GUI(hildon.Program):
 		
 		mmsBox.pack_start(envelopeImage, True, True, 0)
 		mmsBox.pack_start(mmsLabel, True, True, 0)
-		self.newMsgButton = hildon.GtkButton(gtk.HILDON_SIZE_FINGER_HEIGHT)
+		self.newMsgButton = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
 		
 		self.newMsgButton.add(mmsBox)
 		self.newMsgButton.connect('clicked', self.new_mms_button_clicked)
-		
+		#self.newMsgButton.set_size_request(0, 0)
 		
 		#self.hugeBox.pack_start(self.newMsgButton, True, True, 0)
 		#self.hugeBox.pack_start(self.treeview, True, True, 0)
 		#pan.add_with_viewport(self.treeview)
-		#pan.add_with_viewport(self.hugeBox)
-		pan.add(self.treeview)
-		
+		#pan.add_with_viewport(self.newMsgButton)
+		#pan.add(self.newMsgButton)
+                pan.add(self.treeview)
+		#pan.add(self.hugeBox)
 		
 		self.hugeBox.pack_start(self.newMsgButton, False, False, 0)
 		self.hugeBox.pack_start(pan, True, True, 0)
 		#self.window.add(pan)
-		self.window.add(self.hugeBox)
+		#self.window.add(self.hugeBox)
+		
+		align = gtk.Alignment(1, 1, 1, 1)
+		align.set_padding(0, 0, 20, 20)		
+		align.add(self.hugeBox)
+                #align.add(pan)
+		
+		self.window.add(align)
 	
 		self.menu = self.create_menu()
 		self.window.set_app_menu(self.menu)
@@ -145,6 +152,11 @@ class fMMS_GUI(hildon.Program):
 			self.create_config_dialog()
 			self.config.set_firstlaunch(0)
 		
+	
+	def test_cb(self, widget, event, stuff=None):
+		print "CB:", widget, event, stuff
+		return False
+	
 		
 	def cb_on_focus(self, widget, event):
 		#(model, itera) = self.treeview.get_selection().get_selected()
@@ -230,8 +242,11 @@ class fMMS_GUI(hildon.Program):
 		
 		self.active_apn_index = 0
 		
+		labelwidth = 16
+		
 		apnHBox = gtk.HBox()
 		apn_label = gtk.Label("APN:")
+		apn_label.set_width_chars(labelwidth)
 		self.selector = self.create_apn_selector()
 		self.apn = hildon.PickerButton(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
 		self.apn.set_selector(self.selector)
@@ -242,6 +257,7 @@ class fMMS_GUI(hildon.Program):
 		
 		mmscHBox = gtk.HBox()
 		mmsc_label = gtk.Label("MMSC:")
+		mmsc_label.set_width_chars(labelwidth)
 		self.mmsc = hildon.Entry(gtk.HILDON_SIZE_FINGER_HEIGHT)
 		mmsc_text = self.config.get_mmsc()
 		if mmsc_text != None:	
@@ -253,6 +269,7 @@ class fMMS_GUI(hildon.Program):
 		
 		numberHBox = gtk.HBox()
 		number_label = gtk.Label("Your phonenumber:")
+		number_label.set_width_chars(labelwidth)
 		self.number = hildon.Entry(gtk.HILDON_SIZE_FINGER_HEIGHT)
 		number_text = self.config.get_phonenumber()
 		if number_text != None:
@@ -264,6 +281,7 @@ class fMMS_GUI(hildon.Program):
 		
 		imgwidthHBox = gtk.HBox()
 		imgwidth_label = gtk.Label("Resize image width:")
+		imgwidth_label.set_width_chars(labelwidth)
 		self.imgwidth = hildon.Entry(gtk.HILDON_SIZE_FINGER_HEIGHT)
 		imgwidth_text = self.config.get_img_resize_width()
 		if imgwidth_text != None:
@@ -273,9 +291,9 @@ class fMMS_GUI(hildon.Program):
 		imgwidthHBox.pack_start(imgwidth_label, False, True, 0)
 		imgwidthHBox.pack_start(self.imgwidth, True, True, 0)
 		
-		notelabel = gtk.Label("APN refers to the name of the connection in\n \"Internet Connections\" to use.")
+		#notelabel = gtk.Label("APN refers to the name of the connection in\n \"Internet Connections\" to use.")
 		
-		allVBox.pack_start(notelabel, False, True, 0)
+		#allVBox.pack_start(notelabel, False, True, 0)
 		allVBox.pack_start(apnHBox, False, False, 0)
 		allVBox.pack_start(mmscHBox, False, False, 0)
 		allVBox.pack_end(numberHBox, False, False, 0)
@@ -380,7 +398,7 @@ class fMMS_GUI(hildon.Program):
 				photo = icon_theme.load_icon("general_default_avatar", 48, 0)
 				if sendername != None:
 					sender = sendername
-					phototest = self.ch.get_photo_from_name(sendername, 64)
+					phototest = self.ch.get_photo_from_name(sendername, 48)
 					if phototest != None:	
 						photo = phototest
 				
