@@ -80,7 +80,6 @@ class fMMS_GUI(hildon.Program):
 		sender_col = gtk.TreeViewColumn('Sender')
 		placeholder_col = gtk.TreeViewColumn('Photo')
 		
-		
 		self.add_buttons_liststore()
 		
 		self.treeview.append_column(icon_col)
@@ -94,11 +93,9 @@ class fMMS_GUI(hildon.Program):
 		placeholder_col.pack_end(photocell, False)
 		placeholder_col.set_attributes(photocell, pixbuf=2)
 		
-		self.liststore_menu = self.liststore_mms_menu()
-		self.treeview.tap_and_hold_setup(self.liststore_menu)
+		#self.liststore_menu = self.liststore_mms_menu()
+		#self.treeview.tap_and_hold_setup(self.liststore_menu)
 		self.treeview.connect('hildon-row-tapped', self.show_mms)
-		
-		self.hugeBox = gtk.VBox()
 		
 		mmsBox = gtk.HBox()
 		icon_theme = gtk.icon_theme_get_default()
@@ -111,29 +108,21 @@ class fMMS_GUI(hildon.Program):
 		
 		mmsBox.pack_start(envelopeImage, True, True, 0)
 		mmsBox.pack_start(mmsLabel, True, True, 0)
-		self.newMsgButton = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
+		newMsgButton = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
 		
-		self.newMsgButton.add(mmsBox)
-		self.newMsgButton.connect('clicked', self.new_mms_button_clicked)
-		#self.newMsgButton.set_size_request(0, 0)
+		newMsgButton.add(mmsBox)
+		newMsgButton.connect('clicked', self.new_mms_button_clicked)
+		#newMsgButton.set_size_request(0, 0)
 		
-		#self.hugeBox.pack_start(self.newMsgButton, True, True, 0)
-		#self.hugeBox.pack_start(self.treeview, True, True, 0)
-		#pan.add_with_viewport(self.treeview)
-		#pan.add_with_viewport(self.newMsgButton)
-		#pan.add(self.newMsgButton)
-                pan.add(self.treeview)
-		#pan.add(self.hugeBox)
-		
-		self.hugeBox.pack_start(self.newMsgButton, False, False, 0)
-		self.hugeBox.pack_start(pan, True, True, 0)
-		#self.window.add(pan)
-		#self.window.add(self.hugeBox)
-		
+		hugeBox = gtk.VBox()
+		hugeBox.pack_start(newMsgButton, False, False, 0)
+		#hugeBox.pack_start(self.treeview, True, True, 0)
+		pan.add(self.treeview)
+		hugeBox.pack_start(pan, True, True, 0)
+
 		align = gtk.Alignment(1, 1, 1, 1)
 		align.set_padding(0, 0, 20, 20)		
-		align.add(self.hugeBox)
-                #align.add(pan)
+		align.add(hugeBox)
 		
 		self.window.add(align)
 	
@@ -152,11 +141,6 @@ class fMMS_GUI(hildon.Program):
 			self.create_config_dialog()
 			self.config.set_firstlaunch(0)
 		
-	
-	def test_cb(self, widget, event, stuff=None):
-		print "CB:", widget, event, stuff
-		return False
-	
 		
 	def cb_on_focus(self, widget, event):
 		#(model, itera) = self.treeview.get_selection().get_selected()
