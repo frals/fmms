@@ -38,7 +38,6 @@ try:
 except Exception, e:
 	print type(e), e
 
-
 """
 ifconfig gprs0 <ip> up
 route add -net 83.191.132.0 netmask 255.255.255.0 dev gprs0
