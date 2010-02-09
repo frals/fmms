@@ -75,29 +75,26 @@ class fMMS_GUI(hildon.Program):
 		
 		self.liststore = gtk.ListStore(gtk.gdk.Pixbuf, str, gtk.gdk.Pixbuf, str, str)
 		self.treeview = hildon.GtkTreeView(gtk.HILDON_UI_MODE_NORMAL)
-		self.treeview.set_model(self.liststore)
-		
+
 		icon_col = gtk.TreeViewColumn('Icon')
 		sender_col = gtk.TreeViewColumn('Sender')
 		placeholder_col = gtk.TreeViewColumn('Photo')
-		
-		self.add_buttons_liststore()
-		
+
 		self.treeview.append_column(icon_col)
 		self.treeview.append_column(sender_col)
 		self.treeview.append_column(placeholder_col)
-		
+
 		icon_col.pack_start(iconcell, False)
 		icon_col.set_attributes(iconcell, pixbuf=0)
 		sender_col.pack_start(textcell, True)
 		sender_col.set_attributes(textcell, markup=1)
 		placeholder_col.pack_end(photocell, False)
 		placeholder_col.set_attributes(photocell, pixbuf=2)
-		
+
 		#self.liststore_menu = self.liststore_mms_menu()
 		#self.treeview.tap_and_hold_setup(self.liststore_menu)
 		self.treeview.connect('hildon-row-tapped', self.show_mms)
-		
+
 		mmsBox = gtk.HBox()
 		icon_theme = gtk.icon_theme_get_default()
 		envelopePixbuf = icon_theme.load_icon("general_sms_button", 48, 0)
@@ -113,17 +110,20 @@ class fMMS_GUI(hildon.Program):
 		
 		newMsgButton.add(mmsBox)
 		newMsgButton.connect('clicked', self.new_mms_button_clicked)
-		#newMsgButton.set_size_request(0, 0)
+
+		actionbox = self.treeview.get_action_area_box()
+		self.treeview.set_action_area_visible(True)
+		actionbox.add(newMsgButton)
 		
-		hugeBox = gtk.VBox()
-		hugeBox.pack_start(newMsgButton, False, False, 0)
+		#hugeBox = gtk.VBox()
+		#hugeBox.pack_start(newMsgButton, False, False, 0)
 		#hugeBox.pack_start(self.treeview, True, True, 0)
 		pan.add(self.treeview)
-		hugeBox.pack_start(pan, True, True, 0)
+		#hugeBox.pack_start(pan, True, True, 0)
 
 		align = gtk.Alignment(1, 1, 1, 1)
 		align.set_padding(2, 2, 10, 10)		
-		align.add(hugeBox)
+		align.add(pan)
 		
 		self.window.add(align)
 	
@@ -141,12 +141,16 @@ class fMMS_GUI(hildon.Program):
 			note.system_note_dialog(firstlaunchmessage , 'notice')
 			self.create_config_dialog()
 			self.config.set_firstlaunch(0)
-		
+
 		
 	def cb_on_focus(self, widget, event):
 		#(model, itera) = self.treeview.get_selection().get_selected()
 		self.liststore.clear()
+		self.treeview.freeze_child_notify()
+		self.treeview.set_model(None)
 		self.add_buttons_liststore()
+		self.treeview.set_model(self.liststore)
+		self.treeview.thaw_child_notify()
 		#pass
 		return True
 	
@@ -158,7 +162,6 @@ class fMMS_GUI(hildon.Program):
 			filename = args[0]
 			if self.cont.is_fetched_push_by_transid(filename):
 				hildon.hildon_gtk_window_set_progress_indicator(self.window, 1)
-				#banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Opening message")
 				self.force_ui_update()
 				viewer = fMMSViewer.fMMS_Viewer(filename)
 				hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
@@ -377,8 +380,8 @@ class fMMS_GUI(hildon.Program):
 					sender = "0000000"
 				
 				if direction == fMMSController.MSG_DIRECTION_OUT:
-					# TODO: Change to show receivers name
-					sender = "You"
+					sender = self.cont.get_mms_headers(varlist['Transaction-Id'])
+					sender = sender['To'].replace("/TYPE=PLMN", "")
 				
 				sendername = self.ch.get_name_from_number(sender)
 				photo = icon_theme.load_icon("general_default_avatar", 48, 0)
