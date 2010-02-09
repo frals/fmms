@@ -8,6 +8,7 @@
 import os
 import time
 import cgi
+import re
 
 import gtk
 import hildon
@@ -93,7 +94,7 @@ class fMMS_GUI(hildon.Program):
 
 		#self.liststore_menu = self.liststore_mms_menu()
 		#self.treeview.tap_and_hold_setup(self.liststore_menu)
-		self.treeview.connect('hildon-row-tapped', self.show_mms)
+		self.tapsignal = self.treeview.connect('hildon-row-tapped', self.show_mms)
 
 		mmsBox = gtk.HBox()
 		icon_theme = gtk.icon_theme_get_default()
@@ -111,15 +112,12 @@ class fMMS_GUI(hildon.Program):
 		newMsgButton.add(mmsBox)
 		newMsgButton.connect('clicked', self.new_mms_button_clicked)
 
+		""" gets the newMsgButton on top of the treeview """
 		actionbox = self.treeview.get_action_area_box()
 		self.treeview.set_action_area_visible(True)
 		actionbox.add(newMsgButton)
 		
-		#hugeBox = gtk.VBox()
-		#hugeBox.pack_start(newMsgButton, False, False, 0)
-		#hugeBox.pack_start(self.treeview, True, True, 0)
 		pan.add(self.treeview)
-		#hugeBox.pack_start(pan, True, True, 0)
 
 		align = gtk.Alignment(1, 1, 1, 1)
 		align.set_padding(2, 2, 10, 10)		
@@ -142,7 +140,7 @@ class fMMS_GUI(hildon.Program):
 			self.create_config_dialog()
 			self.config.set_firstlaunch(0)
 
-		
+
 	def cb_on_focus(self, widget, event):
 		#(model, itera) = self.treeview.get_selection().get_selected()
 		self.liststore.clear()
@@ -169,8 +167,8 @@ class fMMS_GUI(hildon.Program):
 			else:
 				return
 		elif method == 'open_gui':
-			self.liststore.clear()
-			self.add_buttons_liststore()
+			# this shouldnt be needed as the on-focus cb should activate
+			#self.cb_on_focus(None, None)
 			return
 		elif method == 'send_mms':
 			log.info("launching sender with args: %s", args)
@@ -272,6 +270,8 @@ class fMMS_GUI(hildon.Program):
 		imgwidth_label = gtk.Label("Resize image width:")
 		imgwidth_label.set_width_chars(labelwidth)
 		self.imgwidth = hildon.Entry(gtk.HILDON_SIZE_FINGER_HEIGHT)
+		self.imgwidth.set_max_length(5)
+		self.imgwidth_signal = self.imgwidth.connect('insert_text', self.insert_resize_cb)
 		imgwidth_text = self.config.get_img_resize_width()
 		if imgwidth_text != None:
 			self.imgwidth.set_text(str(imgwidth_text))
@@ -299,6 +299,36 @@ class fMMS_GUI(hildon.Program):
 			
 		dialog.destroy()
 		return ret
+
+		
+	""" from http://faq.pygtk.org/index.py?req=show&file=faq14.005.htp """
+	def insert_resize_cb(self, widget, text, length, *args):
+		# if you don't do this, garbage comes in with text
+		text = text[:length]
+		pos = widget.get_position()
+		# stop default emission
+		widget.emit_stop_by_name("insert_text")
+		signal = self.imgwidth_signal
+		gobject.idle_add(self.insert_nr_mod, widget, signal, text, pos)
+		
+		
+	""" from http://faq.pygtk.org/index.py?req=show&file=faq14.005.htp """
+	def insert_nr_mod(self, widget, signal, text, pos):
+		# the next three lines set up the text. this is done because we
+		# can't use insert_text(): it always inserts at position zero.
+		orig_text = widget.get_text()
+		#text = string.replace(text, " ", "<SPACE>")
+		pattern = re.compile('[!^\D]')
+		text = pattern.sub("", text)
+		new_text = orig_text[:pos] + text + orig_text[pos:]
+		# avoid recursive calls triggered by set_text
+		widget.handler_block(signal)
+		# replace the text with some new text
+		widget.set_text(new_text)
+		widget.handler_unblock(signal)
+		# set the correct position in the widget
+		widget.set_position(pos + len(text))
+
 
 
 	""" selector for apn """
