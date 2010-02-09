@@ -92,13 +92,10 @@ class fMMS_GUI(hildon.Program):
 		placeholder_col.pack_end(photocell, False)
 		placeholder_col.set_attributes(photocell, pixbuf=2)
 
-		#self.liststore_menu = self.liststore_mms_menu()
-		#self.treeview.tap_and_hold_setup(self.liststore_menu)
 		self.treeview.tap_and_hold_setup(self.liststore_mms_menu())
 		self.treeview.tap_and_hold_setup(None)
 		self.tapsignal = self.treeview.connect('hildon-row-tapped', self.show_mms)
 		self.treeview.connect('button-press-event', self.cb_button_press)
-		#self.treeview.connect('tap-and-hold', self.tap_n_hold_cb, "TAPANDHOLD")
 
 		mmsBox = gtk.HBox()
 		icon_theme = gtk.icon_theme_get_default()
@@ -145,15 +142,6 @@ class fMMS_GUI(hildon.Program):
 			self.config.set_firstlaunch(0)
 
 
-	def cb_tap_and_hold(self, widget, event):
-		#selection = self.treeview.get_selection()
-		#model, paths = selection.get_selected_rows()
-		#print "model paths", model, paths
-		#print "widget event data", widget, event, data
-		print "tap and hold"
-		return False
-
-	
 	""" need this to always have the current path """
 	def cb_button_press(self, widget, event):
 		try:
@@ -162,15 +150,14 @@ class fMMS_GUI(hildon.Program):
 			self.curPath = None
 		return False
 
+
 	def cb_on_focus(self, widget, event):
-		#(model, itera) = self.treeview.get_selection().get_selected()
 		self.liststore.clear()
 		self.treeview.freeze_child_notify()
 		self.treeview.set_model(None)
 		self.add_buttons_liststore()
 		self.treeview.set_model(self.liststore)
 		self.treeview.thaw_child_notify()
-		#pass
 		return True
 	
 	
