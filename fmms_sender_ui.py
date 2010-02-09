@@ -11,6 +11,7 @@ import socket
 import re
 import Image
 import mimetypes
+import StringIO
 
 import gtk
 import hildon
@@ -50,54 +51,57 @@ class fMMS_SenderUI(hildon.Program):
 		""" Begin top section """
 		topHBox1 = gtk.HBox()
 		
-		bTo = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL, "     To     ")
+		bTo = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL, "To")
 		bTo.connect('clicked', self.open_contacts_dialog)
+		bTo.set_size_request(128, gtk.HILDON_SIZE_FINGER_HEIGHT)
 		self.eNumber = hildon.Entry(gtk.HILDON_SIZE_FINGER_HEIGHT)
 		if tonumber != None:
 			self.eNumber.set_text(tonumber)
 		
+		self.bSend = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
+		self.bSend.connect('clicked', self.send_mms_clicked)
+		icon_theme = gtk.icon_theme_get_default()
+		sendPixbuf = icon_theme.load_icon("email_message_send", 48, 0)
+		sendImage = gtk.Image()
+		sendImage.set_from_pixbuf(sendPixbuf)
+		#sendImage.set_alignment(1, 0.5)
+		self.bSend.set_image(sendImage)
+		self.bSend.set_size_request(128, gtk.HILDON_SIZE_FINGER_HEIGHT)
+		
 		topHBox1.pack_start(bTo, False, True, 0)
-		topHBox1.pack_start(self.eNumber, True, True, 0)
+		topHBox1.pack_start(self.eNumber, True, True, 5)
+		topHBox1.pack_start(self.bSend, False, True, 0)
 		
 		
 		""" Begin midsection """
 		pan = hildon.PannableArea()
 		pan.set_property("mov-mode", hildon.MOVEMENT_MODE_BOTH)		
 		
+		midBox = gtk.VBox()
+		midBox.set_size_request(256, 256)
+		
+		self.imageBox = gtk.EventBox()
+		self.imageBoxContent = gtk.Label("Tap to add image")
+		self.imageBox.add(self.imageBoxContent)
+		self.imageBox.connect('button-press-event', self.open_file_dialog)
+		
 		self.tvMessage = hildon.TextView()
 		self.tvMessage.set_property("name", "hildon-fullscreen-textview")
 		self.tvMessage.set_wrap_mode(gtk.WRAP_WORD)
 		
-		pan.add_with_viewport(self.tvMessage)
+		midBox.pack_start(self.imageBox)
+		midBox.pack_start(self.tvMessage)
 		
-		""" Begin botsection """
+		pan.add_with_viewport(midBox)
+		#pan.add_with_viewport(self.tvMessage)
 		
-		botHBox = gtk.HBox()
-		#botHBox.set_homogeneous(True)
-		#self.bAttachment = gtk.FileChooserButton('')
-		#self.bAttachment.connect('file-set', self.update_size)
-		self.bAttachment = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL, "Attachment")
-		self.bAttachment.connect('clicked', self.open_file_dialog)
 		self.attachmentFile = ""
-		
-		self.lSize = gtk.Label()
-		#self.lSize.set_markup("Size:\n<small>0 kB</small>")
-		self.lSize.set_width_chars(36)
-		self.lSize.set_alignment(0.5, 0.5)
-		
-		
-		self.bSend = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL, "Send")
-		self.bSend.connect('clicked', self.send_mms_clicked)
-		
-		botHBox.pack_start(self.bAttachment, True, True, 0)
-		botHBox.pack_start(self.lSize, True, True, 0)
-		botHBox.pack_start(self.bSend, True, True, 0)
-		
+		self.thumbnailFile = ""
 
 		""" Show it all! """
 		allBox.pack_start(topHBox1, False, False)
 		allBox.pack_start(pan, True, True)
-		allBox.pack_start(botHBox, False, False)
+		#allBox.pack_start(self.botHBox, False, False)
 		
 		align = gtk.Alignment(1, 1, 1, 1)
 		align.set_padding(2, 2, 10, 10)		
@@ -106,6 +110,7 @@ class fMMS_SenderUI(hildon.Program):
 		self.window.add(align)
 		self.window.show_all()
 		self.add_window(self.window)
+	
 	
 	# TODO: pass reference instead of making it available in the object?
 	def open_contacts_dialog(self, button):
@@ -128,10 +133,12 @@ class fMMS_SenderUI(hildon.Program):
 				break
 		self.contacts_dialog.destroy()
 
+
 	""" forces ui update, kinda... god this is AWESOME """
 	def force_ui_update(self):
 		while gtk.events_pending():
 			gtk.main_iteration(False)
+	
 	
 	def contact_number_chosen(self, button, nrdialog):
 		print button.get_label()
@@ -140,7 +147,8 @@ class fMMS_SenderUI(hildon.Program):
 		self.eNumber.set_text(nr)
 		nrdialog.response(0)
 		self.contacts_dialog.response(0)
-		
+	
+	
 	def contact_selector_changed(self, selector):
 		username = selector.get_current_text()
 		nrlist = self.ch.get_numbers_from_name(username)
@@ -161,6 +169,7 @@ class fMMS_SenderUI(hildon.Program):
 		nrdialog.destroy()
 		return ret
 	
+	
 	def create_contacts_selector(self):
 		#Create a HildonTouchSelector with a single text column
 		selector = hildon.TouchSelectorEntry(text = True)
@@ -180,28 +189,51 @@ class fMMS_SenderUI(hildon.Program):
 		return selector
 
 		
-	def open_file_dialog(self, button):
+	def open_file_dialog(self, button, data=None):
 		#fsm = hildon.FileSystemModel()
 		#fcd = hildon.FileChooserDialog(self.window, gtk.FILE_CHOOSER_ACTION_OPEN, fsm)
 		# this shouldnt issue a warning according to the pymaemo mailing list, but does
 		# anyway, nfc why :(
+		# TODO: set default dir to Camera
 		fcd = gobject.new(hildon.FileChooserDialog, action=gtk.FILE_CHOOSER_ACTION_OPEN)
 		fcd.set_default_response(gtk.RESPONSE_OK)
 		ret = fcd.run()
 		if ret == gtk.RESPONSE_OK:
-			### filesize check
-			### TODO: dont hardcode
+			### TODO: dont hardcode filesize check
 			filesize = os.path.getsize(fcd.get_filename()) / 1024
 			if filesize > 10240:
 				banner = hildon.hildon_banner_show_information(self.window, "", "10MB attachment limit in effect, please try another file")
-				self.bAttachment.set_label("Attachment")
 			else:
-				self.bAttachment.set_label(os.path.basename(fcd.get_filename()))
-				#self.update_size(fcd.get_filename())
 				self.attachmentFile = fcd.get_filename()
+				filetype = mimetypes.guess_type(self.attachmentFile)[0]
+				if filetype.startswith("image"):
+					im = Image.open(self.attachmentFile)
+					im.thumbnail((256,256), Image.NEAREST)
+					pixbuf = self.image2pixbuf(im)
+					image = gtk.Image()
+					image.set_from_pixbuf(pixbuf)
+					self.imageBox.remove(self.imageBoxContent)
+					self.imageBoxContent = image
+					self.imageBox.add(self.imageBoxContent)
+					self.imageBox.show_all()
 			fcd.destroy()
 		else:
 			fcd.destroy()
+		return True
+	
+	
+	""" from http://snippets.dzone.com/posts/show/655 """
+	def image2pixbuf(self, im):
+		file1 = StringIO.StringIO()
+		im.save(file1, "ppm")
+		contents = file1.getvalue()
+		file1.close()
+		loader = gtk.gdk.PixbufLoader("pnm")
+		loader.write(contents, len(contents))
+		pixbuf = loader.get_pixbuf()
+		loader.close()
+		return pixbuf
+
 	
 	""" resize an image """
 	""" thanks tomaszf for this function """
@@ -329,12 +361,6 @@ class fMMS_SenderUI(hildon.Program):
 			os.remove(attachment)
 		#self.window.destroy()
 		
-	"""def update_size(self, fname):
-		try:
-			size = os.path.getsize(fname) / 1024
-			self.lSize.set_markup("Size:\n<small>" + str(size) + " kB</small>")	
-		except TypeError:
-			self.lSize.set_markup("Size:\n<small>0 kB</small>")"""
 
 	def quit(self, *args):
 		gtk.main_quit()
