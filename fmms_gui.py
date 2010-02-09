@@ -94,7 +94,11 @@ class fMMS_GUI(hildon.Program):
 
 		#self.liststore_menu = self.liststore_mms_menu()
 		#self.treeview.tap_and_hold_setup(self.liststore_menu)
+		self.treeview.tap_and_hold_setup(self.liststore_mms_menu())
+		self.treeview.tap_and_hold_setup(None)
 		self.tapsignal = self.treeview.connect('hildon-row-tapped', self.show_mms)
+		self.treeview.connect('button-press-event', self.cb_button_press)
+		#self.treeview.connect('tap-and-hold', self.tap_n_hold_cb, "TAPANDHOLD")
 
 		mmsBox = gtk.HBox()
 		icon_theme = gtk.icon_theme_get_default()
@@ -140,6 +144,23 @@ class fMMS_GUI(hildon.Program):
 			self.create_config_dialog()
 			self.config.set_firstlaunch(0)
 
+
+	def cb_tap_and_hold(self, widget, event):
+		#selection = self.treeview.get_selection()
+		#model, paths = selection.get_selected_rows()
+		#print "model paths", model, paths
+		#print "widget event data", widget, event, data
+		print "tap and hold"
+		return False
+
+	
+	""" need this to always have the current path """
+	def cb_button_press(self, widget, event):
+		try:
+			(self.curPath, tvcolumn, x, y) = self.treeview.get_path_at_pos(int(event.x), int(event.y))
+		except:
+			self.curPath = None
+		return False
 
 	def cb_on_focus(self, widget, event):
 		#(model, itera) = self.treeview.get_selection().get_selected()
@@ -476,12 +497,13 @@ class fMMS_GUI(hildon.Program):
 
 	""" action on delete contextmenu click """
 	def liststore_delete_clicked(self, widget):
-		selection = self.treeview.get_selection()
-		(model, miter) = selection.get_selected()
-		print model, miter
+		if self.curPath == None:
+			return
+			
+		model = self.treeview.get_model()
+		miter = model.get_iter(self.curPath)
 		# the 4th value is the transactionid (start counting at 0)
 		filename = model.get_value(miter, 3)
-		print filename
 		
 		dialog = gtk.Dialog()
 		dialog.set_title("Confirm")
@@ -503,7 +525,7 @@ class fMMS_GUI(hildon.Program):
 	def liststore_mms_menu(self):
 		menu = gtk.Menu()
 		menu.set_property("name", "hildon-context-sensitive-menu")
-		
+
 		openItem = gtk.MenuItem("Delete")
 		menu.append(openItem)
 		openItem.connect("activate", self.liststore_delete_clicked)

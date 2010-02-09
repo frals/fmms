@@ -36,7 +36,7 @@ class fMMS_SenderUI(hildon.Program):
 		self.cont = fMMSController.fMMS_controller()
 		
 		self.window = hildon.StackableWindow()
-		self.window.set_title("fMMS - New MMS")
+		self.window.set_title("New MMS")
 		program.add_window(self.window)
 		
 		self.window.connect("delete_event", self.quit)
