@@ -242,7 +242,7 @@ class fMMS_Viewer(hildon.Program):
 		textview.modify_text(gtk.STATE_NORMAL, gtk.gdk.color_parse("white"))
 		textbuffer = gtk.TextBuffer()
 		direction = self.cont.get_direction_mms(filename)
-		# TODO: get from db instead
+		# TODO: get path from db instead
 		if direction == fMMSController.MSG_DIRECTION_OUT:
 			path = self._outdir + filename
 		else:
