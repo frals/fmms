@@ -17,6 +17,7 @@ log = logging.getLogger('fmms.%s' % __name__)
 import os
 import array
 import re
+import time
 
 import dbus
 from dbus.mainloop.glib import DBusGMainLoop
@@ -69,6 +70,30 @@ class fMMS_controller():
 		color_style = gtk.rc_get_style_by_paths(settings, 'GtkButton', \
 							'osso-logical-colors', gtk.Button)
 		return color_style.lookup_color(logicalcolorname)
+	
+	
+	def convert_timeformat(self, intime, format, hideToday=False):
+		mtime = intime
+		try:
+			mtime = time.strptime(mtime)
+		except ValueError, e:
+			log.info("timeconversion stage1 failed: %s %s", type(e), e)
+			try:
+				mtime = time.strptime(mtime, "%Y-%m-%d %H:%M:%S")
+			except ValueError, e:
+				log.exception("timeconversion stage2 failed: %s %s", type(e), e)
+		except Exception, e:
+			log.exception("Could not convert timestamp: %s %s", type(e), e)
+		
+		# TODO: check if hideToday == true
+		# TODO: remove date if date == today
+		try:
+			mtime = time.strftime("%Y-%m-%d | %H:%M", mtime)
+		except:
+			log.exception("stftime failed: %s %s", type(e), e)
+			mtime = intime
+		
+		return mtime
 	
 	
 	def decode_mms_from_push(self, binarydata):

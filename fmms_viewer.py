@@ -216,26 +216,8 @@ class fMMS_Viewer(hildon.Program):
                 namelabel.set_alignment(0, 0.5)
 
                 mtime = headerlist['Time']
-                orgtime = mtime
-		try:
-			mtime = time.strptime(mtime)
-		except ValueError, e:
-			log.exception("%s %s", type(e), e)
-			try:
-				mtime = time.strptime(mtime, "%Y-%m-%d %H:%M:%S")
-			except ValueError, e:
-				log.exception("%s %s", type(e), e)
-				mtime = orgtime
-				
-		except Exception, e:
-			log.exception("Could not convert timestamp: %s %s", type(e), e)
-			mtime = orgtime
-			pass
-		
-		# in case all conversion attempts fails, skip this
-		if mtime != orgtime:
-			mtime = time.strftime("%Y-%m-%d | %H:%M", mtime)
-			
+		mtime = self.cont.convert_timeformat(mtime, "%Y-%m-%d | %H:%M")
+					
                 timestring = '<span foreground="#666666">' + mtime + "</span>"
                 timelabel = gtk.Label(timestring)
                 timelabel.set_use_markup(True)

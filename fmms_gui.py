@@ -414,8 +414,7 @@ class fMMS_GUI(hildon.Program):
                                 mtime = varlist['Time']
                                 # TODO: Remove date if date == today
                                 # TODO: get locale format?
-                                mtime = time.strptime(mtime, "%Y-%m-%d %H:%M:%S")
-                                mtime = time.strftime("%Y-%m-%d | %H:%M", mtime)
+                                mtime = self.cont.convert_timeformat(mtime, "%Y-%m-%d | %H:%M")
 
 				fname = varlist['Transaction-Id']
 				direction = self.cont.get_direction_mms(fname)
