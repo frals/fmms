@@ -318,12 +318,14 @@ class MMSSender:
 		res = conn.getresponse()
 		log.info("MMSC STATUS: %s %s", res.status, res.reason)
 		out = res.read()
+		parsed = False
 		try:
 			decoder = mms_pdu.MMSDecoder()
 			data = array.array('B')
 			for b in out:
 				data.append(ord(b))
 			outparsed = decoder.decodeResponseHeader(data)
+			parsed = True
 			
 			if mmsid != None:
 				pushid = cont.store_outgoing_push(outparsed)
@@ -334,4 +336,4 @@ class MMSSender:
 			outparsed = out
 			
 		log.info("MMSC RESPONDED: %s", outparsed)
-		return res.status, res.reason, outparsed
+		return res.status, res.reason, outparsed, parsed
