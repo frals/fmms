@@ -65,32 +65,35 @@ class fMMS_GUI(hildon.Program):
 		iconcell = gtk.CellRendererPixbuf()
 		photocell = gtk.CellRendererPixbuf()
 		textcell = gtk.CellRendererText()
-		iconcell.set_fixed_size(48, 64)
-		cell2 = gtk.CellRendererText()
-		cell2.set_property('xalign', 1.0)
 		photocell.set_property('xalign', 1.0)
-		photocell.set_fixed_size(64, 64)
 		textcell.set_property('mode', gtk.CELL_RENDERER_MODE_INERT)
-		textcell.set_fixed_size(610, 64)
 		textcell.set_property('xalign', 0.0)
 		
 		self.liststore = gtk.ListStore(gtk.gdk.Pixbuf, str, gtk.gdk.Pixbuf, str, str)
 		self.treeview = hildon.GtkTreeView(gtk.HILDON_UI_MODE_NORMAL)
+		self.treeview.set_property("fixed-height-mode", True)
+		self.treeview.set_model(self.liststore)
 
 		icon_col = gtk.TreeViewColumn('Icon')
 		sender_col = gtk.TreeViewColumn('Sender')
 		placeholder_col = gtk.TreeViewColumn('Photo')
 
+		icon_col.pack_start(iconcell, False)
+		icon_col.set_attributes(iconcell, pixbuf=0)
+		icon_col.set_fixed_width(64)
+		icon_col.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+		sender_col.pack_start(textcell, True)
+		sender_col.set_attributes(textcell, markup=1)
+		sender_col.set_fixed_width(640)
+		sender_col.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+		placeholder_col.pack_end(photocell, False)
+		placeholder_col.set_attributes(photocell, pixbuf=2)
+		placeholder_col.set_fixed_width(64)
+		placeholder_col.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+		
 		self.treeview.append_column(icon_col)
 		self.treeview.append_column(sender_col)
 		self.treeview.append_column(placeholder_col)
-
-		icon_col.pack_start(iconcell, False)
-		icon_col.set_attributes(iconcell, pixbuf=0)
-		sender_col.pack_start(textcell, True)
-		sender_col.set_attributes(textcell, markup=1)
-		placeholder_col.pack_end(photocell, False)
-		placeholder_col.set_attributes(photocell, pixbuf=2)
 
 		self.treeview.tap_and_hold_setup(self.liststore_mms_menu())
 		self.treeview.tap_and_hold_setup(None)
@@ -153,11 +156,7 @@ class fMMS_GUI(hildon.Program):
 
 	def cb_on_focus(self, widget, event):
 		self.liststore.clear()
-		self.treeview.freeze_child_notify()
-		self.treeview.set_model(None)
-		self.add_buttons_liststore()
-		self.treeview.set_model(self.liststore)
-		self.treeview.thaw_child_notify()
+		self.add_buttons_liststore()		
 		return True
 	
 	
@@ -445,7 +444,7 @@ class fMMS_GUI(hildon.Program):
 						description = ""
 				primarytext = ' <span font_desc="%s" foreground="%s"><sup>%s</sup></span>' % (secondarytxt, secondarycolor, mtime)
 				secondarytext = '\n<span font_desc="%s" foreground="%s">%s</span>' % (secondarytxt, secondarycolor, description)
-				stringline = sender + primarytext + secondarytext
+				stringline = "%s%s%s" % (sender, primarytext, secondarytext)
 				self.liststore.append([icon, stringline, photo, fname, sender])
 
 	
