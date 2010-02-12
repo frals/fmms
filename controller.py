@@ -81,7 +81,7 @@ class fMMS_controller():
 			try:
 				mtime = time.strptime(mtime, "%Y-%m-%d %H:%M:%S")
 			except ValueError, e:
-				log.exception("timeconversion stage2 failed: %s %s", type(e), e)
+				log.info("timeconversion stage2 failed: %s %s", type(e), e)
 		except Exception, e:
 			log.exception("Could not convert timestamp: %s %s", type(e), e)
 		
@@ -90,7 +90,7 @@ class fMMS_controller():
 		try:
 			mtime = time.strftime("%Y-%m-%d | %H:%M", mtime)
 		except:
-			log.exception("stftime failed: %s %s", type(e), e)
+			log.info("stftime failed: %s %s", type(e), e)
 			mtime = intime
 		
 		return mtime
