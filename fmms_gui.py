@@ -155,8 +155,11 @@ class fMMS_GUI(hildon.Program):
 
 
 	def cb_on_focus(self, widget, event):
+		hildon.hildon_gtk_window_set_progress_indicator(self.window, 1)
+		self.force_ui_update()
 		self.liststore.clear()
 		self.add_buttons_liststore()
+		hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
 		return True
 
 
