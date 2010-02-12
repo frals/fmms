@@ -344,7 +344,7 @@ class fMMS_SenderUI(hildon.Program):
 			note = osso.SystemNote(self.osso_c)
 			errmsg = "Invalid attachment"
 			note.system_note_dialog("Sending failed:\nError: " + errmsg + " \nPlease make sure the file is valid" , 'notice')
-			raise
+			#raise
 		except socket.error, exc:
 			log.exception("sender: %s %s", type(exc), exc)
 			code = str(exc.args[0])
