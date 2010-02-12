@@ -32,6 +32,7 @@ class DatabaseHandler:
 		self.outdir = self.config.get_outdir()
 		self.db = self.config.get_db_path()
 		self.conn = sqlite3.connect(self.db)
+		self.conn.text_factory = str
 		self.conn.row_factory = sqlite3.Row
 		try:
 			c = self.conn.cursor()
@@ -221,13 +222,12 @@ class DatabaseHandler:
 		c.execute("select * from push WHERE transactionid = ? LIMIT 1;", vals)
 		
 		for line in c:
-			pushid = line['idpush']
 			retlist['Transaction-Id'] = line['transactionid']
 			retlist['Content-Location'] = line['content_location']
 			retlist['Message-Type'] = line['msg_type']
 			retlist['Time'] = line['msg_time']
 			retlist['File'] = line['file']
-			retlist['PUSHID'] = pushid
+			retlist['PUSHID'] = line['idpush']
 		
 		try:
 			c.execute("select * from push_headers WHERE push_id = ?;", (pushid, ))
