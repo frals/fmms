@@ -125,12 +125,9 @@ class PushHandler:
 	def _get_mms_message(self, location, transaction):
 		log.info("getting file: %s", location)
 		try:
-			# TODO: remove hardcoded sleep
-			con = ConnectToAPN(self._apn_nicename)
-			#time.sleep(6)
-			con.connect()
-			
+
 			try:
+				socket.setdefaulttimeout(10)
 				notifyresp = self._send_notify_resp(transaction)
 				log.info("notifyresp sent")
 			except Exception, e:
@@ -169,13 +166,15 @@ class PushHandler:
 				
 			# send acknowledge we got it ok
 			try:
+				socket.setdefaulttimeout(10)
 				ack = self._send_acknowledge(transaction)
 				log.info("ack sent")
 			except:
 				log.exception("sending ack failed: %s %s", type(e), e)
 			
-			con.disconnect()			
-			
+			socket.setdefaulttimeout(timeout)
+
+
 		except Exception, e:
 			log.exception("fatal: %s %s", type(e), e)
 			bus = dbus.SystemBus()
@@ -213,44 +212,7 @@ class PushHandler:
 		log.info("m-acknowledge-ind: %s", out)
 		return out
 
-       
-class ConnectToAPN:
-	def __init__(self, apn):
-	    self._apn = apn
-	    self.connection = conic.Connection()
-	    
-	def connection_cb(self, connection, event, magic):
-	    #print "connection_cb(%s, %s, %x)" % (connection, event, magic)
-	    pass
-
-	
-	def disconnect(self):
-		connection = self.connection
-		connection.disconnect_by_id(self._apn)
-	
-	def connect(self):
-		global magic
-
-		# Creates the connection object and attach the handler.
-		connection = self.connection
-		iaps = connection.get_all_iaps()
-		iap = None
-		for i in iaps:
-			if i.get_name() == self._apn:
-		  		iap = i
-		
-		connection.disconnect()
-		connection.connect("connection-event", self.connection_cb, magic)
-
-		# The request_connection method should be called to initialize
-		# some fields of the instance
-		if not iap:
-			assert(connection.request_connection(conic.CONNECT_FLAG_NONE))
-		else:
-		#print "Getting by iap", iap.get_id()
-			assert(connection.request_connection_by_id(iap.get_id(), conic.CONNECT_FLAG_NONE))
-			return False
-    	    
+  	    
 """ class for sending an mms """    	    
 class MMSSender:
 	def __init__(self, number=None, subject=None, message=None, attachment=None, sender=None, customMMS=None):
