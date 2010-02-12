@@ -185,6 +185,7 @@ class fMMS_Viewer(hildon.Program):
 			banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Trying to download MMS...")
 			self.force_ui_update()
 			self.cont.get_mms_from_push(filename)
+			self.cont.mark_mms_read(filename)
 				
 
 		headerlist = self.cont.get_mms_headers(filename)

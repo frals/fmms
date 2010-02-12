@@ -230,7 +230,7 @@ class DatabaseHandler:
 			retlist['PUSHID'] = line['idpush']
 		
 		try:
-			c.execute("select * from push_headers WHERE push_id = ?;", (pushid, ))
+			c.execute("select * from push_headers WHERE push_id = ?;", (retlist['PUSHID'], ))
 		except Exception, e:
 			log.exception("%s %s", type(e), e)
 			raise

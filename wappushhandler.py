@@ -127,7 +127,7 @@ class PushHandler:
 		try:
 
 			try:
-				socket.setdefaulttimeout(10)
+				socket.setdefaulttimeout(20)
 				notifyresp = self._send_notify_resp(transaction)
 				log.info("notifyresp sent")
 			except Exception, e:
@@ -166,7 +166,7 @@ class PushHandler:
 				
 			# send acknowledge we got it ok
 			try:
-				socket.setdefaulttimeout(10)
+				socket.setdefaulttimeout(20)
 				ack = self._send_acknowledge(transaction)
 				log.info("ack sent")
 			except:
