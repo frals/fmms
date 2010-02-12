@@ -332,11 +332,7 @@ class fMMS_SenderUI(hildon.Program):
 			if parsed == True and "Response-Status" in output:
 				if output['Response-Status'] == "Ok":
 					log.info("message seems to have sent AOK!")
-					# workaround to make the note show even when we destroy the window
-					bus = dbus.SystemBus()
-					proxy = bus.get_object('org.freedesktop.Notifications', '/org/freedesktop/Notifications')
-					interface = dbus.Interface(proxy,dbus_interface='org.freedesktop.Notifications')
-					interface.SystemNoteInfoprint ("Message sent!")
+					banner = hildon.hildon_banner_show_information(self.spawner, "", "Message sent")
 					self.window.destroy()
 			else:
 				message = str(status) + "_" + str(reason)
