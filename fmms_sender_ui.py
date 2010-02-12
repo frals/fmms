@@ -315,15 +315,16 @@ class fMMS_SenderUI(hildon.Program):
 		sender = self.config.get_phonenumber()
 		tb = self.tvMessage.get_buffer()
 		message = tb.get_text(tb.get_start_iter(), tb.get_end_iter())
-		log.info("sender: %s attachment %s to %s message %s", sender, attachment, to, message)
+		log.info("sender: %s attachment: %s to: %s message: %s", sender, attachment, to, message)
 
 		""" Construct and send the message, off you go! """
-		# TODO: remove hardcoded subject
 		# TODO: let controller do this
 		try:
 			subject = message[:10]
 			if len(message) > 10:
 				subject += "..."
+			if len(subject) == 0:
+				subject = "MMS"
 			sender = MMSSender(to, subject, message, attachment, sender)
 			(status, reason, output) = sender.sendMMS()
 			### TODO: Clean up and make this look decent
@@ -340,7 +341,7 @@ class fMMS_SenderUI(hildon.Program):
 			note = osso.SystemNote(self.osso_c)
 			errmsg = "Invalid attachment"
 			note.system_note_dialog("Sending failed:\nError: " + errmsg + " \nPlease make sure the file is valid" , 'notice')
-			#raise
+			raise
 		except socket.error, exc:
 			log.exception("sender: %s %s", type(exc), exc)
 			code = str(exc.args[0])
