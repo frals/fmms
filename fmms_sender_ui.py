@@ -288,6 +288,7 @@ class fMMS_SenderUI(hildon.Program):
 		
 		
 		to = self.eNumber.get_text()
+		# TODO: skip this if it looks like an email
 		if not self.cont.validate_phonenumber(to):
 			note = osso.SystemNote(self.osso_c)
 			note.system_note_dialog("Invalid phonenumber, must only contain + and digits" , 'notice')
@@ -334,10 +335,11 @@ class fMMS_SenderUI(hildon.Program):
 					log.info("message seems to have sent AOK!")
 					banner = hildon.hildon_banner_show_information(self.spawner, "", "Message sent")
 					self.window.destroy()
-			else:
-				message = str(status) + "_" + str(reason)
-				reply = str(output)
-				banner = hildon.hildon_banner_show_information(self.window, "", "MMSC REPLIED:" + message + "\nBODY: " + reply)
+					return
+			
+			message = str(status) + "_" + str(reason)
+			reply = str(output)
+			banner = hildon.hildon_banner_show_information(self.window, "", "MMSC REPLIED:" + message + "\nBODY: " + reply)
                         
 		except TypeError, exc:
 			log.exception("sender: %s %s", type(exc), exc)
