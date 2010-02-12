@@ -326,15 +326,18 @@ class fMMS_SenderUI(hildon.Program):
 			if len(subject) == 0:
 				subject = "MMS"
 			sender = MMSSender(to, subject, message, attachment, sender)
-			(status, reason, output) = sender.sendMMS()
+			(status, reason, output, parsed) = sender.sendMMS()
 			### TODO: Clean up and make this look decent
-			message = str(status) + "_" + str(reason)
-		
-			reply = str(output)
-			#print message
-			#note = osso.SystemNote(self.osso_c)
-			#ret = note.system_note_dialog("MMSC REPLIED:" + message + "\nBODY:" + reply, 'notice')
-			banner = hildon.hildon_banner_show_information(self.window, "", "MMSC REPLIED:" + message + "\nBODY: " + reply)
+			
+			if parsed == True and "Response-Status" in output:
+				if output['Response-Status'] == "Ok":
+					log.info("message seems to have sent AOK!")
+					banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Message seems to have been sent!")
+					self.window.destroy()
+			else:
+				message = str(status) + "_" + str(reason)
+				reply = str(output)
+				banner = hildon.hildon_banner_show_information(self.window, "", "MMSC REPLIED:" + message + "\nBODY: " + reply)
                         
 		except TypeError, exc:
 			log.exception("sender: %s %s", type(exc), exc)
