@@ -15,7 +15,9 @@ import conic
 import time
 import socket
 import array
+import subprocess
 
+import dbus
 from dbus.mainloop.glib import DBusGMainLoop
 
 from mms import message
@@ -124,6 +126,22 @@ class PushHandler:
 	""" thanks benaranguren on talk.maemo.org for patch including x-wap-profile header """
 	def _get_mms_message(self, location, transaction):
 		log.info("getting file: %s", location)
+		log.info("setting up connector")
+		
+		(proxyurl, proxyport) = self.config.get_proxy_from_apn()
+		# TODO: get from gconf
+		apn = "internet.tele2.se"
+		# TODO: sanitize proxyurl
+		# TODO: get from gconf and sanitize
+		mmsc1 = "mmsc.tele2.se"
+		# TODO: get from gconf and sanitize
+		mmsc2 = "83.191.132.8"
+		# todo get user/pass from gconf
+		try:
+			connector = ConnectionHandler(apn, "", "", proxyurl, mmsc1, mmsc2)
+			connector.start()
+		except:
+			log.exception("Connection failed")
 		try:
 
 			try:
@@ -136,7 +154,6 @@ class PushHandler:
 			# TODO: configurable time-out?
 			timeout = 30
 			socket.setdefaulttimeout(timeout)
-			(proxyurl, proxyport) = self.config.get_proxy_from_apn()
 			
 			if proxyurl == "" or proxyurl == None:
 				log.info("connecting without proxy")
@@ -182,7 +199,8 @@ class PushHandler:
 			interface = dbus.Interface(proxy,dbus_interface='org.freedesktop.Notifications')
 			interface.SystemNoteInfoprint ("fMMS: Failed to download MMS message.")
 			raise
-			
+		
+		connector.disconnect()
 		return dirname
 
 
@@ -212,7 +230,7 @@ class PushHandler:
 		log.info("m-acknowledge-ind: %s", out)
 		return out
 
-  	    
+
 """ class for sending an mms """    	    
 class MMSSender:
 	def __init__(self, number=None, subject=None, message=None, attachment=None, sender=None, customMMS=None):
@@ -299,3 +317,45 @@ class MMSSender:
 			
 		log.info("MMSC RESPONDED: %s", outparsed)
 		return res.status, res.reason, outparsed, parsed
+
+
+# TODO: error handling on this whole class, really.
+class ConnectionHandler:
+	
+	def __init__(self, apn, username="", password="", proxy="0", mmsc1="0", mmsc2="0"):
+		self.apn = apn
+		self.username = username
+		self.password = password
+		self.proxyip = proxy
+		self.mmsc1 = mmsc1
+		self.mmsc2 = mmsc2
+		self.rx = 0
+		self.tx = 0
+		log.info("ConnectionHandler UP!\nAPN: %s user: %s pass: %s proxyip: %s mmsc1: %s mmsc2: %s" % (self.apn, self.username, self.password, self.proxyip, self.mmsc1, self.mmsc2))
+		self.conn = self.connect()
+
+	def start(self):
+		args = "START %s %s %s %s %s %s" % (self.iface, self.ipaddr, self.mmsc1, self.mmsc2, self.dnsip, self.proxyip)
+		retcode = subprocess.call(["/opt/fmms/fmms_magic", args])
+		log.info("fmms_magic retcode: %s" % retcode)
+		
+	def connect(self):
+		bus = dbus.SystemBus()
+		gprs = dbus.Interface(bus.get_object("com.nokia.csd", "/com/nokia/csd/gprs"), "com.nokia.csd.GPRS")
+		obj = gprs.QuickConnect(self.apn, "IP", self.username, self.password)
+		conn = dbus.Interface(bus.get_object("com.nokia.csd", obj), "com.nokia.csd.GPRS.Context")
+		(apn, ctype, self.iface, self.ipaddr, connected, tx, rx) = conn.GetStatus()
+		
+		tmp = bus.get_object("com.nokia.csd.GPRS", obj)
+		props = dbus.Interface(tmp, "org.freedesktop.DBus.Properties")
+		self.dnsip = props.Get("com.nokia.csd.GPRS.Context", "PDNSAddress")
+		
+		return conn
+		
+	def disconnect(self):
+		log.info("running disconnect")
+		(apn, ctype, self.iface, self.ipaddr, connected, self.tx, self.rx) = self.conn.GetStatus()
+		args = "STOP %s" % self.iface
+		retcode = subprocess.call(["/opt/fmms/fmms_magic", args])
+		log.info("disconnecting connection. rx: %s tx: %s" % (self.tx, self.rx))
+		self.conn.Disconnect()

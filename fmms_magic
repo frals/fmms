@@ -1,0 +1,63 @@
+#!/bin/sh -x
+if [ `id -u` != 0 ] ; then
+	exec sudo $0 $*
+	exit $?
+fi
+
+do_start() {
+	#echo $1 $2 $3 $4 $5 $6
+	REPLACER="/usr/bin/cut -d. -f1-3"
+	
+	STARTIFACE="/sbin/ifconfig $1 $2 up"
+	
+	DNSIP="`/bin/echo $5 | ${REPLACER}`.0"
+	ROUTETODNS="/sbin/route add -net ${DNSIP} netmask 255.255.255.0 $1"
+	
+	GETMMSCHOST="/usr/bin/nslookup $3 $5"
+	GETMMSC2HOST="/usr/bin/nslookup $4 $5"
+	
+	$STARTIFACE
+	$ROUTETODNS
+	MMSC=`${GETMMSCHOST} | /bin/grep mmsc | /usr/bin/tail -n1 | /usr/bin/cut -d' ' -f3`
+	MMSC2=`${GETMMSC2HOST} | /bin/grep mmsc | /usr/bin/tail -n1 | /usr/bin/cut -d' ' -f3`
+	
+	MMSCIP1="`/bin/echo ${MMSC} | ${REPLACER}`.0"
+	MMSCIP2="`/bin/echo ${MMSC2} | ${REPLACER}`.0"
+	
+	if [ $6 != "0" ]; then
+		GETPROXYHOST="/usr/bin/nslookup $6 $5"
+		PROXYIP=`${GETPROXYHOST} | /bin/grep mmsc | /usr/bin/tail -n1 | /usr/bin/cut -d' ' -f3`
+		PROXYIP="`echo $PROXYIP | ${REPLACER}`.0"
+	else
+		PROXYIP="0"
+	fi
+	
+	if [ $PROXYIP != "0" ]; then
+		ROUTETOPROXY="/sbin/route add -net ${PROXYIP} netmask 255.255.255.0 $1"
+		$ROUTETOPROXY
+	fi
+	
+	ROUTE1="/sbin/route add -net ${MMSCIP1} netmask 255.255.255.0 $1"
+	$ROUTE1
+	if [ $MMSCIP1 != $MMSCIP2 ]; then
+		ROUTE2="/sbin/route add -net ${MMSCIP2} netmask 255.255.255.0 $1"
+		$ROUTE2
+	fi
+	
+}
+
+do_stop() {
+	echo $1
+	STOPIFACE="/sbin/ifconfig $1 down"
+	$STOPIFACE
+}
+
+if [ $1 == "START" ]; then
+	do_start $2 $3 $4 $5 $6 $7 $8
+	
+elif [ $1 == "STOP" ]; then
+	do_stop $2
+else
+	echo "usage $0 <START/STOP>"
+fi
+exit 0
