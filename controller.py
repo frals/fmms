@@ -77,13 +77,15 @@ class fMMS_controller():
 		try:
 			mtime = time.strptime(mtime)
 		except ValueError, e:
-			log.info("timeconversion stage1 failed: %s %s", type(e), e)
+			#log.info("timeconversion stage1 failed: %s %s", type(e), e)
 			try:
 				mtime = time.strptime(mtime, "%Y-%m-%d %H:%M:%S")
 			except ValueError, e:
-				log.info("timeconversion stage2 failed: %s %s", type(e), e)
+				#log.info("timeconversion stage2 failed: %s %s", type(e), e)
+				pass
 		except Exception, e:
-			log.exception("Could not convert timestamp: %s %s", type(e), e)
+			#log.exception("Could not convert timestamp: %s %s", type(e), e)
+			pass
 		
 		# TODO: check if hideToday == true
 		# TODO: remove date if date == today
