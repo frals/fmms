@@ -8,6 +8,8 @@
 import evolution
 import gtk
 
+import time
+
 import logging
 log = logging.getLogger('fmms.%s' % __name__)
 
@@ -19,6 +21,7 @@ class ContactHandler:
 		self.ab = evolution.ebook.open_addressbook("default")
 		self.contacts = self.ab.get_all_contacts()
 		self.phonedict = {}
+		t1 = time.clock()
 		for c in self.contacts:
 			#print c.get_name(), c.get_property('mobile-phone')
 			#print c.get_property('other-phone')
@@ -29,7 +32,9 @@ class ContactHandler:
 			fname =	c.get_name()
 			# TODO: this is _really_ slow... look at integration with c please
 			#nrlist = self.get_numbers_from_name(fname)
-			self.phonedict[c.get_name()] = nrlist
+			self.phonedict[fname] = nrlist
+		t2 = time.clock()
+		log.info("phonedict loaded: %s in %s" % (len(self.phonedict), round(t2-t1, 5)))
 	
 	""" returns all the numbers from a name, as a list """
 	def get_numbers_from_name(self, fname):
@@ -77,14 +82,13 @@ class ContactHandler:
 		### do some voodoo here
 		# match against the last 7 digits
 		numberstrip = number[-7:]
-		for person in self.phonedict:	
+		for person in self.phonedict:
 			for cbnr in self.phonedict[person]:
 				if cbnr != None:
 					cbnr = cbnr.replace(" ", "")
 					cbnr = cbnr[-7:]
-					if cbnr == number or numberstrip.endswith(cbnr) or number.endswith(cbnr) and len(cbnr) >= 7:
+					if (cbnr == number or numberstrip.endswith(cbnr) or number.endswith(cbnr)) and len(cbnr) >= 7:
 						return person
-					
 		return None
 	
 	# TODO: get from uid instead of name
