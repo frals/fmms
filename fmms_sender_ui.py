@@ -98,6 +98,10 @@ class fMMS_SenderUI(hildon.Program):
 		self.attachmentFile = ""
 		self.thumbnailFile = ""
 
+		""" get all contacts in a dict (name, uid) """
+		self.cl = self.ch.get_contacts_as_list()
+		self.cldict = self.ch.get_contacts_as_dict()
+
 		""" Show it all! """
 		allBox.pack_start(topHBox1, False, False)
 		allBox.pack_start(pan, True, True)
@@ -141,7 +145,6 @@ class fMMS_SenderUI(hildon.Program):
 	
 	
 	def contact_number_chosen(self, button, nrdialog):
-		print button.get_label()
 		nr = button.get_label().replace(" ", "")
 		nr = re.sub("[^0-9]\+", "", nr)
 		self.eNumber.set_text(nr)
@@ -151,7 +154,8 @@ class fMMS_SenderUI(hildon.Program):
 	
 	def contact_selector_changed(self, selector):
 		username = selector.get_current_text()
-		nrlist = self.ch.get_numbers_from_name(username)
+		uid = self.cldict[username]
+		nrlist = self.ch.get_numbers_from_uid(uid)
 		nrdialog = gtk.Dialog("Pick a number")
 		for number in nrlist:
 			numberbox = gtk.HBox()
@@ -171,20 +175,12 @@ class fMMS_SenderUI(hildon.Program):
 	
 	
 	def create_contacts_selector(self):
-		#Create a HildonTouchSelector with a single text column
-		selector = hildon.TouchSelectorEntry(text = True)
-		#selector.connect('changed', self.contact_selector_changed)
-
-		cl = self.ch.get_contacts_as_list()
-
-		# Populate selector
-		for contact in cl:
+		selector = hildon.TouchSelectorEntry(text=True)
+		
+		for (contact, uid) in self.cl:
 			if contact != None:
-				# Add item to the column 
-				#print "adding", contact
 				selector.append_text(contact)
 
-		# Set selection mode to allow multiple selection
 		selector.set_column_selection_mode(hildon.TOUCH_SELECTOR_SELECTION_MODE_SINGLE)
 		return selector
 
