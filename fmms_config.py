@@ -35,9 +35,11 @@ class fMMS_config:
 		if self.get_phonenumber() == None:
 			self.set_phonenumber("000")
 		if self.get_img_resize_width() == None:
-			self.set_img_resize_width(0)
+			self.set_img_resize_width(320)
 		if self.get_version() == None:
 			self.set_version("Unknown")
+		if self.get_experimental() == None:
+			self.set_experimental(1)
 		if self.get_db_path() == None:
 			self.set_db_path("/home/user/.fmms/mms.db")
 		# Create dirs, for good measures
@@ -55,6 +57,12 @@ class fMMS_config:
 		
 	def read_config(self):
 		pass
+		
+	def set_experimental(self, val):
+		self.client.set_int(self._fmmsdir + "exp", int(val))
+		
+	def get_experimental(self):
+		return self.client.get_int(self._fmmsdir + "exp")
 	
 	def set_db_path(self, path):
 		self.client.set_string(self._fmmsdir + "db", path)
@@ -139,6 +147,11 @@ class fMMS_config:
 		proxy = self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/proxy_http')
 		proxyport = self.client.get_int('/system/osso/connectivity/IAP/' + apn + '/proxy_http_port')
 		return proxy, proxyport
+		
+	def get_apn_from_osso(self):
+		apn = self.get_apn()
+		apnosso = self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/gprs_accesspointname')
+		return apnosso
 	
 	def get_gprs_apns(self):
 		# get all IAP's
