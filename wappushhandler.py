@@ -118,28 +118,44 @@ class PushHandler:
 			interface.Notify("MMS", 0, '', message, sender, choices, {"category": "email-message", "dialog-type": 4, "led-pattern": "PatternCommunicationEmail", "dbus-callback-default": "se.frals.fmms /se/frals/fmms se.frals.fmms open_mms string:\"" + path + "\""}, -1)
 
 
+	def _get_mms_message(self, location, transaction):
+		if (self.config.get_experimental() == 1):
+			log.info("setting up connector")
+
+			(proxyurl, proxyport) = self.config.get_proxy_from_apn()
+			apn = self.config.get_apn_from_osso()
+			mmsc1 = self.cont.get_host_from_url(self.config.get_mmsc())
+			mmsc2 = self.cont.get_host_from_url(location)
+			# todo get user/pass from gconf
+			try:
+				connector = ConnectionHandler(apn, "", "", proxyurl, mmsc1, mmsc2)
+				connector.start()
+			except:
+				log.exception("Connection failed.")
+		try:
+			dirname = self.__get_mms_message(location, transaction)
+		except Exception, e:
+			log.exception("Something went wrong with getting the message... bailing out")
+			raise
+		
+		if (self.config.get_experimental() == 1) and connector != None:
+			try:
+				connector.disconnect()
+			except:
+				log.exception("Failed to close connection.")
+		
+		return dirname
+		
+			
+
+
 	""" get the mms message from content-location """
 	""" thanks benaranguren on talk.maemo.org for patch including x-wap-profile header """
-	def _get_mms_message(self, location, transaction):
+	def __get_mms_message(self, location, transaction):
 		log.info("getting file: %s", location)
-		log.info("setting up connector")
-		
-		(proxyurl, proxyport) = self.config.get_proxy_from_apn()
-		# TODO: get from gconf
-		apn = "internet.tele2.se"
-		# TODO: sanitize proxyurl
-		# TODO: get from gconf and sanitize
-		mmsc1 = "mmsc.tele2.se"
-		# TODO: get from gconf and sanitize
-		mmsc2 = "83.191.132.8"
-		# todo get user/pass from gconf
 		try:
-			connector = ConnectionHandler(apn, "", "", proxyurl, mmsc1, mmsc2)
-			connector.start()
-		except:
-			log.exception("Connection failed")
-		try:
-
+			(proxyurl, proxyport) = self.config.get_proxy_from_apn()
+			
 			try:
 				socket.setdefaulttimeout(20)
 				notifyresp = self._send_notify_resp(transaction)
@@ -185,8 +201,6 @@ class PushHandler:
 			except:
 				log.exception("sending ack failed: %s %s", type(e), e)
 			
-			socket.setdefaulttimeout(timeout)
-
 
 		except Exception, e:
 			log.exception("fatal: %s %s", type(e), e)
@@ -194,9 +208,8 @@ class PushHandler:
 			proxy = bus.get_object('org.freedesktop.Notifications', '/org/freedesktop/Notifications')
 			interface = dbus.Interface(proxy,dbus_interface='org.freedesktop.Notifications')
 			interface.SystemNoteInfoprint ("fMMS: Failed to download MMS message.")
-			raise
+			#raise
 		
-		connector.disconnect()
 		return dirname
 
 
