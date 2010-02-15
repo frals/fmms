@@ -5,10 +5,12 @@
 @author: Nick Leppänen Larsson <frals@frals.se>
 @license: GNU GPL
 """
+from operator import itemgetter
+from locale import setlocale, strxfrm, LC_ALL, strcoll
+import time
+
 import evolution
 import gtk
-
-import time
 
 import logging
 log = logging.getLogger('fmms.%s' % __name__)
@@ -37,9 +39,8 @@ class ContactHandler:
 		log.info("phonedict loaded: %s in %s" % (len(self.phonedict), round(t2-t1, 5)))
 	
 	""" returns all the numbers from a name, as a list """
-	def get_numbers_from_name(self, fname):
-		search = self.ab.search(fname)
-		res = search[0]
+	def get_numbers_from_uid(self, uid):
+		res = self.ab.get_contact(uid)
 		# would've been nice if this got all numbers, but alas, it dont.
 		"""props = ['assistant-phone', 'business-phone', 'business-phone-2', 'callback-phone', 'car-phone', 'company-phone', 'home-phone', 'home-phone-2', 'mobile-phone', 'other-phone', 'primary-phone']
 		nrlist = []
@@ -67,15 +68,30 @@ class ContactHandler:
 		return nrlist
 		
 	
-	""" returns all contact names sorted by name """
-	def get_contacts_as_list(self):
-		retlist = []
+	""" wrapper to get from uid """
+	def get_numbers_from_name(self, fname):
+		search = self.ab.search(fname)
+		res = search[0].get_uid()
+		return self.get_numbers_from_uid(res)
+		
+	def get_contacts_as_dict(self):
+		retlist = {}
 		for contact in self.contacts:
 			cn = contact.get_name()
+			uid = contact.get_uid()
 			if cn != None:
-				retlist.append(cn)
-		retlist.sort(key=str.lower)
+				retlist[cn] = uid
 		return retlist
+	
+	""" returns all contact names sorted by name """
+	def get_contacts_as_list(self):
+		retlist = self.get_contacts_as_dict()
+
+		# call setlocale to init current locale
+		setlocale(LC_ALL, "")
+		tmplist = sorted(retlist.iteritems(), cmp=strcoll, key=itemgetter(0), reverse=False)
+		return tmplist
+
 	
 	""" takes a number on international format (ie +46730111111) """
 	def get_name_from_number(self, number):
