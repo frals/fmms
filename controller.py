@@ -18,6 +18,7 @@ import os
 import array
 import re
 import time
+import urlparse
 
 import dbus
 from dbus.mainloop.glib import DBusGMainLoop
@@ -70,6 +71,16 @@ class fMMS_controller():
 		color_style = gtk.rc_get_style_by_paths(settings, 'GtkButton', \
 							'osso-logical-colors', gtk.Button)
 		return color_style.lookup_color(logicalcolorname)
+	
+	
+	def get_host_from_url(self, url):
+		if not url.startswith("http://"):
+			url = "http://%s" % url
+
+		ret = urlparse.urlparse(url)
+		ret = ret[1].split(":")[0]
+		
+		return ret
 	
 	
 	def convert_timeformat(self, intime, format, hideToday=False):
