@@ -9,9 +9,7 @@ import sys
 import os
 import dbus
 import urllib2
-import urllib
 import httplib
-import conic
 import time
 import socket
 import array
@@ -28,8 +26,6 @@ import controller as fMMSController
 
 import logging
 log = logging.getLogger('fmms.%s' % __name__)
-
-magic = 0xacdcacdc
 
 _DBG = True
 
