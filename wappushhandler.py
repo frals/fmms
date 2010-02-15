@@ -120,7 +120,7 @@ class PushHandler:
 
 	def _get_mms_message(self, location, transaction):
 		if (self.config.get_experimental() == 1):
-			log.info("setting up connector")
+			log.info("RUNNING IN EXPERIMENTAL MODE")
 
 			(proxyurl, proxyport) = self.config.get_proxy_from_apn()
 			apn = self.config.get_apn_from_osso()
@@ -137,6 +137,14 @@ class PushHandler:
 		except Exception, e:
 			log.exception("Something went wrong with getting the message... bailing out")
 			raise
+		
+		# send acknowledge we got it ok
+		try:
+			socket.setdefaulttimeout(20)
+			ack = self._send_acknowledge(transaction)
+			log.info("ack sent")
+		except:
+			log.exception("sending ack failed")
 		
 		if (self.config.get_experimental() == 1) and connector != None:
 			try:
@@ -190,16 +198,7 @@ class PushHandler:
 			mmsdataall = mmsdata.read()
 			dirname = self.cont.save_binary_mms(mmsdataall, transaction)
 			
-			if(_DBG):
-				log.info("fetched %s and wrote to file", location)
-				
-			# send acknowledge we got it ok
-			try:
-				socket.setdefaulttimeout(20)
-				ack = self._send_acknowledge(transaction)
-				log.info("ack sent")
-			except:
-				log.exception("sending ack failed: %s %s", type(e), e)
+			log.info("fetched %s and wrote to file", location)
 			
 
 		except Exception, e:
