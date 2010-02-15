@@ -155,11 +155,14 @@ class fMMS_GUI(hildon.Program):
 
 
 	def cb_on_focus(self, widget, event):
+		t1 = time.clock()
 		hildon.hildon_gtk_window_set_progress_indicator(self.window, 1)
 		self.force_ui_update()
 		self.liststore.clear()
 		self.add_buttons_liststore()
 		hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
+		t2 = time.clock()
+		log.info("liststore time: %s" % round(t2-t1, 3))
 		return True
 
 
