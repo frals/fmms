@@ -322,7 +322,7 @@ class fMMS_SenderUI(hildon.Program):
 				subject += "..."
 			if len(subject) == 0:
 				subject = "MMS"
-			sender = MMSSender(to, subject, message, attachment, sender)
+			sender = MMSSender(to, subject, message, attachment, sender, setupConn=True)
 			(status, reason, output, parsed) = sender.sendMMS()
 			### TODO: Clean up and make this look decent
 			

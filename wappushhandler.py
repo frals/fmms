@@ -241,11 +241,13 @@ class PushHandler:
 
 """ class for sending an mms """    	    
 class MMSSender:
-	def __init__(self, number=None, subject=None, message=None, attachment=None, sender=None, customMMS=None):
+	def __init__(self, number=None, subject=None, message=None, attachment=None, sender=None, customMMS=None, setupConn=False):
 		print "GOT SENDER:", sender
 		print "customMMS:", customMMS
 		self.customMMS = customMMS
 		self.config = fMMSconf.fMMS_config()
+		self.cont = fMMSController.fMMS_controller()
+		self.setupConn = setupConn
 		if customMMS == None:
 			self.number = number
 			self.subject = subject
@@ -254,6 +256,20 @@ class MMSSender:
 			self._mms = None
 			self._sender = sender
 			self.createMMS()
+			if self.setupConn == True and (self.config.get_experimental() == 1):
+				log.info("RUNNING SENDER IN EXPERIMENTAL MODE")
+		
+				(proxyurl, proxyport) = self.config.get_proxy_from_apn()
+				apn = self.config.get_apn_from_osso()
+				mmsc1 = self.cont.get_host_from_url(self.config.get_mmsc())
+				mmsc2 = 0
+				# todo get user/pass from gconf
+				try:
+					self.connector = ConnectionHandler(apn, "", "", proxyurl, mmsc1, mmsc2)
+					self.connector.start()
+				except:
+					log.exception("Connector failed")	
+				
 	    
 	def createMMS(self):
 		slide = message.MMSMessagePage()
@@ -324,6 +340,13 @@ class MMSSender:
 			outparsed = out
 			
 		log.info("MMSC RESPONDED: %s", outparsed)
+
+		if (self.config.get_experimental() == 1) and self.setupConn == True:
+			try:
+				self.connector.disconnect()
+			except:
+				log.exception("Failed to close connection.")
+		
 		return res.status, res.reason, outparsed, parsed
 
 

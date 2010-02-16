@@ -200,3 +200,4 @@ class fMMS_config:
 		
 if __name__ == '__main__':
 	config = fMMS_config()
+	config.set_experimental(1)

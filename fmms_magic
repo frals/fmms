@@ -14,15 +14,19 @@ do_start() {
 	ROUTETODNS="/sbin/route add -net ${DNSIP} netmask 255.255.255.0 $1"
 	
 	GETMMSCHOST="/usr/bin/nslookup $3 $5"
-	GETMMSC2HOST="/usr/bin/nslookup $4 $5"
-	
+		
 	$STARTIFACE
 	$ROUTETODNS
 	MMSC=`${GETMMSCHOST} | /bin/grep mmsc | /usr/bin/tail -n1 | /usr/bin/cut -d' ' -f3`
-	MMSC2=`${GETMMSC2HOST} | /bin/grep mmsc | /usr/bin/tail -n1 | /usr/bin/cut -d' ' -f3`
-	
 	MMSCIP1="`/bin/echo ${MMSC} | ${REPLACER}`.0"
-	MMSCIP2="`/bin/echo ${MMSC2} | ${REPLACER}`.0"
+	
+	if [ $4 != "0" ]; then
+			GETMMSC2HOST="/usr/bin/nslookup $4 $5"
+			MMSC2=`${GETMMSC2HOST} | /bin/grep mmsc | /usr/bin/tail -n1 | /usr/bin/cut -d' ' -f3`
+			MMSCIP2="`/bin/echo ${MMSC2} | ${REPLACER}`.0"
+	else
+		MMSCIP2="0"
+	fi
 	
 	if [ $6 != "0" ]; then
 		GETPROXYHOST="/usr/bin/nslookup $6 $5"
@@ -39,7 +43,7 @@ do_start() {
 	
 	ROUTE1="/sbin/route add -net ${MMSCIP1} netmask 255.255.255.0 $1"
 	$ROUTE1
-	if [ $MMSCIP1 != $MMSCIP2 ]; then
+	if [ $MMSCIP1 != $MMSCIP2 ] && [ $MMSCIP2 != "0" ]; then
 		ROUTE2="/sbin/route add -net ${MMSCIP2} netmask 255.255.255.0 $1"
 		$ROUTE2
 	fi
