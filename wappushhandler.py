@@ -146,7 +146,7 @@ class PushHandler:
 		except:
 			log.exception("sending ack failed")
 		
-		if (self.config.get_experimental() == 1) and connector != None:
+		if self.config.get_experimental() == 1:
 			try:
 				connector.disconnect()
 			except:
