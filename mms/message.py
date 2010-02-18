@@ -122,7 +122,7 @@ class MMSMessage:
         rootLayoutNode.setAttribute('width', str(self.width))
         rootLayoutNode.setAttribute('height', str(self.height))
         layoutNode.appendChild(rootLayoutNode)
-        for regionID, left, top, width, height in (('Image', '0', '76', '320', '164'), ('Text', '0', '0', '320', '76')):
+        for regionID, left, top, width, height in (('Image', '0', '36', '320', '204'), ('Text', '0', '0', '320', '76')):
         #(regionID, left, top, width, height) = ('Text', '0', '0', '320', '240')
 		regionNode = smilDoc.createElement('region')
 		regionNode.setAttribute('id', regionID)
