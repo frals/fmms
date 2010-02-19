@@ -172,7 +172,7 @@ class PushHandler:
 				log.exception("notify sending failed: %s %s", type(e), e)
 			
 			# TODO: configurable time-out?
-			timeout = 30
+			timeout = 40
 			socket.setdefaulttimeout(timeout)
 			
 			if proxyurl == "" or proxyurl == None:
