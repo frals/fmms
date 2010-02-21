@@ -52,6 +52,9 @@ class fMMS_controller():
 		
 	def get_secondary_font(self):
 		return self.get_font_desc('SmallSystemFont')
+		
+	def get_active_color(self):
+		return self.get_color('ActiveTextColor')
 	
 	def get_primary_color(self):
 		return self.get_color('ButtonTextColor')

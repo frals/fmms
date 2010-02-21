@@ -408,6 +408,7 @@ class fMMS_GUI(hildon.Program):
 			
 			primarytxt = self.cont.get_primary_font().to_string()
 			primarycolor = self.cont.get_primary_color().to_string()
+			highlightcolor = self.cont.get_active_color().to_string()
 			secondarytxt = self.cont.get_secondary_font().to_string()
 			secondarycolor = self.cont.get_secondary_color().to_string()
 			for varlist in pushlist:
@@ -456,8 +457,11 @@ class fMMS_GUI(hildon.Program):
 						description = varlist['Subject']
 					except:
 						description = ""
+						
 				primarytext = ' <span font_desc="%s" foreground="%s"><sup>%s</sup></span>' % (secondarytxt, secondarycolor, mtime)
 				secondarytext = '\n<span font_desc="%s" foreground="%s">%s</span>' % (secondarytxt, secondarycolor, description)
+				if not isread and direction == fMMSController.MSG_DIRECTION_IN:
+					sender = '<span foreground="%s">%s</span>' % (highlightcolor, sender)
 				stringline = "%s%s%s" % (sender, primarytext, secondarytext)
 				self.liststore.append([icon, stringline, photo, fname, sender])
 
