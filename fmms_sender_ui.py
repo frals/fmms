@@ -204,6 +204,24 @@ class fMMS_SenderUI(hildon.Program):
 			self.imageBoxContent = image
 			self.imageBox.add(self.imageBoxContent)
 			self.imageBox.show_all()
+		elif filetype.startswith("audio"):
+			icon_theme = gtk.icon_theme_get_default()
+			pixbuf = icon_theme.load_icon("mediaplayer_default_album", 128, 0)
+			image = gtk.Image()
+			image.set_from_pixbuf(pixbuf)
+			self.imageBox.remove(self.imageBoxContent)
+			self.imageBoxContent = image
+			self.imageBox.add(self.imageBoxContent)
+			self.imageBox.show_all()
+		elif filetype.startswith("video"):
+			icon_theme = gtk.icon_theme_get_default()
+			pixbuf = icon_theme.load_icon("general_video", 128, 0)
+			image = gtk.Image()
+			image.set_from_pixbuf(pixbuf)
+			self.imageBox.remove(self.imageBoxContent)
+			self.imageBoxContent = image
+			self.imageBox.add(self.imageBoxContent)
+			self.imageBox.show_all()
 		return
 
 		
