@@ -167,7 +167,7 @@ class fMMS_GUI(hildon.Program):
 
 
 	def cb_open_fmms(self, interface, method, args, user_data):
-		if method != 'open_mms' and method != 'open_gui':
+		if method != 'open_mms' and method != 'open_gui' and method != 'send_via_service':
 			return
 		if method == 'open_mms':
 			filename = args[0]
@@ -187,7 +187,10 @@ class fMMS_GUI(hildon.Program):
 			log.info("launching sender with args: %s", args)
 			fMMSSenderUI.fMMS_SenderUI(tonumber=args[0]).run()
 			return
-		
+		elif method == 'send_via_service':
+			log.info("launching sendviaservice with args: %s", args)
+			ret = fMMSSenderUI.fMMS_SenderUI(withfile=args[0]).run()
+			return ret
 		
 	def create_menu(self):
 		menu = hildon.AppMenu()

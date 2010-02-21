@@ -10,7 +10,6 @@ import time
 import socket
 import re
 import Image
-import mimetypes
 import StringIO
 
 import gtk
@@ -18,6 +17,7 @@ import hildon
 import gobject
 import osso
 import dbus
+from gnome import gnomevfs
 
 from wappushhandler import MMSSender
 import fmms_config as fMMSconf
@@ -28,7 +28,7 @@ import logging
 log = logging.getLogger('fmms.%s' % __name__)
 
 class fMMS_SenderUI(hildon.Program):
-	def __init__(self, spawner=None, tonumber=None):
+	def __init__(self, spawner=None, tonumber=None, withfile=None):
 		hildon.Program.__init__(self)
 		program = hildon.Program.get_instance()
 		
@@ -96,7 +96,10 @@ class fMMS_SenderUI(hildon.Program):
 		#pan.add_with_viewport(self.tvMessage)
 		
 		self.attachmentFile = ""
-		self.thumbnailFile = ""
+		
+		if withfile != None:
+			self.attachmentFile = withfile
+			self.set_thumbnail(self.attachmentFile)
 
 		""" get all contacts in a dict (name, uid) """
 		self.cl = self.ch.get_contacts_as_list()
@@ -184,6 +187,20 @@ class fMMS_SenderUI(hildon.Program):
 		selector.set_column_selection_mode(hildon.TOUCH_SELECTOR_SELECTION_MODE_SINGLE)
 		return selector
 
+	def set_thumbnail(self, filename):
+		filetype = gnomevfs.get_mime_type(filename)
+		if filetype.startswith("image"):
+			im = Image.open(filename)
+			im.thumbnail((256,256), Image.NEAREST)
+			pixbuf = self.image2pixbuf(im)
+			image = gtk.Image()
+			image.set_from_pixbuf(pixbuf)
+			self.imageBox.remove(self.imageBoxContent)
+			self.imageBoxContent = image
+			self.imageBox.add(self.imageBoxContent)
+			self.imageBox.show_all()
+		return
+
 		
 	def open_file_dialog(self, button, data=None):
 		#fsm = hildon.FileSystemModel()
@@ -201,17 +218,7 @@ class fMMS_SenderUI(hildon.Program):
 				banner = hildon.hildon_banner_show_information(self.window, "", "10MB attachment limit in effect, please try another file")
 			else:
 				self.attachmentFile = fcd.get_filename()
-				filetype = mimetypes.guess_type(self.attachmentFile)[0]
-				if filetype.startswith("image"):
-					im = Image.open(self.attachmentFile)
-					im.thumbnail((256,256), Image.NEAREST)
-					pixbuf = self.image2pixbuf(im)
-					image = gtk.Image()
-					image.set_from_pixbuf(pixbuf)
-					self.imageBox.remove(self.imageBoxContent)
-					self.imageBoxContent = image
-					self.imageBox.add(self.imageBoxContent)
-					self.imageBox.show_all()
+				self.set_thumbnail(self.attachmentFile)
 			fcd.destroy()
 		else:
 			fcd.destroy()
@@ -257,7 +264,12 @@ class fMMS_SenderUI(hildon.Program):
 				filename = filename.rpartition("/")
 				filename = filename[-1]
 				rattachment = self.config.get_imgdir() + filename
-				rimg.save(rattachment)
+				try:
+					rimg.save(rattachment)
+				except KeyError:
+					# TODO: get file extension from mimetype
+					rattachment = rattachment + ".jpg"
+					rimg.save(rattachment)
 				self.attachmentIsResized = True
 			else:
 				rattachment = filename
@@ -265,7 +277,7 @@ class fMMS_SenderUI(hildon.Program):
 			return rattachment
 		
 		except Exception, e:
-			log.exception("resizer: %s %s", type(exc), exc)
+			log.exception("resizer: %s %s", type(e), e)
 			raise
 	
 	def send_mms_clicked(self, widget):
@@ -296,13 +308,13 @@ class fMMS_SenderUI(hildon.Program):
 			self.attachmentIsResized = False
 		else:
 			log.info("attachment: %s", attachment)
-			filetype = mimetypes.guess_type(attachment)[0]
+			filetype = gnomevfs.get_mime_type(attachment)
 			self.attachmentIsResized = False
 			if self.config.get_img_resize_width() != 0 and filetype.startswith("image"):
 				try:
 					attachment = self.resize_img(attachment)
 				except Exception, e:
-					log.exception("resize failed: %s %s", type(exc), exc)
+					log.exception("resize failed: %s %s", type(e), e)
 					note = osso.SystemNote(self.osso_c)
 					errmsg = str(e.args)
 					note.system_note_dialog("Resizing failed:\nError: " + errmsg , 'notice')
