@@ -28,13 +28,14 @@ import logging
 log = logging.getLogger('fmms.%s' % __name__)
 
 class fMMS_SenderUI(hildon.Program):
-	def __init__(self, spawner=None, tonumber=None, withfile=None):
+	def __init__(self, spawner=None, tonumber=None, withfile=None, subject=None, message=None):
 		hildon.Program.__init__(self)
 		program = hildon.Program.get_instance()
 		
 		self.config = fMMSconf.fMMS_config()
 		self.ch = ContactH.ContactHandler()
 		self.cont = fMMSController.fMMS_controller()
+		self.subject = subject
 		
 		self.window = hildon.StackableWindow()
 		self.window.set_title("New MMS")
@@ -88,6 +89,10 @@ class fMMS_SenderUI(hildon.Program):
 		self.tvMessage = hildon.TextView()
 		self.tvMessage.set_property("name", "hildon-fullscreen-textview")
 		self.tvMessage.set_wrap_mode(gtk.WRAP_WORD)
+		if message != None and message != '':
+			tb = gtk.TextBuffer()
+			tb.set_text(message)
+			self.tvMessage.set_buffer(tb)
 		
 		midBox.pack_start(self.imageBox)
 		midBox.pack_start(self.tvMessage)
@@ -267,8 +272,14 @@ class fMMS_SenderUI(hildon.Program):
 				try:
 					rimg.save(rattachment)
 				except KeyError:
-					# TODO: get file extension from mimetype
-					rattachment = rattachment + ".jpg"
+					try:
+						mimetype = gnomevfs.get_mime_type(rattachment)
+						extension = mimetype.rpartition("/")[2]
+						rattachment = "%s.%s" % (rattachment, extension)
+					except:
+						log.exception("rimg.save filetype troubles")
+						# we tried our best... lets just go with jpg!
+						rattachment = "%s.jpg" % (rattachment)
 					rimg.save(rattachment)
 				self.attachmentIsResized = True
 			else:
@@ -329,11 +340,14 @@ class fMMS_SenderUI(hildon.Program):
 		""" Construct and send the message, off you go! """
 		# TODO: let controller do this
 		try:
-			subject = message[:10]
-			if len(message) > 10:
-				subject += "..."
-			if len(subject) == 0:
-				subject = "MMS"
+			if self.subject == '' or self.subject == None:
+				subject = message[:10]
+				if len(message) > 10:
+					subject += "..."
+				if len(subject) == 0:
+					subject = "MMS"
+			else:
+				subject = self.subject
 			sender = MMSSender(to, subject, message, attachment, sender, setupConn=True)
 			(status, reason, output, parsed) = sender.sendMMS()
 			### TODO: Clean up and make this look decent
