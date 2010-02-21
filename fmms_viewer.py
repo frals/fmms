@@ -15,6 +15,7 @@ import gobject
 import osso
 from gnome import gnomevfs
 import dbus
+import Image
 
 from wappushhandler import PushHandler
 import fmms_config as fMMSconf
@@ -271,8 +272,13 @@ class fMMS_Viewer(hildon.Program):
 				""" insert the image in an eventbox so we can get signals """
 				ebox = gtk.EventBox()
 				img = gtk.Image()
-				img.set_from_file(path + "/" + fname)
-				fullpath = path + "/" + fname
+				#img.set_from_file(path + "/" + fname)
+				fullpath = "%s/%s" % (path, fname)
+				im = Image.open(fullpath)
+				im.thumbnail((384, 384), Image.NEAREST)
+				pixbuf = self.cont.image2pixbuf(im)
+				img = gtk.Image()
+				img.set_from_pixbuf(pixbuf)
 				ebox.add(img)
 				menu = self.mms_img_menu(fullpath)
 				ebox.tap_and_hold_setup(menu)

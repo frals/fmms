@@ -197,7 +197,7 @@ class fMMS_SenderUI(hildon.Program):
 		if filetype.startswith("image"):
 			im = Image.open(filename)
 			im.thumbnail((256,256), Image.NEAREST)
-			pixbuf = self.image2pixbuf(im)
+			pixbuf = self.cont.image2pixbuf(im)
 			image = gtk.Image()
 			image.set_from_pixbuf(pixbuf)
 			self.imageBox.remove(self.imageBoxContent)

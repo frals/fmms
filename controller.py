@@ -10,6 +10,8 @@ And, yes, I know this is not really a controller.
 """
 import logging
 import logging.config
+import StringIO
+
 logging.config.fileConfig('/opt/fmms/logger.conf')
 log = logging.getLogger('fmms.%s' % __name__)
 
@@ -81,6 +83,18 @@ class fMMS_controller():
 		ret = ret[1].split(":")[0]
 		
 		return ret
+	
+	""" from http://snippets.dzone.com/posts/show/655 """
+	def image2pixbuf(self, im):
+		file1 = StringIO.StringIO()
+		im.save(file1, "ppm")
+		contents = file1.getvalue()
+		file1.close()
+		loader = gtk.gdk.PixbufLoader("pnm")
+		loader.write(contents, len(contents))
+		pixbuf = loader.get_pixbuf()
+		loader.close()
+		return pixbuf
 	
 	
 	def convert_timeformat(self, intime, format, hideToday=False):
