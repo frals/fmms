@@ -138,13 +138,6 @@ class fMMS_GUI(hildon.Program):
 		
 		self.window.show_all()
 		self.add_window(self.window)
-		
-		if self.config.get_firstlaunch() == 1:
-			#note = osso.SystemNote(self.osso_c)
-			#firstlaunchmessage = "NOTE: Currently you have to connect manually to the MMS APN when sending and receiving.\nAlso, only implemented attachment is image."
-			#note.system_note_dialog(firstlaunchmessage , 'notice')
-			self.create_config_dialog()
-			self.config.set_firstlaunch(0)
 
 
 	""" need this to always have the current path """
@@ -167,6 +160,15 @@ class fMMS_GUI(hildon.Program):
 			t2 = time.clock()
 			log.info("liststore time: %s" % round(t2-t1, 3))
 			self.refreshlistview = False
+			
+			if self.config.get_firstlaunch() == 1:
+						note = osso.SystemNote(self.osso_c)
+						firstlaunchmessage = "NOTE: Currently you have to connect manually to the MMS APN when sending and receiving.\nOnly implemented attachment is image."
+						note = hildon.hildon_note_new_information(self.window, firstlaunchmessage)
+						self.create_config_dialog()
+						self.config.set_firstlaunch(0)
+						note.run()
+						note.destroy()
 		return True
 
 
@@ -246,6 +248,7 @@ class fMMS_GUI(hildon.Program):
 
 	def create_config_dialog(self):
 		dialog = gtk.Dialog()
+		#dialog.set_transient_for(self.window)
 		dialog.set_title("Configuration")
 		
 		allVBox = gtk.VBox()
@@ -314,14 +317,9 @@ class fMMS_GUI(hildon.Program):
 		allVBox.show_all()
 		dialog.vbox.add(allVBox)
 		dialog.add_button("Save", gtk.RESPONSE_APPLY)
-		while 1:
-			ret = dialog.run()
-			ret2 = self.config_menu_button_clicked(ret)
-			if ret2 == 0 or ret2 == None: 
-				break
-			
+		ret = dialog.run()
+		ret2 = self.config_menu_button_clicked(ret)
 		dialog.destroy()
-		return ret
 
 		
 	""" from http://faq.pygtk.org/index.py?req=show&file=faq14.005.htp """
