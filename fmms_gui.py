@@ -38,6 +38,8 @@ class fMMS_GUI(hildon.Program):
 		self.ch = ContactH.ContactHandler()
 		self.osso_c = osso.Context("fMMS", self.config.get_version(), False)
 		self.osso_rpc = osso.Rpc(self.osso_c)
+		
+		self.refreshlistview = True
 	
 		if not os.path.isdir(self._mmsdir):
 			log.info("creating dir %s", self._mmsdir)
@@ -138,9 +140,9 @@ class fMMS_GUI(hildon.Program):
 		self.add_window(self.window)
 		
 		if self.config.get_firstlaunch() == 1:
-			note = osso.SystemNote(self.osso_c)
-			firstlaunchmessage = "NOTE: Currently you have to connect manually to the MMS APN when sending and receiving.\nAlso, only implemented attachment is image."
-			note.system_note_dialog(firstlaunchmessage , 'notice')
+			#note = osso.SystemNote(self.osso_c)
+			#firstlaunchmessage = "NOTE: Currently you have to connect manually to the MMS APN when sending and receiving.\nAlso, only implemented attachment is image."
+			#note.system_note_dialog(firstlaunchmessage , 'notice')
 			self.create_config_dialog()
 			self.config.set_firstlaunch(0)
 
@@ -155,14 +157,16 @@ class fMMS_GUI(hildon.Program):
 
 
 	def cb_on_focus(self, widget, event):
-		t1 = time.clock()
-		hildon.hildon_gtk_window_set_progress_indicator(self.window, 1)
-		self.force_ui_update()
-		self.liststore.clear()
-		self.add_buttons_liststore()
-		hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
-		t2 = time.clock()
-		log.info("liststore time: %s" % round(t2-t1, 3))
+		if self.refreshlistview == True:
+			t1 = time.clock()
+			hildon.hildon_gtk_window_set_progress_indicator(self.window, 1)
+			self.force_ui_update()
+			self.liststore.clear()
+			self.add_buttons_liststore()
+			hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
+			t2 = time.clock()
+			log.info("liststore time: %s" % round(t2-t1, 3))
+			self.refreshlistview = False
 		return True
 
 
@@ -185,10 +189,12 @@ class fMMS_GUI(hildon.Program):
 			return
 		elif method == 'send_mms':
 			log.info("launching sender with args: %s", args)
+			self.refreshlistview = True
 			fMMSSenderUI.fMMS_SenderUI(tonumber=args[0]).run()
 			return
 		elif method == 'send_via_service':
 			log.info("launching sendviaservice with args: %s", args)
+			self.refreshlistview = True
 			ret = fMMSSenderUI.fMMS_SenderUI(withfile=args[0], subject=args[1], message=args[2]).run()
 			return ret
 		
@@ -221,6 +227,7 @@ class fMMS_GUI(hildon.Program):
 	
 	def new_mms_button_clicked(self, button):
 		ret = fMMSSenderUI.fMMS_SenderUI(self.window).run()
+		self.refreshlistview = True
 		
 		
 	def create_about_dialog(self):
@@ -482,11 +489,13 @@ class fMMS_GUI(hildon.Program):
 	def delete_push_mms(self, fname):
 		try:
 			self.cont.wipe_message(fname)
-			banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Message deleted")
+			#banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Message deleted")
+			self.refreshlistview = True
 		except Exception, e:
 			log.exception("%s %s", type(e), e)
-			raise
+			#raise
 			banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Failed to delete message.")
+			self.refreshlistview = True
 
 
 	""" action on delete contextmenu click """
@@ -512,6 +521,7 @@ class fMMS_GUI(hildon.Program):
 			self.delete_push_mms(filename)
 			#self.liststore.remove(miter)
 		dialog.destroy()
+		self.refreshlistview = True
 		return
 	
 
@@ -547,6 +557,7 @@ class fMMS_GUI(hildon.Program):
 			log.exception("%s %s", type(e), e)
 			#raise
 		hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
+		self.refreshlistview = True
 
 
 	def run(self):
