@@ -88,7 +88,9 @@ class fMMS_SenderUI(hildon.Program):
 		
 		self.tvMessage = hildon.TextView()
 		self.tvMessage.set_property("name", "hildon-fullscreen-textview")
-		self.tvMessage.set_wrap_mode(gtk.WRAP_WORD)
+		self.tvMessage.set_pixels_above_lines(-1)
+		self.tvMessage.set_pixels_below_lines(-1)
+		self.tvMessage.set_wrap_mode(gtk.WRAP_CHAR)
 		if message != None and message != '':
 			tb = gtk.TextBuffer()
 			tb.set_text(message)
