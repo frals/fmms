@@ -324,11 +324,11 @@ class fMMS_controller():
 		self.delete_push_message(transactionid)
 	
 
-	def validate_phonenumber(self, nr):
+	def validate_phonenumber_email(self, nr):
 		nr = str(nr)
 		nr = nr.replace("+", "")
 		nr = nr.replace(" ", "")
-		if re.search(r"(\D)+", nr) == None:
+		if re.search(r"(\D)+", nr) == None or nr.contains("@"):
 			return True
 		else:
 		 	return False

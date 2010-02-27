@@ -79,7 +79,7 @@ class fMMS_SenderUI(hildon.Program):
 		pan.set_property("mov-mode", hildon.MOVEMENT_MODE_BOTH)		
 		
 		midBox = gtk.VBox()
-		midBox.set_size_request(256, 256)
+		midBox.set_size_request(384, 384)
 		
 		self.imageBox = gtk.EventBox()
 		self.imageBoxContent = gtk.Label("Tap to add image")
@@ -88,8 +88,6 @@ class fMMS_SenderUI(hildon.Program):
 		
 		self.tvMessage = hildon.TextView()
 		self.tvMessage.set_property("name", "hildon-fullscreen-textview")
-		self.tvMessage.set_pixels_above_lines(-1)
-		self.tvMessage.set_pixels_below_lines(-1)
 		self.tvMessage.set_wrap_mode(gtk.WRAP_CHAR)
 		if message != None and message != '':
 			tb = gtk.TextBuffer()
@@ -198,7 +196,7 @@ class fMMS_SenderUI(hildon.Program):
 		filetype = gnomevfs.get_mime_type(filename)
 		if filetype.startswith("image"):
 			im = Image.open(filename)
-			im.thumbnail((256,256), Image.NEAREST)
+			im.thumbnail((384,384), Image.NEAREST)
 			pixbuf = self.cont.image2pixbuf(im)
 			image = gtk.Image()
 			image.set_from_pixbuf(pixbuf)
@@ -328,7 +326,7 @@ class fMMS_SenderUI(hildon.Program):
 		
 		to = self.eNumber.get_text()
 		# TODO: skip this if it looks like an email
-		if not self.cont.validate_phonenumber(to):
+		if not self.cont.validate_phonenumber_email(to):
 			note = osso.SystemNote(self.osso_c)
 			note.system_note_dialog("Invalid phonenumber, must only contain + and digits" , 'notice')
 			return

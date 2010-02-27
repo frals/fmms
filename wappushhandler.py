@@ -279,7 +279,10 @@ class MMSSender:
 
 		self._mms = message.MMSMessage()
 		self._mms.headers['Subject'] = self.subject
-		self._mms.headers['To'] = str(self.number) + '/TYPE=PLMN'
+		if self.number.contains("@"):
+			self._mms.headers['To'] = str(self.number)
+		else:
+			self._mms.headers['To'] = str(self.number) + '/TYPE=PLMN'
 		self._mms.headers['From'] = str(self._sender) + '/TYPE=PLMN'
 		self._mms.addPage(slide)
 	
