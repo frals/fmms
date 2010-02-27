@@ -79,7 +79,7 @@ class fMMS_SenderUI(hildon.Program):
 		pan.set_property("mov-mode", hildon.MOVEMENT_MODE_BOTH)		
 		
 		midBox = gtk.VBox()
-		midBox.set_size_request(384, 384)
+		midBox.set_size_request(256, 256)
 		
 		self.imageBox = gtk.EventBox()
 		self.imageBoxContent = gtk.Label("Tap to add image")
@@ -196,7 +196,7 @@ class fMMS_SenderUI(hildon.Program):
 		filetype = gnomevfs.get_mime_type(filename)
 		if filetype.startswith("image"):
 			im = Image.open(filename)
-			im.thumbnail((384,384), Image.NEAREST)
+			im.thumbnail((256, 256), Image.NEAREST)
 			pixbuf = self.cont.image2pixbuf(im)
 			image = gtk.Image()
 			image.set_from_pixbuf(pixbuf)
