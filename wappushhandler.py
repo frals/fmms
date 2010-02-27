@@ -279,7 +279,7 @@ class MMSSender:
 
 		self._mms = message.MMSMessage()
 		self._mms.headers['Subject'] = self.subject
-		if self.number.contains("@"):
+		if "@" in self.number:
 			self._mms.headers['To'] = str(self.number)
 		else:
 			self._mms.headers['To'] = str(self.number) + '/TYPE=PLMN'

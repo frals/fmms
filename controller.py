@@ -328,7 +328,7 @@ class fMMS_controller():
 		nr = str(nr)
 		nr = nr.replace("+", "")
 		nr = nr.replace(" ", "")
-		if re.search(r"(\D)+", nr) == None or nr.contains("@"):
+		if re.search(r"(\D)+", nr) == None or "@" in nr:
 			return True
 		else:
 		 	return False

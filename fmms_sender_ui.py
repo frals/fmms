@@ -374,7 +374,7 @@ class fMMS_SenderUI(hildon.Program):
 				if output['Response-Status'] == "Ok":
 					log.info("message seems to have sent AOK!")
 					banner = hildon.hildon_banner_show_information(self.spawner, "", "Message sent")
-					self.window.destroy()
+					self.quit()
 					return
 			
 			message = str(status) + "_" + str(reason)
