@@ -228,8 +228,8 @@ class fMMS_GUI(hildon.Program):
 	
 	
 	def new_mms_button_clicked(self, button):
-		ret = fMMSSenderUI.fMMS_SenderUI(self.window).run()
 		self.refreshlistview = True
+		ret = fMMSSenderUI.fMMS_SenderUI(self.window).run()
 		
 		
 	def create_about_dialog(self):
