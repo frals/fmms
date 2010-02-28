@@ -197,7 +197,7 @@ class fMMS_GUI(hildon.Program):
 		elif method == 'send_via_service':
 			log.info("launching sendviaservice with args: %s", args)
 			self.refreshlistview = False
-			ret = fMMSSenderUI.fMMS_SenderUI(self.window, withfile=args[0], subject=args[1], message=args[2]).run()
+			ret = fMMSSenderUI.fMMS_SenderUI(withfile=args[0], subject=args[1], message=args[2]).run()
 			self.quit()
 		
 	def create_menu(self):
