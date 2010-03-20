@@ -90,14 +90,27 @@ class fMMS_controller():
 	""" from http://snippets.dzone.com/posts/show/655 """
 	def image2pixbuf(self, im):
 		file1 = StringIO.StringIO()
-		im.save(file1, "ppm")
-		contents = file1.getvalue()
-		file1.close()
-		loader = gtk.gdk.PixbufLoader("pnm")
-		loader.write(contents, len(contents))
-		pixbuf = loader.get_pixbuf()
-		loader.close()
-		return pixbuf
+		try:
+			im.save(file1, "ppm")
+			contents = file1.getvalue()
+			file1.close()
+			loader = gtk.gdk.PixbufLoader("pnm")
+			loader.write(contents, len(contents))
+			pixbuf = loader.get_pixbuf()
+			loader.close()
+			return pixbuf
+		except IOError, e:
+			log.exception("Failed to convert")
+			im.save(file1, "gif")
+			contents = file1.getvalue()
+			file1.close()
+			loader = gtk.gdk.PixbufLoader()
+			loader.write(contents, len(contents))
+			pixbuf = loader.get_pixbuf()
+			loader.close()
+			return pixbuf
+			
+		
 	
 	
 	def convert_timeformat(self, intime, format, hideToday=False):
