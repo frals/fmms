@@ -59,6 +59,10 @@ class fMMS_config:
 		pass
 		
 	def set_experimental(self, val):
+		if (val == True):
+			val = 1
+		else:
+			val = 0
 		self.client.set_int(self._fmmsdir + "exp", int(val))
 		
 	def get_experimental(self):

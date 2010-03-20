@@ -306,13 +306,28 @@ class fMMS_GUI(hildon.Program):
 		imgwidthHBox.pack_start(imgwidth_label, False, True, 0)
 		imgwidthHBox.pack_start(self.imgwidth, True, True, 0)
 		
+		
+		expHBox = gtk.HBox()
+		exp_label = gtk.Label("Experimental mode:")
+		exp_label.set_width_chars(labelwidth)
+		self.expbutton = hildon.CheckButton(gtk.HILDON_SIZE_FINGER_HEIGHT)
+		self.expbutton.set_alignment(1, 0.5)
+		self.expbutton.set_label("")
+		#expbutton.connect("toggled", self.exp_button_toggled)
+		if(self.config.get_experimental() == 1):
+			self.expbutton.set_active(True)
+		
+		expHBox.pack_start(exp_label, False, True, 0)
+		expHBox.pack_start(self.expbutton, True, True, 0)
+		
 		#notelabel = gtk.Label("APN refers to the name of the connection in\n \"Internet Connections\" to use.")
 		
 		#allVBox.pack_start(notelabel, False, True, 0)
 		allVBox.pack_start(apnHBox, False, False, 0)
 		allVBox.pack_start(mmscHBox, False, False, 0)
-		allVBox.pack_end(numberHBox, False, False, 0)
-		allVBox.pack_end(imgwidthHBox, False, False, 0)
+		allVBox.pack_start(numberHBox, False, False, 0)
+		allVBox.pack_start(imgwidthHBox, False, False, 0)
+		allVBox.pack_end(expHBox, False, False, 0)
 		
 		allVBox.show_all()
 		dialog.vbox.add(allVBox)
@@ -387,6 +402,8 @@ class fMMS_GUI(hildon.Program):
 				log.info("Set phonenumber to %s" % self.number.get_text())
 				self.config.set_img_resize_width(self.imgwidth.get_text())
 				log.info("Set image width to %s" % self.imgwidth.get_text())
+				self.config.set_experimental(self.expbutton.get_active())
+				log.info("Set experimental %s" % self.expbutton.get_active())				
 				banner = hildon.hildon_banner_show_information(self.window, "", "Settings saved")
 				return 0
 			else:
