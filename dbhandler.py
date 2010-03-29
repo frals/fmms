@@ -426,6 +426,26 @@ class DatabaseHandler:
 		except:
 			return None
 	
+	def get_filepath_for_mms_transid(self, transactionid):
+		c = self.conn.cursor()
+		c.execute("select file from mms where transactionid = ?", (transactionid, ))
+		res = c.fetchone()
+		try:
+			file = res['file']
+			return file
+		except:
+			return None
+	
+	def get_filepath_for_push_transid(self, transactionid):
+		c = self.conn.cursor()
+		c.execute("select file from push where transactionid = ?", (transactionid, ))
+		res = c.fetchone()
+		try:
+			file = res['file']
+			return file
+		except:
+			return None
+	
 	def delete_mms_message(self, transactionid):
 		c = self.conn.cursor()
 		mmsid = self.get_mmsid_from_transactionid(transactionid)

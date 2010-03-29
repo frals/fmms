@@ -297,7 +297,8 @@ class fMMS_controller():
 		return self.store.get_mms_headers(transactionid)
 	
 	def delete_mms_message(self, fname):
-		fullpath = self._mmsdir + fname
+		#fullpath = self._mmsdir + fname
+		fullpath = self.store.get_filepath_for_mms_transid(fname)
 		log.info("fullpath: %s", fullpath)
 		if os.path.isdir(fullpath):
 			log.info("starting deletion of %s", fullpath)
@@ -321,7 +322,8 @@ class fMMS_controller():
 		self.store.delete_mms_message(fname)
 		
 	def delete_push_message(self, fname):
-		fullpath = self._pushdir + fname
+		#fullpath = self._pushdir + fname
+		fullpath = self.store.get_filepath_for_push_transid(fname)
 		log.info("fullpath: %s", fullpath)
 		if os.path.isfile(fullpath):
 			log.info("removing: %s", fullpath)
