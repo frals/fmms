@@ -79,22 +79,37 @@ class fMMS_SenderUI(hildon.Program):
 		pan.set_property("mov-mode", hildon.MOVEMENT_MODE_BOTH)		
 		
 		midBox = gtk.VBox()
-		midBox.set_size_request(256, 256)
 		
+		centerBox = gtk.HBox()
+		
+		eboxFrame = gtk.Frame()
+		eboxFrame.set_shadow_type(gtk.SHADOW_ETCHED_OUT)
 		self.imageBox = gtk.EventBox()
+		self.imageBox.set_size_request(200, 200)
+		#self.imageBox.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("blue"))
 		self.imageBoxContent = gtk.Label("Tap to add image")
 		self.imageBox.add(self.imageBoxContent)
 		self.imageBox.connect('button-press-event', self.open_file_dialog)
 		
+		
+		""" this stuff doesnt really work yet.. """
+		eboxFrame.set_border_width(2)
+		eboxFrame.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("blue"))
+		
+		eboxFrame.add(self.imageBox)
+		
+		centerBox.pack_start(eboxFrame, True, False, 0)
+		
 		self.tvMessage = hildon.TextView()
 		self.tvMessage.set_property("name", "hildon-fullscreen-textview")
 		self.tvMessage.set_wrap_mode(gtk.WRAP_CHAR)
+		self.tvMessage.set_justification(gtk.JUSTIFY_CENTER)
 		if message != None and message != '':
 			tb = gtk.TextBuffer()
 			tb.set_text(message)
 			self.tvMessage.set_buffer(tb)
 		
-		midBox.pack_start(self.imageBox)
+		midBox.pack_start(centerBox)
 		midBox.pack_start(self.tvMessage)
 		
 		pan.add_with_viewport(midBox)
