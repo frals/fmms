@@ -194,7 +194,7 @@ class fMMS_SenderUI(hildon.Program):
 
 	def set_thumbnail(self, filename):
 		filetype = gnomevfs.get_mime_type(filename)
-		if filetype.startswith("image"):
+		if filetype.startswith("image") or filetype.startswith("sketch"):
 			im = Image.open(filename)
 			im.thumbnail((256, 256), Image.NEAREST)
 			pixbuf = self.cont.image2pixbuf(im)
