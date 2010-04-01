@@ -17,6 +17,7 @@ import subprocess
 
 import dbus
 from dbus.mainloop.glib import DBusGMainLoop
+import conic
 
 from mms import message
 from mms.message import MMSMessage
@@ -26,6 +27,12 @@ import controller as fMMSController
 
 import logging
 log = logging.getLogger('fmms.%s' % __name__)
+
+magic = 0xacdcacdc
+
+CONNMODE_UGLYHACK = 1
+CONNMODE_ICDSWITCH = 2
+CONNMODE_FORCESWITCH = 3
 
 _DBG = True
 
@@ -119,22 +126,13 @@ class PushHandler:
 
 
 	def _get_mms_message(self, location, transaction):
-		if (self.config.get_experimental() == 1):
-			log.info("RUNNING IN EXPERIMENTAL MODE")
-
-			(proxyurl, proxyport) = self.config.get_proxy_from_apn()
-			apn = self.config.get_apn_from_osso()
-			mmsc1 = self.cont.get_host_from_url(self.config.get_mmsc())
-			mmsc2 = self.cont.get_host_from_url(location)
-			# todo get user/pass from gconf
-			try:
-				connector = ConnectionHandler(apn, "", "", proxyurl, mmsc1, mmsc2)
-				connector.start()
-			except:
-				log.exception("Connection failed.")
+		
+		connector = MasterConnector()
+		connector.connect()
+				
 		try:
 			dirname = self.__get_mms_message(location, transaction)
-		except Exception, e:
+		except:
 			log.exception("Something went wrong with getting the message... bailing out")
 			raise
 		
@@ -146,11 +144,7 @@ class PushHandler:
 		except:
 			log.exception("sending ack failed")
 		
-		if self.config.get_experimental() == 1:
-			try:
-				connector.disconnect()
-			except:
-				log.exception("Failed to close connection.")
+		connector.disconnect()
 		
 		return dirname
 		
@@ -172,7 +166,7 @@ class PushHandler:
 				log.exception("notify sending failed: %s %s", type(e), e)
 			
 			# TODO: configurable time-out?
-			timeout = 40
+			timeout = 30
 			socket.setdefaulttimeout(timeout)
 			
 			if proxyurl == "" or proxyurl == None:
@@ -256,19 +250,9 @@ class MMSSender:
 			self._mms = None
 			self._sender = sender
 			self.createMMS()
-			if self.setupConn == True and (self.config.get_experimental() == 1):
-				log.info("RUNNING SENDER IN EXPERIMENTAL MODE")
-		
-				(proxyurl, proxyport) = self.config.get_proxy_from_apn()
-				apn = self.config.get_apn_from_osso()
-				mmsc1 = self.cont.get_host_from_url(self.config.get_mmsc())
-				mmsc2 = 0
-				# todo get user/pass from gconf
-				try:
-					self.connector = ConnectionHandler(apn, "", "", proxyurl, mmsc1, mmsc2)
-					self.connector.start()
-				except:
-					log.exception("Connector failed")	
+			if self.setupConn == True and (self.config.get_experimental() > 0):
+				self.connector = MasterConnector()
+				self.connector.connect()
 				
 	    
 	def createMMS(self):
@@ -344,7 +328,7 @@ class MMSSender:
 			
 		log.info("MMSC RESPONDED: %s", outparsed)
 
-		if (self.config.get_experimental() == 1) and self.setupConn == True:
+		if (self.config.get_experimental() > 0) and self.setupConn == True:
 			try:
 				self.connector.disconnect()
 			except:
@@ -353,8 +337,96 @@ class MMSSender:
 		return res.status, res.reason, outparsed, parsed
 
 
-# TODO: error handling on this whole class, really.
-class ConnectionHandler:
+""" handles setting up and (might) take down connection(s) """
+class MasterConnector:
+
+	def __init__(self):
+		self.cont = fMMSController.fMMS_controller()
+		self.config = fMMSconf.fMMS_config()
+		self._apn = self.config.get_apn()
+		self._apn_nicename = self.config.get_apn_nicename()
+	
+	
+	def connect(self):
+		if (self.config.get_experimental() == CONNMODE_UGLYHACK):
+			log.info("RUNNING IN EXPERIMENTAL MODE")
+
+			(proxyurl, proxyport) = self.config.get_proxy_from_apn()
+			apn = self.config.get_apn_from_osso()
+			mmsc1 = self.cont.get_host_from_url(self.config.get_mmsc())
+			mmsc2 = self.cont.get_host_from_url(location)
+			# todo get user/pass from gconf
+			try:
+				self.connector = UglyHackHandler(apn, "", "", proxyurl, mmsc1, mmsc2)
+				self.connector.start()
+			except:
+				log.exception("Connection failed.")
+
+		elif (self.config.get_experimental() == CONNMODE_ICDSWITCH):
+			self.connector = ICDConnector(self._apn_nicename)
+			self.connector.connect()
+
+		elif (self.config.get_experimental() == CONNMODE_FORCESWITCH):
+			pass
+	
+	
+	def disconnect(self):
+		try:
+			if (self.config.get_experimental() == CONNMODE_UGLYHACK):
+				self.connector.disconnect()
+			elif (self.config.get_experimental() == CONNMODE_ICDSWITCH):
+				self.connector.disconnect()
+			elif (self.config.get_experimental() == CONNMODE_FORCESWITCH):
+				self.connector.disconnect()
+
+		except:
+			log.exception("Failed to close connection.")
+	
+
+
+
+""" this is the 'nice' autoconnecter, only goes online on
+the mms apn if no other conn is active """
+class ICDConnector:
+	
+	def __init__(self, apn):
+		self.apn = apn
+		self.connection = conic.Connection()
+		
+	def connection_cb(self, connection, event, magic):
+            log.info("connection_cb(%s, %s, %x)" % (connection, event, magic))
+            pass	
+		
+	def disconnect(self):
+		connection = self.connection
+                connection.disconnect_by_id(self.apn)
+	
+	def connect(self):
+		global magic
+
+		# Creates the connection object and attach the handler.
+		connection = self.connection
+		iaps = connection.get_all_iaps()
+		iap = None
+		for i in iaps:
+			if i.get_name() == self.apn:
+				iap = i
+
+		connection.disconnect()
+		connection.connect("connection-event", self.connection_cb, magic)
+
+		# The request_connection method should be called to initialize
+		# some fields of the instance
+		if not iap:
+			assert(connection.request_connection(conic.CONNECT_FLAG_NONE))
+		else:
+		#print "Getting by iap", iap.get_id()
+			assert(connection.request_connection_by_id(iap.get_id(), conic.CONNECT_FLAG_NONE))
+		return False
+
+
+""" the ugly-hack autoconnector """
+class UglyHackHandler:
 	
 	def __init__(self, apn, username="", password="", proxy="0", mmsc1="0", mmsc2="0"):
 		self.apn = apn
@@ -365,7 +437,7 @@ class ConnectionHandler:
 		self.mmsc2 = mmsc2
 		self.rx = 0
 		self.tx = 0
-		log.info("ConnectionHandler UP!\nAPN: %s user: %s pass: %s proxyip: %s mmsc1: %s mmsc2: %s" % (self.apn, self.username, self.password, self.proxyip, self.mmsc1, self.mmsc2))
+		log.info("UglyHackHandler UP!\nAPN: %s user: %s pass: %s proxyip: %s mmsc1: %s mmsc2: %s" % (self.apn, self.username, self.password, self.proxyip, self.mmsc1, self.mmsc2))
 		self.conn = self.connect()
 
 	def start(self):
