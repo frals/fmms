@@ -56,12 +56,19 @@ do_stop() {
 	$STOPIFACE
 }
 
+do_disconnect() {
+	/usr/bin/dbus-send --system --dest=com.nokia.icd /com/nokia/icd_ui com.nokia.icd_ui.disconnect boolean:true
+	sleep 5
+}
+
 if [ $1 == "START" ]; then
 	do_start $2 $3 $4 $5 $6 $7 $8
 	
 elif [ $1 == "STOP" ]; then
 	do_stop $2
+elif [ $1 == "DISCONNECT" ]; then
+	do_disconnect
 else
-	echo "usage $0 <START/STOP>"
+	echo "usage $0 <START/STOP/DISCONNECT>"
 fi
 exit 0

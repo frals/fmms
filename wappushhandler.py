@@ -349,7 +349,7 @@ class MasterConnector:
 	
 	def connect(self):
 		if (self.config.get_connmode() == CONNMODE_UGLYHACK):
-			log.info("RUNNING IN EXPERIMENTAL MODE")
+			log.info("RUNNING IN UGLYHACK MODE")
 
 			(proxyurl, proxyport) = self.config.get_proxy_from_apn()
 			apn = self.config.get_apn_from_osso()
@@ -363,10 +363,12 @@ class MasterConnector:
 				log.exception("Connection failed.")
 
 		elif (self.config.get_connmode() == CONNMODE_ICDSWITCH):
+			log.info("RUNNING IN ICDSWITCH MODE")
 			self.connector = ICDConnector(self._apn_nicename)
 			self.connector.connect()
 
 		elif (self.config.get_connmode() == CONNMODE_FORCESWITCH):
+			log.info("RUNNING IN FORCESWITCH MODE")
 			pass
 	
 	
@@ -394,8 +396,8 @@ class ICDConnector:
 		self.connection = conic.Connection()
 		
 	def connection_cb(self, connection, event, magic):
-            log.info("connection_cb(%s, %s, %x)" % (connection, event, magic))
-            pass	
+		log.info("connection_cb(%s, %s, %x)" % (connection, event, magic))
+		pass	
 		
 	def disconnect(self):
 		connection = self.connection
@@ -413,6 +415,53 @@ class ICDConnector:
 				iap = i
 
 		connection.disconnect()
+		connection.connect("connection-event", self.connection_cb, magic)
+
+		# The request_connection method should be called to initialize
+		# some fields of the instance
+		if not iap:
+			assert(connection.request_connection(conic.CONNECT_FLAG_NONE))
+		else:
+		#print "Getting by iap", iap.get_id()
+			assert(connection.request_connection_by_id(iap.get_id(), conic.CONNECT_FLAG_NONE))
+		return False
+
+""" this is the 'force switch' autoconnecter """
+class ForceConnector:
+	
+	def __init__(self, apn):
+		self.apn = apn
+		self.current_connection()
+		self.connection = conic.Connection()
+		
+	def current_connection(self):
+		bus = dbus.SystemBus()
+		proxy = bus.get_object('com.nokia.icd', '/com/nokia/icd')
+		icd = Interface(proxy, 'com.nokia.icd')
+		(iapid, arg, arg1, arg2, arg3, arg4, arg5) = icd.get_statistics()
+		self.previousconn = iapid
+		
+	def connection_cb(self, connection, event, magic):
+		log.info("connection_cb(%s, %s, %x)" % (connection, event, magic))
+		pass
+		
+	""" disconnects from MMS APN and reconnects to previous IAP """
+	def disconnect(self):
+		args = "DISCONNECT"
+		retcode = subprocess.call(["/opt/fmms/fmms_magic", args])
+		self.connect(self.previousconn)
+	
+	def connect(self, apn=self.apn):
+		global magic
+
+		# Creates the connection object and attach the handler.
+		connection = self.connection
+		iaps = connection.get_all_iaps()
+		iap = None
+		for i in iaps:
+			if i.get_name() == apn:
+				iap = i
+
 		connection.connect("connection-event", self.connection_cb, magic)
 
 		# The request_connection method should be called to initialize
