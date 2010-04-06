@@ -308,21 +308,27 @@ class fMMS_GUI(hildon.Program):
 		
 		
 		expHBox = gtk.HBox()
-		exp_label = gtk.Label("Experimental mode:")
+		exp_label = gtk.Label("Connection mode")
 		exp_label.set_width_chars(labelwidth)
-		self.expbutton = hildon.CheckButton(gtk.HILDON_SIZE_FINGER_HEIGHT)
-		self.expbutton.set_alignment(1, 0.5)
-		self.expbutton.set_label("")
-		#expbutton.connect("toggled", self.exp_button_toggled)
-		if(self.config.get_experimental() == 1):
-			self.expbutton.set_active(True)
+		""" 
+		    havoc = CONNMODE_UGLYHACK = 1
+		    polite = CONNMODE_ICDSWITCH = 2
+		    rude = CONNMODE_FORCESWITCH = 3
+		"""
+		self.havocbutton = hildon.GtkRadioButton(gtk.HILDON_SIZE_FINGER_HEIGHT)
+		self.havocbutton.set_label("Havoc")
+		self.rudebutton = hildon.GtkRadioButton(gtk.HILDON_SIZE_FINGER_HEIGHT, self.havocbutton)
+		self.rudebutton.set_label("Rude")
+		self.icdbutton = hildon.GtkRadioButton(gtk.HILDON_SIZE_FINGER_HEIGHT, self.havocbutton)
+		self.icdbutton.set_label("Polite")
+		""" set the correct button active """
+		self.connmode_setactive()
 		
 		expHBox.pack_start(exp_label, False, True, 0)
-		expHBox.pack_start(self.expbutton, True, True, 0)
+		expHBox.pack_start(self.icdbutton, True, True, 0)
+		expHBox.pack_start(self.rudebutton, True, True, 0)
+		expHBox.pack_start(self.havocbutton, True, True, 0)
 		
-		#notelabel = gtk.Label("APN refers to the name of the connection in\n \"Internet Connections\" to use.")
-		
-		#allVBox.pack_start(notelabel, False, True, 0)
 		allVBox.pack_start(apnHBox, False, False, 0)
 		allVBox.pack_start(mmscHBox, False, False, 0)
 		allVBox.pack_start(numberHBox, False, False, 0)
@@ -388,6 +394,27 @@ class fMMS_GUI(hildon.Program):
 		selector.set_column_selection_mode(hildon.TOUCH_SELECTOR_SELECTION_MODE_SINGLE)
 		return selector
 		
+	def connmode_option(self):
+		""" 
+		    havoc = CONNMODE_UGLYHACK = 1
+		    polite = CONNMODE_ICDSWITCH = 2
+		    rude = CONNMODE_FORCESWITCH = 3
+		"""
+		if self.havocbutton.get_active():
+			return fMMSconf.CONNMODE_UGLYHACK
+		elif self.icdbutton.get_active():
+			return fMMSconf.CONNMODE_ICDSWITCH
+		elif self.rudebutton.get_active():
+			return fMMSconf.CONNMODE_FORCESWITCH
+		
+	def connmode_setactive(self):
+		if self.config.get_connmode() == fMMSconf.CONNMODE_UGLYHACK:
+			self.havocbutton.set_active(True)
+		elif self.config.get_connmode() == fMMSconf.CONNMODE_ICDSWITCH:
+			self.icdbutton.set_active(True)
+		elif self.config.get_connmode() == fMMSconf.CONNMODE_FORCESWITCH:
+			self.rudebutton.set_active(True)
+	
 		
 	def config_menu_button_clicked(self, action):
 		if action == gtk.RESPONSE_APPLY:
@@ -402,8 +429,8 @@ class fMMS_GUI(hildon.Program):
 				log.info("Set phonenumber to %s" % self.number.get_text())
 				self.config.set_img_resize_width(self.imgwidth.get_text())
 				log.info("Set image width to %s" % self.imgwidth.get_text())
-				self.config.set_experimental(self.expbutton.get_active())
-				log.info("Set experimental %s" % self.expbutton.get_active())				
+				self.config.set_connmode(self.connmode_option())
+				log.info("Set connection mode %s" % self.connmode_option())				
 				banner = hildon.hildon_banner_show_information(self.window, "", "Settings saved")
 				return 0
 			else:

@@ -250,7 +250,7 @@ class MMSSender:
 			self._mms = None
 			self._sender = sender
 			self.createMMS()
-			if self.setupConn == True and (self.config.get_experimental() > 0):
+			if self.setupConn == True:
 				self.connector = MasterConnector()
 				self.connector.connect()
 				
@@ -328,7 +328,7 @@ class MMSSender:
 			
 		log.info("MMSC RESPONDED: %s", outparsed)
 
-		if (self.config.get_experimental() > 0) and self.setupConn == True:
+		if self.setupConn == True:
 			try:
 				self.connector.disconnect()
 			except:
@@ -348,7 +348,7 @@ class MasterConnector:
 	
 	
 	def connect(self):
-		if (self.config.get_experimental() == CONNMODE_UGLYHACK):
+		if (self.config.get_connmode() == CONNMODE_UGLYHACK):
 			log.info("RUNNING IN EXPERIMENTAL MODE")
 
 			(proxyurl, proxyport) = self.config.get_proxy_from_apn()
@@ -362,21 +362,21 @@ class MasterConnector:
 			except:
 				log.exception("Connection failed.")
 
-		elif (self.config.get_experimental() == CONNMODE_ICDSWITCH):
+		elif (self.config.get_connmode() == CONNMODE_ICDSWITCH):
 			self.connector = ICDConnector(self._apn_nicename)
 			self.connector.connect()
 
-		elif (self.config.get_experimental() == CONNMODE_FORCESWITCH):
+		elif (self.config.get_connmode() == CONNMODE_FORCESWITCH):
 			pass
 	
 	
 	def disconnect(self):
 		try:
-			if (self.config.get_experimental() == CONNMODE_UGLYHACK):
+			if (self.config.get_connmode() == CONNMODE_UGLYHACK):
 				self.connector.disconnect()
-			elif (self.config.get_experimental() == CONNMODE_ICDSWITCH):
+			elif (self.config.get_connmode() == CONNMODE_ICDSWITCH):
 				self.connector.disconnect()
-			elif (self.config.get_experimental() == CONNMODE_FORCESWITCH):
+			elif (self.config.get_connmode() == CONNMODE_FORCESWITCH):
 				self.connector.disconnect()
 
 		except:

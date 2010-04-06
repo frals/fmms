@@ -12,6 +12,9 @@ try:
 except:
 	import gconf
 
+CONNMODE_UGLYHACK = 1
+CONNMODE_ICDSWITCH = 2
+CONNMODE_FORCESWITCH = 3
 
 class fMMS_config:
 
@@ -33,13 +36,13 @@ class fMMS_config:
 		if self.get_mmsc() == None:
 			self.set_mmsc("http://")
 		if self.get_phonenumber() == None:
-			self.set_phonenumber("000")
+			self.set_phonenumber("0")
 		if self.get_img_resize_width() == None:
 			self.set_img_resize_width(320)
 		if self.get_version() == None:
 			self.set_version("Unknown")
-		if self.get_experimental() == None:
-			self.set_experimental(1)
+		if self.get_connmode() == None:
+			self.set_connmode(1)
 		if self.get_db_path() == None:
 			self.set_db_path("/home/user/.fmms/mms.db")
 		# Create dirs, for good measures
@@ -64,9 +67,15 @@ class fMMS_config:
 		else:
 			val = 0
 		self.client.set_int(self._fmmsdir + "exp", int(val))
-		
+	
 	def get_experimental(self):
 		return self.client.get_int(self._fmmsdir + "exp")
+	
+	def set_connmode(self, val):
+		self.client.set_int(self._fmmsdir + "connmode", int(val))
+		
+	def get_connmode(self):
+		return self.client.get_int(self._fmmsdir + "connmode")
 	
 	def set_db_path(self, path):
 		self.client.set_string(self._fmmsdir + "db", path)
@@ -204,4 +213,4 @@ class fMMS_config:
 		
 if __name__ == '__main__':
 	config = fMMS_config()
-	config.set_experimental(1)
+	config.set_connmode(1)
