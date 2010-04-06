@@ -366,10 +366,15 @@ class MasterConnector:
 			log.info("RUNNING IN ICDSWITCH MODE")
 			self.connector = ICDConnector(self._apn_nicename)
 			self.connector.connect()
+			# TODO: dont sleep this long unless we have to
+			time.sleep(15)
 
 		elif (self.config.get_connmode() == CONNMODE_FORCESWITCH):
 			log.info("RUNNING IN FORCESWITCH MODE")
-			pass
+			self.connector = ForceConnector(self._apn_nicename)
+			self.connector.connect()
+			# TODO: dont sleep this long unless we have to
+			time.sleep(15)
 	
 	
 	def disconnect(self):
@@ -422,9 +427,9 @@ class ICDConnector:
 		if not iap:
 			assert(connection.request_connection(conic.CONNECT_FLAG_NONE))
 		else:
-		#print "Getting by iap", iap.get_id()
 			assert(connection.request_connection_by_id(iap.get_id(), conic.CONNECT_FLAG_NONE))
-		return False
+			
+		
 
 """ this is the 'force switch' autoconnecter """
 """ credits to Stuart Hopkins for implementing this as
@@ -439,7 +444,7 @@ class ForceConnector:
 	def current_connection(self):
 		bus = dbus.SystemBus()
 		proxy = bus.get_object('com.nokia.icd', '/com/nokia/icd')
-		icd = Interface(proxy, 'com.nokia.icd')
+		icd = dbus.Interface(proxy, 'com.nokia.icd')
 		(iapid, arg, arg1, arg2, arg3, arg4, arg5) = icd.get_statistics()
 		self.previousconn = iapid
 		
@@ -447,14 +452,16 @@ class ForceConnector:
 		log.info("connection_cb(%s, %s, %x)" % (connection, event, magic))
 		pass
 		
-	""" disconnects from MMS APN and reconnects to previous IAP """
+	""" restore connection to previous """
 	def disconnect(self):
-		args = "DISCONNECT"
-		retcode = subprocess.call(["/opt/fmms/fmms_magic", args])
 		self.connect(self.previousconn)
 	
+	""" actually disconnects from the current iap before connecting """
 	def connect(self, apn=None):
 		global magic
+		
+		args = "DISCONNECT"
+		retcode = subprocess.call(["/opt/fmms/fmms_magic", args])
 
 		if apn == None:
 			apn = self.apn
@@ -464,7 +471,7 @@ class ForceConnector:
 		iaps = connection.get_all_iaps()
 		iap = None
 		for i in iaps:
-			if i.get_name() == apn:
+			if i.get_name() == apn or i.get_id() == apn:
 				iap = i
 
 		connection.connect("connection-event", self.connection_cb, magic)
@@ -474,9 +481,8 @@ class ForceConnector:
 		if not iap:
 			assert(connection.request_connection(conic.CONNECT_FLAG_NONE))
 		else:
-		#print "Getting by iap", iap.get_id()
 			assert(connection.request_connection_by_id(iap.get_id(), conic.CONNECT_FLAG_NONE))
-		return False
+
 
 
 """ the ugly-hack autoconnector """
