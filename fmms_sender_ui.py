@@ -169,7 +169,8 @@ class fMMS_SenderUI(hildon.Program):
 	
 	def contact_number_chosen(self, button, nrdialog):
 		nr = button.get_label().replace(" ", "")
-		nr = re.sub(r'[^\d|\+]+', '', nr)
+		if not "@" in nr:
+			nr = re.sub(r'[^\d|\+]+', '', nr)
 		self.eNumber.set_text(nr)
 		nrdialog.response(0)
 		self.contacts_dialog.response(0)
