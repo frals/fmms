@@ -65,6 +65,19 @@ class ContactHandler:
 					pass
 				if nr != None:
 					nrlist[nr] = phonetype
+			if line.startswith("EMAIL"):
+				nr = line.split(":")[1]
+				ltype = line.split(":")[0].split("=")
+				phonetype = "Email"
+				try:
+					for type in ltype:
+						rtype = type.replace(";TYPE", "")
+						if rtype != "EMAIL":
+							phonetype = rtype	
+				except:
+					pass
+				if nr != None:
+					nrlist[nr] = phonetype				
 		return nrlist
 		
 	
