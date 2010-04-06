@@ -427,6 +427,8 @@ class ICDConnector:
 		return False
 
 """ this is the 'force switch' autoconnecter """
+""" credits to Stuart Hopkins for implementing this as
+a shell script and submitting as a patch """
 class ForceConnector:
 	
 	def __init__(self, apn):
@@ -451,9 +453,12 @@ class ForceConnector:
 		retcode = subprocess.call(["/opt/fmms/fmms_magic", args])
 		self.connect(self.previousconn)
 	
-	def connect(self, apn=self.apn):
+	def connect(self, apn=None):
 		global magic
 
+		if apn == None:
+			apn = self.apn
+	
 		# Creates the connection object and attach the handler.
 		connection = self.connection
 		iaps = connection.get_all_iaps()
