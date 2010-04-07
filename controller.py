@@ -298,7 +298,7 @@ class fMMS_controller():
 	
 	def delete_mms_message(self, fname):
 		#fullpath = self._mmsdir + fname
-		fullpath = self.store.get_filepath_for_mms_transid(fname)
+		fullpath = self.store.get_filepath_for_mms_transid(fname).replace("/message", "")
 		log.info("fullpath: %s", fullpath)
 		if os.path.isdir(fullpath):
 			log.info("starting deletion of %s", fullpath)
@@ -307,6 +307,7 @@ class fMMS_controller():
 				filelist = []
 			filelist.append("message")
                         filelist.append("headers")
+                        log.info("removing: %s", filelist)
 			for fn in filelist:
 				try:
 					fullfn = fullpath + "/" + fn
