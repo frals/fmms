@@ -27,7 +27,6 @@ import contacts as ContactH
 import logging
 log = logging.getLogger('fmms.%s' % __name__)
 
-
 class fMMS_GUI(hildon.Program):
 
 	def __init__(self):
@@ -36,8 +35,10 @@ class fMMS_GUI(hildon.Program):
 		self._mmsdir = self.config.get_mmsdir()
 		self._pushdir = self.config.get_pushdir()
 		self.ch = ContactH.ContactHandler()
-		self.osso_c = osso.Context("fMMS", self.config.get_version(), False)
+		
+		self.osso_c = osso.Context("se.frals.fmms", self.config.get_version(), False)
 		self.osso_rpc = osso.Rpc(self.osso_c)
+      		self.osso_rpc.set_rpc_callback("se.frals.fmms","/se/frals/fmms","se.frals.fmms", self.cb_open_fmms, self.osso_c)
 		
 		self.refreshlistview = True
 	
@@ -50,11 +51,9 @@ class fMMS_GUI(hildon.Program):
 	
 		hildon.Program.__init__(self)
 		program = hildon.Program.get_instance()
-		
-		self.osso_rpc = osso.Rpc(self.osso_c)
-      		self.osso_rpc.set_rpc_callback("se.frals.fmms","/se/frals/fmms","se.frals.fmms", self.cb_open_fmms, self.osso_c)
-		
+			
 		self.window = hildon.StackableWindow()
+		gtk.set_application_name("fMMS")
 		self.window.set_title("fMMS")
 		program.add_window(self.window)
 		
@@ -138,6 +137,18 @@ class fMMS_GUI(hildon.Program):
 		
 		self.window.show_all()
 		self.add_window(self.window)
+		
+		self._expose_event = self.window.connect('expose-event', self.take_ss)
+
+	""" for taking a screenshot of the app to fake superfast load
+	    ... just need it to actually include the listview now ...
+	
+	    inspired by Andrew Flegg and WimpWorks 
+	    @see http://maemo.org/api_refs/5.0/5.0-final/hildon/hildon-Additions-to-GTK+.html#hildon-gtk-window-take-screenshot """
+     	def take_ss(self, event=None, data=None):
+		self.window.disconnect(self._expose_event)
+		if not os.path.isfile("/home/user/.cache/launch/se.frals.fmms.pvr"):
+			gobject.timeout_add(2000, hildon.hildon_gtk_window_take_screenshot, self.window, True)
 
 
 	""" need this to always have the current path """
@@ -163,7 +174,7 @@ class fMMS_GUI(hildon.Program):
 			
 			if self.config.get_firstlaunch() == 1:
 						note = osso.SystemNote(self.osso_c)
-						firstlaunchmessage = "NOTE: Currently you have to connect manually to the MMS APN when sending and receiving.\nOnly implemented attachment is image."
+						firstlaunchmessage = "NOTE: Read the thread on talk.maemo.org."
 						note = hildon.hildon_note_new_information(self.window, firstlaunchmessage)
 						self.create_config_dialog()
 						self.config.set_firstlaunch(0)
