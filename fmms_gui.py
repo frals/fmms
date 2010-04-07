@@ -284,6 +284,7 @@ class fMMS_GUI(hildon.Program):
 		number_label = gtk.Label("Your phonenumber:")
 		number_label.set_width_chars(labelwidth)
 		self.number = hildon.Entry(gtk.HILDON_SIZE_FINGER_HEIGHT)
+		self.number.set_property('hildon-input-mode', gtk.HILDON_GTK_INPUT_MODE_TELE)
 		number_text = self.config.get_phonenumber()
 		if number_text != None:
 			self.number.set_text(number_text)
@@ -297,7 +298,8 @@ class fMMS_GUI(hildon.Program):
 		imgwidth_label.set_width_chars(labelwidth)
 		self.imgwidth = hildon.Entry(gtk.HILDON_SIZE_FINGER_HEIGHT)
 		self.imgwidth.set_max_length(5)
-		self.imgwidth_signal = self.imgwidth.connect('insert_text', self.insert_resize_cb)
+		#self.imgwidth_signal = self.imgwidth.connect('insert_text', self.insert_resize_cb)
+		self.imgwidth.set_property('hildon-input-mode', gtk.HILDON_GTK_INPUT_MODE_NUMERIC)
 		imgwidth_text = self.config.get_img_resize_width()
 		if imgwidth_text != None:
 			self.imgwidth.set_text(str(imgwidth_text))
@@ -341,36 +343,6 @@ class fMMS_GUI(hildon.Program):
 		ret = dialog.run()
 		ret2 = self.config_menu_button_clicked(ret)
 		dialog.destroy()
-
-		
-	""" from http://faq.pygtk.org/index.py?req=show&file=faq14.005.htp """
-	def insert_resize_cb(self, widget, text, length, *args):
-		# if you don't do this, garbage comes in with text
-		text = text[:length]
-		pos = widget.get_position()
-		# stop default emission
-		widget.emit_stop_by_name("insert_text")
-		signal = self.imgwidth_signal
-		gobject.idle_add(self.insert_nr_mod, widget, signal, text, pos)
-		
-		
-	""" from http://faq.pygtk.org/index.py?req=show&file=faq14.005.htp """
-	def insert_nr_mod(self, widget, signal, text, pos):
-		# the next three lines set up the text. this is done because we
-		# can't use insert_text(): it always inserts at position zero.
-		orig_text = widget.get_text()
-		#text = string.replace(text, " ", "<SPACE>")
-		pattern = re.compile('[!^\D]')
-		text = pattern.sub("", text)
-		new_text = orig_text[:pos] + text + orig_text[pos:]
-		# avoid recursive calls triggered by set_text
-		widget.handler_block(signal)
-		# replace the text with some new text
-		widget.set_text(new_text)
-		widget.handler_unblock(signal)
-		# set the correct position in the widget
-		widget.set_position(pos + len(text))
-
 
 
 	""" selector for apn """
