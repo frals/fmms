@@ -128,7 +128,7 @@ class PushHandler:
 	def _get_mms_message(self, location, transaction):
 		
 		connector = MasterConnector()
-		connector.connect()
+		connector.connect(location)
 				
 		try:
 			dirname = self.__get_mms_message(location, transaction)
@@ -347,7 +347,7 @@ class MasterConnector:
 		self._apn_nicename = self.config.get_apn_nicename()
 	
 	
-	def connect(self):
+	def connect(self, location="0"):
 		if (self.config.get_connmode() == CONNMODE_UGLYHACK):
 			log.info("RUNNING IN UGLYHACK MODE")
 
