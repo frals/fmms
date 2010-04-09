@@ -481,8 +481,7 @@ class ForceConnector:
 		else:
 			assert(connection.request_connection_by_id(iap.get_id(), conic.CONNECT_FLAG_NONE))
 		
-		log.info("ForceConnector tried to connect to: ID: %s Name: %s", (iap.get_id(), iap.get_name())
-
+		log.info("ForceConnector tried to connect to: ID: %s Name: %s", (iap.get_id(), iap.get_name()))
 
 
 """ the ugly-hack autoconnector """
