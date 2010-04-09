@@ -578,13 +578,17 @@ class fMMS_GUI(hildon.Program):
 		# the 4th value is the transactionid (start counting at 0)
 		transactionid = model.get_value(miter, 3)
 		
+		if not self.cont.is_mms_read(transactionid):
+			self.refreshlistview = True
+		
 		try:
 			viewer = fMMSViewer.fMMS_Viewer(transactionid)
 		except Exception, e:
 			log.exception("%s %s", type(e), e)
 			#raise
 		hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
-		self.refreshlistview = True
+		
+		
 
 
 	def run(self):
