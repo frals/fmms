@@ -415,15 +415,13 @@ class ICDConnector:
 				iap = i
 
 		connection.disconnect()
+		log.info("ICDConnector trying to connect to: %s", iap.get_name())
 		connection.connect("connection-event", self.connection_cb, magic)
 
-		# The request_connection method should be called to initialize
-		# some fields of the instance
-		log.info("ICDConnector trying to connect to: %s", iap.get_name())
-		if not iap:
-			assert(connection.request_connection(conic.CONNECT_FLAG_NONE))
+		if iap:
+			connection.request_connection_by_id(iap.get_id(), conic.CONNECT_FLAG_NONE)
 		else:
-			assert(connection.request_connection_by_id(iap.get_id(), conic.CONNECT_FLAG_NONE))
+			connection.request_connection(conic.CONNECT_FLAG_NONE)
 		
 		
 		
@@ -452,6 +450,7 @@ class ForceConnector:
 		
 	""" restore connection to previous """
 	def disconnect(self):
+		log.info("ForceConnector restoring connection...")
 		self.connect(self.previousconn)
 	
 	""" actually disconnects from the current iap before connecting """
@@ -472,16 +471,14 @@ class ForceConnector:
 		for i in iaps:
 			if i.get_name() == apn or i.get_id() == apn:
 				iap = i
-
+		
+		log.info("ForceConnector trying to connect to: ID: %s Name: %s" % (iap.get_id(), iap.get_name()))
 		connection.connect("connection-event", self.connection_cb, magic)
-
-		# The request_connection method should be called to initialize
-		# some fields of the instance
-		log.info("ForceConnector trying to connect to: ID: %s Name: %s", (iap.get_id(), iap.get_name()))
-		if not iap:
-			assert(connection.request_connection(conic.CONNECT_FLAG_NONE))
+		
+		if iap:
+			connection.request_connection_by_id(iap.get_id(), conic.CONNECT_FLAG_NONE)
 		else:
-			assert(connection.request_connection_by_id(iap.get_id(), conic.CONNECT_FLAG_NONE))
+			connection.request_connection(conic.CONNECT_FLAG_NONE)
 
 
 """ the ugly-hack autoconnector """
