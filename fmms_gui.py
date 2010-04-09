@@ -520,12 +520,10 @@ class fMMS_GUI(hildon.Program):
 		try:
 			self.cont.wipe_message(fname)
 			#banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Message deleted")
-			self.refreshlistview = True
 		except Exception, e:
 			log.exception("%s %s", type(e), e)
 			#raise
 			banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Failed to delete message.")
-			self.refreshlistview = True
 
 
 	""" action on delete contextmenu click """
@@ -549,9 +547,8 @@ class fMMS_GUI(hildon.Program):
 		if ret == 1:
 			log.info("deleting %s", filename)
 			self.delete_push_mms(filename)
-			#self.liststore.remove(miter)
+			self.liststore.remove(miter)
 		dialog.destroy()
-		self.refreshlistview = True
 		return
 	
 
