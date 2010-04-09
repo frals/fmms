@@ -137,18 +137,16 @@ class fMMS_GUI(hildon.Program):
 		
 		self.window.show_all()
 		self.add_window(self.window)
-		
-		self._expose_event = self.window.connect('expose-event', self.take_ss)
 
 	""" for taking a screenshot of the app to fake superfast load
-	    ... just need it to actually include the listview now ...
-	
+	 	
 	    inspired by Andrew Flegg and WimpWorks 
 	    @see http://maemo.org/api_refs/5.0/5.0-final/hildon/hildon-Additions-to-GTK+.html#hildon-gtk-window-take-screenshot """
      	def take_ss(self, event=None, data=None):
-		self.window.disconnect(self._expose_event)
-		if not os.path.isfile("/home/user/.cache/launch/se.frals.fmms.pvr"):
-			gobject.timeout_add(2000, hildon.hildon_gtk_window_take_screenshot, self.window, True)
+		if os.path.isfile("/home/user/.cache/launch/se.frals.fmms.pvr"):
+			gobject.timeout_add(10, hildon.hildon_gtk_window_take_screenshot, self.window, False)
+		
+		gobject.timeout_add(10, hildon.hildon_gtk_window_take_screenshot, self.window, True)
 
 
 	""" need this to always have the current path """
@@ -180,6 +178,9 @@ class fMMS_GUI(hildon.Program):
 						self.config.set_firstlaunch(0)
 						note.run()
 						note.destroy()
+						
+			self.take_ss()
+			
 		return True
 
 
