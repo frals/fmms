@@ -594,5 +594,8 @@ class fMMS_GUI(hildon.Program):
 		gtk.main()
 				
 if __name__ == "__main__":
-	app = fMMS_GUI()
-	app.run()
+	try:
+		app = fMMS_GUI()
+		app.run()
+	except:
+		log.exception("General failure.")

@@ -22,6 +22,7 @@ import fmms_config as fMMSconf
 import controller as fMMSController
 import fmms_sender_ui as fMMSSenderUI
 import contacts as ContactH
+import dbhandler as DBHandler
 
 import logging
 log = logging.getLogger('fmms.%s' % __name__)
@@ -33,10 +34,11 @@ class fMMS_Viewer(hildon.Program):
 		self.ch = ContactH.ContactHandler()
 		self.standalone = standalone
 		self.config = fMMSconf.fMMS_config()
+		self.store = DBHandler.DatabaseHandler()
 		self._mmsdir = self.config.get_mmsdir()
 		self._pushdir = self.config.get_pushdir()
 		self._outdir = self.config.get_outdir()
-		self.osso_c = osso.Context("fMMS", "0.1.0", False)
+		self.osso_c = osso.Context("se.frals.fmms_ui", self.config.get_version(), False)
 		
 		self.window = hildon.StackableWindow()
 		self.window.set_title("Showing MMS")
@@ -107,7 +109,6 @@ class fMMS_Viewer(hildon.Program):
 		ret = dialog.run()
 		if ret == 1:
 			hildon.hildon_gtk_window_set_progress_indicator(self.window, 1)
-			banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Trying to delete message")
 			banner.set_timeout(3000)
 			self.force_ui_update()
 			log.info("deleting %s", filename)
@@ -190,16 +191,16 @@ class fMMS_Viewer(hildon.Program):
 				
 
 		headerlist = self.cont.get_mms_headers(filename)
-		sender = headerlist['From'].replace("/TYPE=PLMN", "")
+		sender = headerlist.get('From', "").replace("/TYPE=PLMN", "")
 		sendername = self.ch.get_name_from_number(sender)
 		if sendername != None:
 			sender = sendername
 			
           	self.window.set_title("MMS - " + str(sender))
 		topbox = gtk.HBox()
+		
 		if self._direction == fMMSController.MSG_DIRECTION_IN:
 			label = gtk.Label('<span foreground="#666666">From</span>')
-			sender = headerlist['From'].replace("/TYPE=PLMN", "")
 		else:
 			label = gtk.Label('<span foreground="#666666">To</span>')
 			sender = headerlist['To'].replace("/TYPE=PLMN", "")
@@ -214,7 +215,6 @@ class fMMS_Viewer(hildon.Program):
 		self.window.set_title("MMS - " + str(sender))
 
 		namelabel = gtk.Label(sender)
-                #namelabel.set_justification(gtk.JUSTIFY_LEFT)
                 namelabel.set_alignment(0, 0.5)
 
                 mtime = headerlist['Time']
@@ -244,11 +244,13 @@ class fMMS_Viewer(hildon.Program):
 		textview.modify_text(gtk.STATE_NORMAL, gtk.gdk.color_parse("white"))
 		textbuffer = gtk.TextBuffer()
 		direction = self.cont.get_direction_mms(filename)
+		
 		# TODO: get path from db instead
 		if direction == fMMSController.MSG_DIRECTION_OUT:
 			path = self._outdir + filename
 		else:
-			path = self._mmsdir + filename
+			path = self.store.get_filepath_for_mms_transid(filename).replace("/message", "")
+		
 		filelist = self.cont.get_mms_attachments(filename)
 		log.info("filelist: %s", filelist)
 		for fname in filelist:
@@ -308,11 +310,9 @@ class fMMS_Viewer(hildon.Program):
 		log.info("mimetype: %s", file_mimetype)
 		if file_mimetype != None:
 			if file_mimetype.startswith("video") or file_mimetype.startswith("audio"):
-				self.osso_c = osso.Context("fMMSViewer", "0.3", False)
 				rpc = osso.Rpc(self.osso_c)
 				rpc.rpc_run("com.nokia.mediaplayer", "/com/nokia/mediaplayer", "com.nokia.mediaplayer", "mime_open", (str, path))	
 			elif file_mimetype.startswith("image"):
-				self.osso_c = osso.Context("fMMSViewer", "0.3", False)
 				rpc = osso.Rpc(self.osso_c)
 				ret = rpc.rpc_run("com.nokia.image_viewer", "/com/nokia/image_viewer", "com.nokia.image_viewer", "mime_open", (str, path))
 		else:
