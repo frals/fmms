@@ -341,7 +341,6 @@ class fMMS_SenderUI(hildon.Program):
 		
 		
 		to = self.eNumber.get_text()
-		# TODO: skip this if it looks like an email
 		if not self.cont.validate_phonenumber_email(to):
 			note = osso.SystemNote(self.osso_c)
 			note.system_note_dialog("Invalid phonenumber, must only contain + and digits" , 'notice')
@@ -390,10 +389,16 @@ class fMMS_SenderUI(hildon.Program):
 				if output['Response-Status'] == "Ok":
 					log.info("message seems to have sent AOK!")
 					banner = hildon.hildon_banner_show_information(self.spawner, "", "Message sent")
+			
+					if self.attachmentIsResized == True:
+						log.info("Removing temporary image: %s", attachment)
+						os.remove(attachment)
+					
 					if self.window == self.spawner:
 						self.quit()
 					else:
 						self.window.destroy()
+						self.quit()
 					return
 			
 			message = str(status) + "_" + str(reason)
@@ -420,11 +425,7 @@ class fMMS_SenderUI(hildon.Program):
 		finally:
 			hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
 			self.bSend.set_sensitive(True)
-			
-		if self.attachmentIsResized == True:
-			log.info("Removing temporary image: %s", attachment)
-			os.remove(attachment)
-		#self.window.destroy()
+
 		
 
 	def quit(self, *args):
