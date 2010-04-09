@@ -379,13 +379,7 @@ class MasterConnector:
 	
 	def disconnect(self):
 		try:
-			if (self.config.get_connmode() == CONNMODE_UGLYHACK):
-				self.connector.disconnect()
-			elif (self.config.get_connmode() == CONNMODE_ICDSWITCH):
-				self.connector.disconnect()
-			elif (self.config.get_connmode() == CONNMODE_FORCESWITCH):
-				self.connector.disconnect()
-
+			self.connector.disconnect()
 		except:
 			log.exception("Failed to close connection.")
 	
@@ -401,12 +395,13 @@ class ICDConnector:
 		self.connection = conic.Connection()
 		
 	def connection_cb(self, connection, event, magic):
-		log.info("connection_cb(%s, %s, %x)" % (connection, event, magic))
+		#log.info("connection_cb(%s, %s, %x)" % (connection, event, magic))
 		pass	
 		
 	def disconnect(self):
 		connection = self.connection
                 connection.disconnect_by_id(self.apn)
+                log.info("ICDConnector request disconnect from id: %s", self.apn)
 	
 	def connect(self):
 		global magic
@@ -428,7 +423,8 @@ class ICDConnector:
 			assert(connection.request_connection(conic.CONNECT_FLAG_NONE))
 		else:
 			assert(connection.request_connection_by_id(iap.get_id(), conic.CONNECT_FLAG_NONE))
-			
+		
+		log.info("ICDConnector tried to connect to: %s", iap.get_name())
 		
 
 """ this is the 'force switch' autoconnecter """
@@ -447,9 +443,10 @@ class ForceConnector:
 		icd = dbus.Interface(proxy, 'com.nokia.icd')
 		(iapid, arg, arg1, arg2, arg3, arg4, arg5) = icd.get_statistics()
 		self.previousconn = iapid
+		log.info("ForceConnector saved previous connection. ID: %s", iapid)
 		
 	def connection_cb(self, connection, event, magic):
-		log.info("connection_cb(%s, %s, %x)" % (connection, event, magic))
+		#log.info("connection_cb(%s, %s, %x)" % (connection, event, magic))
 		pass
 		
 	""" restore connection to previous """
@@ -462,6 +459,7 @@ class ForceConnector:
 		
 		args = "DISCONNECT"
 		retcode = subprocess.call(["/opt/fmms/fmms_magic", args])
+		log.info("ForceConnector disconnecting from active connection.")
 
 		if apn == None:
 			apn = self.apn
@@ -482,6 +480,8 @@ class ForceConnector:
 			assert(connection.request_connection(conic.CONNECT_FLAG_NONE))
 		else:
 			assert(connection.request_connection_by_id(iap.get_id(), conic.CONNECT_FLAG_NONE))
+		
+		log.info("ForceConnector tried to connect to: ID: %s Name: %s", (iap.get_id(), iap.get_name())
 
 
 
@@ -519,7 +519,7 @@ class UglyHackHandler:
 		return conn
 		
 	def disconnect(self):
-		log.info("running disconnect")
+		log.info("UglyHackHandler running disconnect")
 		(apn, ctype, self.iface, self.ipaddr, connected, self.tx, self.rx) = self.conn.GetStatus()
 		args = "STOP %s" % self.iface
 		retcode = subprocess.call(["/opt/fmms/fmms_magic", args])
