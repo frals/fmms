@@ -201,7 +201,7 @@ class PushHandler:
 			proxy = bus.get_object('org.freedesktop.Notifications', '/org/freedesktop/Notifications')
 			interface = dbus.Interface(proxy,dbus_interface='org.freedesktop.Notifications')
 			interface.SystemNoteInfoprint ("fMMS: Failed to download MMS message.")
-			#raise
+			raise
 		
 		return dirname
 
@@ -401,7 +401,7 @@ class ICDConnector:
 	def disconnect(self):
 		connection = self.connection
                 connection.disconnect_by_id(self.apn)
-                log.info("ICDConnector request disconnect from id: %s", self.apn)
+                log.info("ICDConnector requested disconnect from id: %s", self.apn)
 	
 	def connect(self):
 		global magic
@@ -419,12 +419,13 @@ class ICDConnector:
 
 		# The request_connection method should be called to initialize
 		# some fields of the instance
+		log.info("ICDConnector trying to connect to: %s", iap.get_name())
 		if not iap:
 			assert(connection.request_connection(conic.CONNECT_FLAG_NONE))
 		else:
 			assert(connection.request_connection_by_id(iap.get_id(), conic.CONNECT_FLAG_NONE))
 		
-		log.info("ICDConnector tried to connect to: %s", iap.get_name())
+		
 		
 
 """ this is the 'force switch' autoconnecter """
@@ -476,12 +477,11 @@ class ForceConnector:
 
 		# The request_connection method should be called to initialize
 		# some fields of the instance
+		log.info("ForceConnector trying to connect to: ID: %s Name: %s", (iap.get_id(), iap.get_name()))
 		if not iap:
 			assert(connection.request_connection(conic.CONNECT_FLAG_NONE))
 		else:
 			assert(connection.request_connection_by_id(iap.get_id(), conic.CONNECT_FLAG_NONE))
-		
-		log.info("ForceConnector tried to connect to: ID: %s Name: %s", (iap.get_id(), iap.get_name()))
 
 
 """ the ugly-hack autoconnector """
