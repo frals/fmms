@@ -189,6 +189,7 @@ class fMMS_GUI(hildon.Program):
 			return
 		if method == 'open_mms':
 			filename = args[0]
+			self.refreshlistview = True
 			if self.cont.is_fetched_push_by_transid(filename):
 				hildon.hildon_gtk_window_set_progress_indicator(self.window, 1)
 				self.force_ui_update()
