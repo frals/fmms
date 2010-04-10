@@ -31,7 +31,7 @@ log = logging.getLogger('fmms.%s' % __name__)
 
 class fMMS_Viewer(hildon.Program):
 
-	def __init__(self, fname, standalone=False):
+	def __init__(self, fname, standalone=False, spawner=None):
 		self.cont = fMMSController.fMMS_controller()
 		self.ch = ContactH.ContactHandler()
 		self.standalone = standalone
@@ -41,6 +41,7 @@ class fMMS_Viewer(hildon.Program):
 		self._pushdir = self.config.get_pushdir()
 		self._outdir = self.config.get_outdir()
 		self.osso_c = osso.Context("se.frals.fmms_ui", self.config.get_version(), False)
+		self.spawner = spawner
 		
 		self.window = hildon.StackableWindow()
 		self.window.set_title("Showing MMS")
@@ -113,6 +114,8 @@ class fMMS_Viewer(hildon.Program):
 			hildon.hildon_gtk_window_set_progress_indicator(self.window, 1)
 			self.force_ui_update()
 			log.info("deleting %s", filename)
+			if self.spawner:
+				self.spawner.refreshlistview = True
 			self.force_ui_update()
 			self.delete_push_mms(filename)
 		dialog.destroy()

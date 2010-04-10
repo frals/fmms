@@ -417,7 +417,7 @@ class fMMS_GUI(hildon.Program):
 			self.refreshlistview = True
 		
 		try:
-			viewer = fMMSViewer.fMMS_Viewer(transactionid)
+			viewer = fMMSViewer.fMMS_Viewer(transactionid, spawner=self)
 		except Exception, e:
 			log.exception("%s %s", type(e), e)
 			#raise
