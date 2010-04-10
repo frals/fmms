@@ -111,7 +111,6 @@ class fMMS_Viewer(hildon.Program):
 		ret = dialog.run()
 		if ret == 1:
 			hildon.hildon_gtk_window_set_progress_indicator(self.window, 1)
-			banner.set_timeout(3000)
 			self.force_ui_update()
 			log.info("deleting %s", filename)
 			self.force_ui_update()
