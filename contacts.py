@@ -25,6 +25,7 @@ class ContactHandler:
 		""" Load the evolution addressbook and prepare ctypes for ossoabook. """
 		self.ab = evolution.ebook.open_addressbook("default")
 		self.contacts = self.ab.get_all_contacts()
+		t1 = time.clock()
 		self.osso_ctx = osso.Context("fMMS_CONTACTS", "0.1")
 		self.osso_abook = ctypes.CDLL('libosso-abook-1.0.so.0')
 		empty = ""
@@ -36,6 +37,8 @@ class ContactHandler:
 		err = ctypes.c_void_p()
 		self.c_book = self.ebook.e_book_new_default_addressbook(ctypes.byref(err))
 		self.glib = ctypes.CDLL('libglib-2.0.so.0')
+		t2 = time.clock()
+		log.info("loaded contacthandler in %s s" % round(t2-t1, 5))
 	
 	def get_numbers_from_uid(self, uid):
 		""" Returns all the numbers from a name, as a list. """
@@ -75,12 +78,6 @@ class ContactHandler:
 		contact = self.ab.get_contact(uid)
 		return contact.get_name()
 	
-	""" wrapper to get from uid """
-	def get_numbers_from_name(self, fname):
-		search = self.ab.search(fname)
-		res = search[0].get_uid()
-		return self.get_numbers_from_uid(res)
-		
 	def get_contacts_as_dict(self):
 		retlist = {}
 		for contact in self.contacts:
@@ -90,8 +87,8 @@ class ContactHandler:
 				retlist[cn] = uid
 		return retlist
 	
-	""" returns all contact names sorted by name """
 	def get_contacts_as_list(self):
+		""" returns all contact names sorted by name """
 		retlist = self.get_contacts_as_dict()
 
 		# call setlocale to init current locale
@@ -119,7 +116,10 @@ class ContactHandler:
 			e_contact_get_const = self.ebook.e_contact_get_const
 			e_contact_get_const.restype = ctypes.c_char_p
 			uid = e_contact_get_const(i, E_CONTACT_UID)
+			self.glib.g_list_free(contacts)
 			return uid
+
+		self.glib.g_list_free(contacts)
 		return None
 		
 	def glist(self, addr):
