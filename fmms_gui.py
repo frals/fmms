@@ -413,7 +413,7 @@ class fMMS_GUI(hildon.Program):
 		# the 4th value is the transactionid (start counting at 0)
 		transactionid = model.get_value(miter, 3)
 		
-		if not self.cont.is_mms_read(transactionid):
+		if not self.cont.is_mms_read(transactionid) and not self.cont.get_direction_mms(transactionid) == fMMSController.MSG_DIRECTION_OUT:
 			self.refreshlistview = True
 		
 		try:

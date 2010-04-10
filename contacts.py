@@ -75,8 +75,10 @@ class ContactHandler:
 		return nrlist
 
 	def get_displayname_from_uid(self, uid):
-		contact = self.ab.get_contact(uid)
-		return contact.get_name()
+		contact = self.ab.get_contact(str(uid))
+		if contact:
+			contact = contact.get_name()
+		return contact
 	
 	def get_contacts_as_dict(self):
 		retlist = {}

@@ -193,23 +193,23 @@ class fMMS_Viewer(hildon.Program):
 				
 
 		headerlist = self.cont.get_mms_headers(filename)
-		sender = headerlist.get('From', "").replace("/TYPE=PLMN", "")
-		senderuid = self.ch.get_uid_from_number(sender)
-		sendername = self.ch.get_displayname_from_uid(senderuid)
-		if sendername != None:
-			sender = sendername
-			
-          	self.window.set_title("MMS - " + str(sender))
+
 		topbox = gtk.HBox()
 		
 		if self._direction == fMMSController.MSG_DIRECTION_IN:
 			label = gtk.Label('<span foreground="#666666">From</span>')
+			sender = headerlist.get('From', "0").replace("/TYPE=PLMN", "")
 		else:
 			label = gtk.Label('<span foreground="#666666">To</span>')
 			sender = headerlist['To'].replace("/TYPE=PLMN", "")
 		
 		label.set_use_markup(True)
 		label.set_alignment(0, 0.5)
+
+		senderuid = self.ch.get_uid_from_number(sender)
+		sendername = self.ch.get_displayname_from_uid(senderuid)
+		if sendername != None:
+			sender = sendername
 
 		self.window.set_title("MMS - " + str(sender))
 
