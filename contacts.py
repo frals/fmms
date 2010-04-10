@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 """ Handles contacts integration for fMMS
 
-@author: Nick Leppänen Larsson <frals@frals.se>
-@license: GNU GPL
+fMMS - MMS for fremantle
+Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
+
+@license: GNU GPLv2, see COPYING file.
 """
 from operator import itemgetter
 from locale import setlocale, strxfrm, LC_ALL, strcoll

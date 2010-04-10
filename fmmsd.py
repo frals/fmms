@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 """ daemon for fMMS
 
-@author: Nick Leppänen Larsson <frals@frals.se>
-@license: GNU GPL
+fMMS - MMS for fremantle
+Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
+
+@license: GNU GPLv2, see COPYING file.
 """
 import dbus
 import gobject

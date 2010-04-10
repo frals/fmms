@@ -2,11 +2,10 @@
 # -*- coding: utf-8 -*-
 """ Useful functions that shouldn't be in the UI code
 
+fMMS - MMS for fremantle
+Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
 
-And, yes, I know this is not really a controller.
-
-@author: Nick Leppänen Larsson <frals@frals.se>
-@license: GNU GPL
+@license: GNU GPLv2, see COPYING file.
 """
 import logging
 import logging.config
@@ -14,7 +13,6 @@ import StringIO
 
 logging.config.fileConfig('/opt/fmms/logger.conf')
 log = logging.getLogger('fmms.%s' % __name__)
-
 
 import os
 import array

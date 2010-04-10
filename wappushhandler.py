@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 """ Class for handling wap push messages and creating MMS messages
 
-@author: Nick Leppänen Larsson <frals@frals.se>
-@license: GNU GPL
+fMMS - MMS for fremantle
+Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
+
+@license: GNU GPLv2, see COPYING file.
 """
 import sys
 import os

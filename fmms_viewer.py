@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 """ Message-viewer UI for fMMS
 
-@author: Nick Leppänen Larsson <frals@frals.se>
-@license: GNU GPL
+fMMS - MMS for fremantle
+Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
+
+@license: GNU GPLv2, see COPYING file.
 """
 import os
 import sys
