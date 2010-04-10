@@ -24,7 +24,6 @@ class ContactHandler:
 	def __init__(self):
 		""" Load the evolution addressbook and prepare ctypes for ossoabook. """
 		self.ab = evolution.ebook.open_addressbook("default")
-		self.contacts = self.ab.get_all_contacts()
 		t1 = time.clock()
 		self.osso_ctx = osso.Context("fMMS_CONTACTS", "0.1")
 		self.osso_abook = ctypes.CDLL('libosso-abook-1.0.so.0')
@@ -79,24 +78,29 @@ class ContactHandler:
 		if contact:
 			contact = contact.get_name()
 		return contact
-	
-	def get_contacts_as_dict(self):
-		retlist = {}
-		for contact in self.contacts:
-			cn = contact.get_name()
-			uid = contact.get_uid()
-			if cn != None:
-				retlist[cn] = uid
-		return retlist
-	
-	def get_contacts_as_list(self):
-		""" returns all contact names sorted by name """
-		retlist = self.get_contacts_as_dict()
 
-		# call setlocale to init current locale
-		setlocale(LC_ALL, "")
-		tmplist = sorted(retlist.iteritems(), cmp=strcoll, key=itemgetter(0), reverse=False)
-		return tmplist
+	def contact_chooser_dialog(self):
+		capi = PyGObjectCPAI()
+		c_chooser = self.osso_abook.osso_abook_contact_chooser_new(None, "Choose a contact")
+		chooser = capi.pygobject_new(c_chooser)
+		chooser.run()
+		chooser.hide()
+		contacts = self.osso_abook.osso_abook_contact_chooser_get_selection(c_chooser)
+		for i in self.glist(contacts):
+			get_display_name = self.osso_abook.osso_abook_contact_get_display_name
+			get_display_name.restype = ctypes.c_char_p
+			c_selector = self.osso_abook.osso_abook_contact_detail_selector_new_for_contact(c_chooser, i, 3)
+			selector = capi.pygobject_new(c_selector)
+			selector.run()
+			selector.hide()
+			c_field = self.osso_abook.osso_abook_contact_detail_selector_get_selected_field(c_selector)
+			get_display_value = self.osso_abook.osso_abook_contact_field_get_display_value
+			get_display_value.restype = ctypes.c_char_p
+			finalval = self.osso_abook.osso_abook_contact_field_get_display_value(c_field)
+			self.glib.g_list_free(contacts)
+			return finalval
+			
+		self.glib.g_list_free(contacts)
 
 	def get_uid_from_number(self, number):
 		""" Gets the contacts UID from a given phonenumber.

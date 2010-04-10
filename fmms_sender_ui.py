@@ -123,10 +123,6 @@ class fMMS_SenderUI(hildon.Program):
 			self.attachmentFile = withfile
 			self.set_thumbnail(self.attachmentFile)
 
-		""" get all contacts in a dict (name, uid) """
-		self.cl = self.ch.get_contacts_as_list()
-		self.cldict = self.ch.get_contacts_as_dict()
-
 		""" Show it all! """
 		allBox.pack_start(topHBox1, False, False)
 		allBox.pack_start(pan, True, True)
@@ -141,74 +137,17 @@ class fMMS_SenderUI(hildon.Program):
 		self.add_window(self.window)
 	
 	
-	# TODO: pass reference instead of making it available in the object?
 	def open_contacts_dialog(self, button):
-		selector = self.create_contacts_selector()
-		self.contacts_dialog = gtk.Dialog("Select a contact")
-
-		# TODO: remove hardcoded height
-		self.contacts_dialog.set_default_size(-1, 320)
-			        			    
-		self.contacts_dialog.vbox.pack_start(selector)
-		self.contacts_dialog.add_button("Done", 1)
-		self.contacts_dialog.show_all()
-		while 1:
-			ret = self.contacts_dialog.run()
-			if ret == 1:
-				ret2 = self.contact_selector_changed(selector)
-				if ret2 == 0:
-					break
-			else:
-				break
-		self.contacts_dialog.destroy()
-
+		invalue = self.ch.contact_chooser_dialog()
+		invalue = invalue.replace(" ", "")
+		if not "@" in invalue:
+			invalue = re.sub(r'[^\d|\+]+', '', invalue)
+		self.eNumber.set_text(invalue)
 
 	""" forces ui update, kinda... god this is AWESOME """
 	def force_ui_update(self):
 		while gtk.events_pending():
-			gtk.main_iteration(False)
-	
-	
-	def contact_number_chosen(self, button, nrdialog):
-		nr = button.get_label().replace(" ", "")
-		if not "@" in nr:
-			nr = re.sub(r'[^\d|\+]+', '', nr)
-		self.eNumber.set_text(nr)
-		nrdialog.response(0)
-		self.contacts_dialog.response(0)
-	
-	
-	def contact_selector_changed(self, selector):
-		username = selector.get_current_text()
-		uid = self.cldict[username]
-		nrlist = self.ch.get_numbers_from_uid(uid)
-		nrdialog = gtk.Dialog("Pick a number")
-		for number in nrlist:
-			numberbox = gtk.HBox()
-			typelabel = gtk.Label(nrlist[number].capitalize())
-			typelabel.set_width_chars(24)
-			button = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
-			button.set_label(number)
-			button.connect('clicked', self.contact_number_chosen, nrdialog)
-			numberbox.pack_start(typelabel, False, False, 0)
-			numberbox.pack_start(button, True, True, 0)
-			nrdialog.vbox.pack_start(numberbox)
-		nrdialog.show_all()
-		# this is blocking until we get a return
-		ret = nrdialog.run()
-		nrdialog.destroy()
-		return ret
-	
-	
-	def create_contacts_selector(self):
-		selector = hildon.TouchSelectorEntry(text=True)
-		
-		for (contact, uid) in self.cl:
-			if contact != None:
-				selector.append_text(contact)
-
-		selector.set_column_selection_mode(hildon.TOUCH_SELECTOR_SELECTION_MODE_SINGLE)
-		return selector
+			gtk.main_iteration(False)	
 
 	def set_thumbnail(self, filename):
 		filetype = gnomevfs.get_mime_type(filename)
