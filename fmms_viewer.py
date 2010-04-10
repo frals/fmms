@@ -194,7 +194,8 @@ class fMMS_Viewer(hildon.Program):
 
 		headerlist = self.cont.get_mms_headers(filename)
 		sender = headerlist.get('From', "").replace("/TYPE=PLMN", "")
-		sendername = self.ch.get_name_from_number(sender)
+		senderuid = self.ch.get_uid_from_number(sender)
+		sendername = self.ch.get_displayname_from_uid(senderuid)
 		if sendername != None:
 			sender = sendername
 			
@@ -209,10 +210,6 @@ class fMMS_Viewer(hildon.Program):
 		
 		label.set_use_markup(True)
 		label.set_alignment(0, 0.5)
-
-		sendername = self.ch.get_name_from_number(sender)
-		if sendername != None:
-			sender = sendername
 
 		self.window.set_title("MMS - " + str(sender))
 

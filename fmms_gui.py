@@ -300,11 +300,11 @@ class fMMS_GUI(hildon.Program):
 				sender = self.cont.get_mms_headers(varlist['Transaction-Id'])
 				sender = sender['To'].replace("/TYPE=PLMN", "")
 
-			sendername = self.ch.get_name_from_number(sender)
+			senderuid = self.ch.get_uid_from_number(sender)
 			photo = icon_theme.load_icon("general_default_avatar", 48, 0)
-			if sendername != None:
-				sender = sendername
-				phototest = self.ch.get_photo_from_name(sendername, 48)
+			if senderuid != None:
+				sender = self.ch.get_displayname_from_uid(senderuid)
+				phototest = self.ch.get_photo_from_uid(senderuid, 48)
 				if phototest != None:
 					photo = phototest
 
@@ -435,3 +435,4 @@ if __name__ == "__main__":
 		app.run()
 	except:
 		log.exception("General failure.")
+		raise

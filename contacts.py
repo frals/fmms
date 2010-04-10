@@ -10,47 +10,36 @@ Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
 from operator import itemgetter
 from locale import setlocale, strxfrm, LC_ALL, strcoll
 import time
+import ctypes
 
 import evolution
 import gtk
+import osso
 
 import logging
 log = logging.getLogger('fmms.%s' % __name__)
 
 class ContactHandler:
-	
-	
-	""" wouldnt mind some nice patches against this """
+
 	def __init__(self):
+		""" Load the evolution addressbook and prepare ctypes for ossoabook. """
 		self.ab = evolution.ebook.open_addressbook("default")
 		self.contacts = self.ab.get_all_contacts()
-		self.phonedict = {}
-		t1 = time.clock()
-		for c in self.contacts:
-			#print c.get_name(), c.get_property('mobile-phone')
-			#print c.get_property('other-phone')
-			# this was a pretty clean solution as well, but oh so wrong!
-			mb = c.get_property('mobile-phone')
-			cp = c.get_property('other-phone')
-			nrlist = (mb, cp)
-			fname =	c.get_name()
-			# TODO: this is _really_ slow... look at integration with c please
-			#nrlist = self.get_numbers_from_name(fname)
-			self.phonedict[fname] = nrlist
-		t2 = time.clock()
-		log.info("phonedict loaded: %s in %s" % (len(self.phonedict), round(t2-t1, 5)))
+		self.osso_ctx = osso.Context("fMMS_CONTACTS", "0.1")
+		self.osso_abook = ctypes.CDLL('libosso-abook-1.0.so.0')
+		empty = ""
+		argv_type = ctypes.c_char_p * len(empty)
+		argv = argv_type(*empty)
+		argc = ctypes.c_int(len(empty))
+		self.osso_abook.osso_abook_init(ctypes.byref(argc), ctypes.byref(argv), hash(self.osso_ctx))
+		self.ebook = ctypes.CDLL('libebook-1.2.so.5')
+		err = ctypes.c_void_p()
+		self.c_book = self.ebook.e_book_new_default_addressbook(ctypes.byref(err))
+		self.glib = ctypes.CDLL('libglib-2.0.so.0')
 	
-	""" returns all the numbers from a name, as a list """
 	def get_numbers_from_uid(self, uid):
-		res = self.ab.get_contact(uid)
-		# would've been nice if this got all numbers, but alas, it dont.
-		"""props = ['assistant-phone', 'business-phone', 'business-phone-2', 'callback-phone', 'car-phone', 'company-phone', 'home-phone', 'home-phone-2', 'mobile-phone', 'other-phone', 'primary-phone']
-		nrlist = []
-		for p in props:
-			nr = res.get_property(p)
-			if nr != None:
-				nrlist.append(nr)"""
-		# creative use of processing power? *cough*
+		""" Returns all the numbers from a name, as a list. """
+		res = self.ab.get_contact(str(uid))
 		nrlist = {}
 		vcardlist = res.get_vcard_string().replace('\r', '').split('\n')
 		for line in vcardlist:
@@ -81,7 +70,10 @@ class ContactHandler:
 				if nr != None:
 					nrlist[nr] = phonetype				
 		return nrlist
-		
+
+	def get_displayname_from_uid(self, uid):
+		contact = self.ab.get_contact(uid)
+		return contact.get_name()
 	
 	""" wrapper to get from uid """
 	def get_numbers_from_name(self, fname):
@@ -107,44 +99,82 @@ class ContactHandler:
 		tmplist = sorted(retlist.iteritems(), cmp=strcoll, key=itemgetter(0), reverse=False)
 		return tmplist
 
-	
-	""" takes a number on international format (ie +46730111111) """
-	def get_name_from_number(self, number):
-		### do some voodoo here
-		# match against the last 7 digits
-		numberstrip = number[-7:]
-		for person in self.phonedict:
-			for cbnr in self.phonedict[person]:
-				if cbnr != None:
-					cbnr = cbnr.replace(" ", "")
-					cbnr = cbnr[-7:]
-					if (cbnr == number or numberstrip.endswith(cbnr) or number.endswith(cbnr)) and len(cbnr) >= 7:
-						return person
+	def get_uid_from_number(self, number):
+		""" Gets the contacts UID from a given phonenumber.
+		
+		Thanks lizardo for the great example how to implement this.
+		"""
+		if not self.ebook.e_book_open(self.c_book, 1, 0):
+			raise TypeError("Could not open ebook")
+		
+		# The '1' means fuzzy matching is active
+		c_query = self.osso_abook.osso_abook_query_phone_number(number, 1)
+
+		contacts = ctypes.c_void_p()
+		if not self.ebook.e_book_get_contacts(self.c_book, c_query, ctypes.byref(contacts), 0):
+			raise TypeError("Failed to get query results.")
+
+		for i in self.glist(contacts):
+			E_CONTACT_UID = 1
+			e_contact_get_const = self.ebook.e_contact_get_const
+			e_contact_get_const.restype = ctypes.c_char_p
+			uid = e_contact_get_const(i, E_CONTACT_UID)
+			return uid
 		return None
-	
-	# TODO: get from uid instead of name
-	def get_photo_from_name(self, pname, imgsize):
-		res = self.ab.search(pname)
-		### do some nice stuff here
-		l = [x.get_name() for x in res]
-		#log.info("search for: %s gave: %s (%s) (length: %s)", pname, l, l.__class__, len(l))
-		if res != None and res.__class__ == list and len(res) > 0:
-			img = res[0].get_photo(imgsize)
-			if img == None:
-				vcardlist = res[0].get_vcard_string().replace('\r', '').split('\n') # vcard for first result
-				for line in vcardlist:
-					if line.startswith("PHOTO;VALUE=uri:file://"):
-						imgstr = line.replace("PHOTO;VALUE=uri:file://", "")
-						img = gtk.gdk.pixbuf_new_from_file(imgstr)
-						height = img.get_height()
-						if height != imgsize:
-							newheight = imgsize
-							newwidth = int(newheight * img.get_width() / height)
-							img = img.scale_simple(newwidth, newheight, gtk.gdk.INTERP_BILINEAR)
-			return img
-		else:
-			return None
 		
+	def glist(self, addr):
+		""" Implementation of GList. """
+		size = self.glib.g_list_length(addr)
+		class _GList(ctypes.Structure):
+			_fields_ = [('data', ctypes.c_void_p)]
+		for i in xrange(0, size):
+			item = self.glib.g_list_nth(addr, i)
+			yield _GList.from_address(item).data
 		
+	def get_photo_from_uid(self, uid, imgsize):
+		contact = self.ab.get_contact(str(uid))
+		img = contact.get_photo(imgsize)
+		if img == None:
+			vcardlist = contact.get_vcard_string().replace('\r', '').split('\n') # vcard for first result
+			for line in vcardlist:
+				if line.startswith("PHOTO;VALUE=uri:file://"):
+					imgstr = line.replace("PHOTO;VALUE=uri:file://", "")
+					img = gtk.gdk.pixbuf_new_from_file(imgstr)
+					height = img.get_height()
+					if height != imgsize:
+						newheight = imgsize
+						newwidth = int(newheight * img.get_width() / height)
+						img = img.scale_simple(newwidth, newheight, gtk.gdk.INTERP_BILINEAR)
+		return img
+
+
+# ctypes wrapper for pygobject_new(), based on code snippet from
+# http://faq.pygtk.org/index.py?req=show&file=faq23.041.htp
+class _PyGObject_Functions(ctypes.Structure):
+	_fields_ = [
+		('register_class',
+		    ctypes.PYFUNCTYPE(ctypes.c_void_p, ctypes.c_char_p,
+		    ctypes.c_int, ctypes.py_object, ctypes.py_object)),
+		('register_wrapper',
+		    ctypes.PYFUNCTYPE(ctypes.c_void_p, ctypes.py_object)),
+		('register_sinkfunc',
+		    ctypes.PYFUNCTYPE(ctypes.py_object, ctypes.c_void_p)),
+		('lookupclass',
+		    ctypes.PYFUNCTYPE(ctypes.py_object, ctypes.c_int)),
+		('newgobj',
+		    ctypes.PYFUNCTYPE(ctypes.py_object, ctypes.c_void_p)),
+	]
+
+class PyGObjectCPAI(object):
+	def __init__(self):
+		import gobject
+		py_obj = ctypes.py_object(gobject._PyGObject_API)
+		addr = ctypes.pythonapi.PyCObject_AsVoidPtr(py_obj)
+		self._api = _PyGObject_Functions.from_address(addr)
+
+	def pygobject_new(self, addr):
+		return self._api.newgobj(addr)
+
+
 if __name__ == '__main__':
 	cb = ContactHandler()
