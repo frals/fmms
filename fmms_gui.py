@@ -182,7 +182,7 @@ class fMMS_GUI(hildon.Program):
 						note = osso.SystemNote(self.osso_c)
 						firstlaunchmessage = "NOTE: Read the thread on talk.maemo.org."
 						note = hildon.hildon_note_new_information(self.window, firstlaunchmessage)
-						self.create_config_dialog()
+						dialog = fMMSConfigDialog.fMMS_ConfigDialog(self.window)
 						self.config.set_firstlaunch(0)
 						note.run()
 						note.destroy()
