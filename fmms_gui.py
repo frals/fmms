@@ -185,8 +185,6 @@ class fMMS_GUI(hildon.Program):
 
 
 	def cb_open_fmms(self, interface, method, args, user_data):
-		if method != 'open_mms' and method != 'open_gui' and method != 'send_via_service':
-			return
 		if method == 'open_mms':
 			filename = args[0]
 			self.refreshlistview = True
@@ -212,6 +210,8 @@ class fMMS_GUI(hildon.Program):
 			self.refreshlistview = False
 			ret = fMMSSenderUI.fMMS_SenderUI(withfile=args[0], subject=args[1], message=args[2]).run()
 			self.quit()
+		else:
+			return
 		
 	def create_menu(self):
 		menu = hildon.AppMenu()
