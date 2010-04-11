@@ -46,6 +46,9 @@ class fMMS_GUI(hildon.Program):
 		self.osso_rpc.set_rpc_callback("se.frals.fmms","/se/frals/fmms","se.frals.fmms", self.cb_open_fmms, self.osso_c)
 		
 		self.refreshlistview = True
+		
+		self.avatarlist = {}
+		self.namelist = {}
 	
 		if not os.path.isdir(self._mmsdir):
 			log.info("creating dir %s", self._mmsdir)
@@ -277,6 +280,12 @@ class fMMS_GUI(hildon.Program):
 		highlightcolor = self.cont.get_active_color().to_string()
 		secondarytxt = self.cont.get_secondary_font().to_string()
 		secondarycolor = self.cont.get_secondary_color().to_string()
+		
+		replied_icon = icon_theme.load_icon("chat_replied_sms", 48, 0)
+		read_icon = icon_theme.load_icon("general_sms", 48, 0)
+		unread_icon = icon_theme.load_icon("chat_unread_sms", 48, 0)
+		default_avatar = icon_theme.load_icon("general_default_avatar", 48, 0)
+		
 		for varlist in pushlist:
 			mtime = varlist['Time']
 			# TODO: Remove date if date == today
@@ -300,20 +309,32 @@ class fMMS_GUI(hildon.Program):
 				sender = self.cont.get_mms_headers(varlist['Transaction-Id'])
 				sender = sender['To'].replace("/TYPE=PLMN", "")
 
+			# TODO: cleanup
 			senderuid = self.ch.get_uid_from_number(sender)
-			photo = icon_theme.load_icon("general_default_avatar", 48, 0)
+			avatar = default_avatar
+
 			if senderuid != None:
-				sender = self.ch.get_displayname_from_uid(senderuid)
-				phototest = self.ch.get_photo_from_uid(senderuid, 48)
-				if phototest != None:
-					photo = phototest
+				sendertest = self.namelist.get(senderuid, '')
+				if sendertest == '':
+					sender = self.ch.get_displayname_from_uid(senderuid)
+				else:
+					sender = sendertest
+				
+				avatartest = self.avatarlist.get(senderuid, '')
+				if avatartest == '':
+					avatartest = self.ch.get_photo_from_uid(senderuid, 48)
+				if avatartest != None:
+					avatar = avatartest
+				
+				self.namelist[senderuid] = sender
+				self.avatarlist[senderuid] = avatar
 
 			if direction == fMMSController.MSG_DIRECTION_OUT:
-				icon = icon_theme.load_icon("chat_replied_sms", 48, 0)
+				icon = replied_icon
 			elif self.cont.is_fetched_push_by_transid(fname) and isread:
-				icon = icon_theme.load_icon("general_sms", 48, 0)
+				icon = read_icon
 			else:
-				icon = icon_theme.load_icon("chat_unread_sms", 48, 0)
+				icon = unread_icon
 
 			try:
 				headerlist = self.cont.get_mms_headers(fname)
@@ -329,7 +350,7 @@ class fMMS_GUI(hildon.Program):
 			if not isread and direction == fMMSController.MSG_DIRECTION_IN:
 				sender = '<span foreground="%s">%s</span>' % (highlightcolor, sender)
 			stringline = "%s%s%s" % (sender, primarytext, secondarytext)
-			self.liststore.append([icon, stringline, photo, fname, sender])
+			self.liststore.append([icon, stringline, avatar, fname, sender])
 
 	def quit(self, *args):
 		""" Quits the application. """
