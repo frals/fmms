@@ -357,9 +357,10 @@ class MasterConnector:
 			apn = self.config.get_apn_from_osso()
 			mmsc1 = self.cont.get_host_from_url(self.config.get_mmsc())
 			mmsc2 = self.cont.get_host_from_url(location)
-			# todo get user/pass from gconf
+			user = self.config.get_user_for_apn()
+			passwd = self.config.get_passwd_for_apn()
 			try:
-				self.connector = UglyHackHandler(apn, "", "", proxyurl, mmsc1, mmsc2)
+				self.connector = UglyHackHandler(apn, user, passwd, proxyurl, mmsc1, mmsc2)
 				self.connector.start()
 			except:
 				log.exception("Connection failed.")

@@ -168,6 +168,22 @@ class fMMS_config:
 		apnosso = self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/gprs_accesspointname')
 		return apnosso
 	
+	def get_user_for_apn(self):
+		apn = self.get_apn()
+		user = self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/gprs_username')
+		if user:
+			return user
+		else:
+			return ""
+
+	def get_passwd_for_apn(self):
+		apn = self.get_apn()
+		passwd = self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/gprs_password')
+		if passwd:
+			return passwd
+		else:
+			return ""
+			
 	def get_gprs_apns(self):
 		# get all IAP's
 		dirs = self.client.all_dirs('/system/osso/connectivity/IAP')
