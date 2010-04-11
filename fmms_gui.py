@@ -314,20 +314,19 @@ class fMMS_GUI(hildon.Program):
 			avatar = default_avatar
 
 			if senderuid != None:
-				sendertest = self.namelist.get(senderuid, '')
-				if sendertest == '':
+				sender = self.namelist.get(senderuid, '')
+				if sender == '':
 					sender = self.ch.get_displayname_from_uid(senderuid)
-				else:
-					sender = sendertest
 				
 				avatartest = self.avatarlist.get(senderuid, '')
 				if avatartest == '':
 					avatartest = self.ch.get_photo_from_uid(senderuid, 48)
 				if avatartest != None:
 					avatar = avatartest
-				
+
 				self.namelist[senderuid] = sender
 				self.avatarlist[senderuid] = avatar
+
 
 			if direction == fMMSController.MSG_DIRECTION_OUT:
 				icon = replied_icon
