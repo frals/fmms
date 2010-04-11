@@ -26,7 +26,6 @@ from mms.message import MMSMessage
 from mms import mms_pdu
 import fmms_config as fMMSconf
 import controller as fMMSController
-import contacts as ContactH
 
 import logging
 log = logging.getLogger('fmms.%s' % __name__)
@@ -43,7 +42,6 @@ class PushHandler:
 	def __init__(self):
 		self.cont = fMMSController.fMMS_controller()
 		self.config = fMMSconf.fMMS_config()
-		self.ch = ContactH.ContactHandler()
 		self._mmsdir = self.config.get_mmsdir()
 		self._pushdir = self.config.get_pushdir()
 		self._apn = self.config.get_apn()
@@ -95,21 +93,8 @@ class PushHandler:
 		# Controller should save it
 		pushid = self.cont.save_push_message(data)
 		log.info("notifying push...")
-
-		try:
-			senderuid = self.ch.get_uid_from_number(sndr.replace("/TYPE=PLMN", ""))
-			sender = self.ch.get_displayname_from_uid(senderuid)
-			log.info("sender: %s", sender)
-			if not sender:
-				sender = sndr
-				log.info("sender = sndr: %s", sender)
-				
-		except:
-			sender = sndr
-			log.info("failed to get contactname from number")
-
 		# Send a notify we got the SMS Push and parsed it A_OKEY!
-		self.notify_mms(dbus_loop, sender, "SMS Push for MMS received")
+		self.notify_mms(dbus_loop, sndr, "SMS Push for MMS received")
 		log.info("fetching mms...")
 		path = self._get_mms_message(url, trans_id)
 		log.info("decoding mms... path: %s", path)
@@ -117,7 +102,7 @@ class PushHandler:
 		log.info("storing mms...")
 		mmsid = self.cont.store_mms_message(pushid, message)
 		log.info("notifying mms...")
-		self.notify_mms(dbus_loop, sender, "New MMS", trans_id);
+		self.notify_mms(dbus_loop, sndr, "New MMS", trans_id);
 		return 0
 
 
