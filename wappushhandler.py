@@ -97,8 +97,13 @@ class PushHandler:
 		log.info("notifying push...")
 
 		try:
-			senderuid = self.ch.get_uid_from_number(sndr)
+			senderuid = self.ch.get_uid_from_number(sndr.replace("/TYPE=PLMN", ""))
 			sender = self.ch.get_displayname_from_uid(senderuid)
+			log.info("sender: %s", sender)
+			if not sender:
+				sender = sndr
+				log.info("sender = sndr: %s", sender)
+				
 		except:
 			sender = sndr
 			log.info("failed to get contactname from number")
