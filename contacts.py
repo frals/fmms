@@ -39,40 +39,6 @@ class ContactHandler:
 		t2 = time.clock()
 		log.info("loaded contacthandler in %s s" % round(t2-t1, 5))
 	
-	def get_numbers_from_uid(self, uid):
-		""" Returns all the numbers from a name, as a list. """
-		res = self.ab.get_contact(str(uid))
-		nrlist = {}
-		vcardlist = res.get_vcard_string().replace('\r', '').split('\n')
-		for line in vcardlist:
-			if line.startswith("TEL"):
-				nr = line.split(":")[1]
-				ltype = line.split(":")[0].split("=")
-				phonetype = "Unknown"
-				try:
-					for type in ltype:
-						rtype = type.replace(";TYPE", "")
-						if rtype != "TEL" and rtype != "VOICE":
-							phonetype = rtype	
-				except:
-					pass
-				if nr != None:
-					nrlist[nr] = phonetype
-			if line.startswith("EMAIL"):
-				nr = line.split(":")[1]
-				ltype = line.split(":")[0].split("=")
-				phonetype = "Email"
-				try:
-					for type in ltype:
-						rtype = type.replace(";TYPE", "")
-						if rtype != "EMAIL":
-							phonetype = rtype	
-				except:
-					pass
-				if nr != None:
-					nrlist[nr] = phonetype				
-		return nrlist
-
 	def get_displayname_from_uid(self, uid):
 		contact = self.ab.get_contact(str(uid))
 		if contact:
@@ -130,12 +96,12 @@ class ContactHandler:
 		
 	def glist(self, addr):
 		""" Implementation of GList. """
-		size = self.glib.g_list_length(addr)
 		class _GList(ctypes.Structure):
-			_fields_ = [('data', ctypes.c_void_p)]
+			_fields_ = [('data', ctypes.c_void_p),
+				    ('next', ctypes.c_void_p)]
 		l = addr
 		while l:
-			l = _GList.from_address(l)
+			l = _GList.from_address(l.value)
 			yield l.data
 			l = l.next
 		
