@@ -135,7 +135,9 @@ class fMMS_SenderUI(hildon.Program):
 		self.window.add(align)
 		self.window.show_all()
 		self.add_window(self.window)
-	
+		
+		# Workaround to make sure osso_abook is running
+		self.get_uid_from_number("0")
 	
 	def open_contacts_dialog(self, button):
 		invalue = self.ch.contact_chooser_dialog()
@@ -335,11 +337,7 @@ class fMMS_SenderUI(hildon.Program):
 						log.info("Removing temporary image: %s", attachment)
 						os.remove(attachment)
 					
-					if self.window == self.spawner:
-						self.quit()
-					else:
-						self.window.destroy()
-						self.quit()
+					self.quit()
 					return
 			
 			message = str(status) + "_" + str(reason)
@@ -370,6 +368,8 @@ class fMMS_SenderUI(hildon.Program):
 		
 
 	def quit(self, *args):
+		if self.window != self.spawner:
+			self.window.destroy()
 		gtk.main_quit()
 
 	def run(self):
