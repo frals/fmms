@@ -133,9 +133,11 @@ class ContactHandler:
 		size = self.glib.g_list_length(addr)
 		class _GList(ctypes.Structure):
 			_fields_ = [('data', ctypes.c_void_p)]
-		for i in xrange(0, size):
-			item = self.glib.g_list_nth(addr, i)
-			yield _GList.from_address(item).data
+		l = addr
+		while l:
+			l = _GList.from_address(l)
+			yield l.data
+			l = l.next
 		
 	def get_photo_from_uid(self, uid, imgsize):
 		contact = self.ab.get_contact(str(uid))
