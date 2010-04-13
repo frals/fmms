@@ -53,8 +53,6 @@ class ContactHandler:
 		chooser.hide()
 		contacts = self.osso_abook.osso_abook_contact_chooser_get_selection(c_chooser)
 		for i in self.glist(contacts):
-			get_display_name = self.osso_abook.osso_abook_contact_get_display_name
-			get_display_name.restype = ctypes.c_char_p
 			c_selector = self.osso_abook.osso_abook_contact_detail_selector_new_for_contact(c_chooser, i, 3)
 			selector = capi.pygobject_new(c_selector)
 			selector.run()
@@ -101,7 +99,10 @@ class ContactHandler:
 				    ('next', ctypes.c_void_p)]
 		l = addr
 		while l:
-			l = _GList.from_address(l.value)
+			if type(l) == int:
+				l = _GList.from_address(l)
+			else:
+				l = _GList.from_address(l.value)
 			yield l.data
 			l = l.next
 		
