@@ -50,13 +50,6 @@ class fMMS_GUI(hildon.Program):
 		self.avatarlist = {}
 		self.namelist = {}
 	
-		if not os.path.isdir(self._mmsdir):
-			log.info("creating dir %s", self._mmsdir)
-			os.makedirs(self._mmsdir)
-		if not os.path.isdir(self._pushdir):
-			log.info("creating dir %s", self._pushdir)
-			os.makedirs(self._pushdir)
-	
 		hildon.Program.__init__(self)
 		program = hildon.Program.get_instance()
 			
