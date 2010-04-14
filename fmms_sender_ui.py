@@ -141,10 +141,11 @@ class fMMS_SenderUI(hildon.Program):
 	
 	def open_contacts_dialog(self, button):
 		invalue = self.ch.contact_chooser_dialog()
-		invalue = invalue.replace(" ", "")
-		if not "@" in invalue:
-			invalue = re.sub(r'[^\d|\+]+', '', invalue)
-		self.eNumber.set_text(invalue)
+		if invalue:
+			invalue = invalue.replace(" ", "")
+			if not "@" in invalue:
+				invalue = re.sub(r'[^\d|\+]+', '', invalue)
+			self.eNumber.set_text(invalue)
 
 	""" forces ui update, kinda... god this is AWESOME """
 	def force_ui_update(self):
