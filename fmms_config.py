@@ -44,9 +44,11 @@ class fMMS_config:
 		if self.get_version() == None:
 			self.set_version("Unknown")
 		if self.get_connmode() == None:
-			self.set_connmode(1)
+			self.set_connmode(2)
 		if self.get_db_path() == None:
 			self.set_db_path("/home/user/.fmms/mms.db")
+		if not self.get_useragent():
+			self.set_useragent("NokiaN95/11.0.026; Series60/3.1 Profile/MIDP-2.0 Configuration/CLDC-1.1")
 		# Create dirs, for good measures
 		if not os.path.isdir(self.get_pushdir()):
 			os.makedirs(self.get_pushdir())
@@ -84,6 +86,12 @@ class fMMS_config:
 	
 	def get_db_path(self):
 		return self.client.get_string(self._fmmsdir + "db")
+
+	def get_useragent(self):
+		return self.client.get_string(self._fmmsdir + "useragent")
+	
+	def set_useragent(self, val):
+		self.client.set_string(self._fmmsdir + "useragent", val)
 	
 	def get_version(self):
 		return self.client.get_string(self._fmmsdir + "version")

@@ -47,13 +47,6 @@ class PushHandler:
 		self._apn = self.config.get_apn()
 		self._apn_nicename = self.config.get_apn_nicename()
 		self._incoming = self.config.get_imgdir() + "/LAST_INCOMING"
-		
-		if not os.path.isdir(self._mmsdir):
-			log.info("creating dir %s", self._mmsdir)
-			os.makedirs(self._mmsdir)
-		if not os.path.isdir(self._pushdir):
-			log.info("creating dir %s", self._pushdir)
-			os.makedirs(self._pushdir)
 
 	""" handle incoming push over sms """
 	def _incoming_sms_push(self, source, src_port, dst_port, wsp_header, wsp_payload):
@@ -178,10 +171,8 @@ class PushHandler:
 				proxy = urllib2.ProxyHandler({"http": proxyfull})
 				opener = urllib2.build_opener(proxy)
 				urllib2.install_opener(opener)
-				
-			#headers = {'x-wap-profile': 'http://mms.frals.se/n900.rdf'}
-			#User-Agent: NokiaN95/11.0.026; Series60/3.1 Profile/MIDP-2.0 Configuration/CLDC-1.1 
-			headers = {'User-Agent' : 'NokiaN95/11.0.026; Series60/3.1 Profile/MIDP-2.0 Configuration/CLDC-1.1', 'x-wap-profile' : 'http://mms.frals.se/n900.rdf'}
+
+			headers = {'User-Agent' : self.config.get_useragent(), 'x-wap-profile' : 'http://mms.frals.se/n900.rdf'}
 			log.info("trying url: %s", location)
 			req = urllib2.Request(location, headers=headers)
 			mmsdata = urllib2.urlopen(req)
@@ -282,7 +273,7 @@ class MMSSender:
 		(proxyurl, proxyport) = self.config.get_proxy_from_apn()
 		mms = self._mms.encode()
 		
-		headers = {'Content-Type':'application/vnd.wap.mms-message', 'User-Agent' : 'NokiaN95/11.0.026; Series60/3.1 Profile/MIDP-2.0 Configuration/CLDC-1.1', 'x-wap-profile' : 'http://mms.frals.se/n900.rdf'}
+		headers = {'Content-Type':'application/vnd.wap.mms-message', 'User-Agent' : self.config.get_useragent(), 'x-wap-profile' : 'http://mms.frals.se/n900.rdf'}
 		#headers = {'Content-Type':'application/vnd.wap.mms-message'}
 		if proxyurl == "" or proxyurl == None:
 			print "connecting without proxy"
