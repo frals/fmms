@@ -13,6 +13,7 @@ import socket
 import re
 import Image
 import StringIO
+from shutil import copy
 
 import gtk
 import hildon
@@ -119,8 +120,13 @@ class fMMS_SenderUI(hildon.Program):
 		
 		self.attachmentFile = ""
 		
-		if withfile != None:
-			self.attachmentFile = withfile
+		# Copy the file to our tempdir in case sharing service removes it
+		if withfile:
+			filename = os.path.basename(withfile)
+			dst = "%s/%s" % (self.config.get_imgdir(), filename)
+			log.info("Copying file to: %s" % dst)
+			copy(withfile, dst)
+			self.attachmentFile = dst
 			self.set_thumbnail(self.attachmentFile)
 
 		""" Show it all! """
@@ -226,9 +232,6 @@ class fMMS_SenderUI(hildon.Program):
 	""" slightly modified by frals """
 	def resize_img(self, filename):
 		try:
-			if not os.path.isdir(self.config.get_imgdir()):
-				log.info("creating dir %s", self.config.get_imgdir())
-				os.makedirs(self.config.get_imgdir())
 			
 			hildon.hildon_banner_show_information(self.window, "", "fMMS: Resizing image, this might take a while...")
 			self.force_ui_update()
@@ -272,6 +275,7 @@ class fMMS_SenderUI(hildon.Program):
 	def send_mms_clicked(self, widget):
 		# Disable send-button
 		self.bSend.set_sensitive(False)
+		self.force_ui_update()
 		self.send_mms(widget)
 		hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
 		self.bSend.set_sensitive(True)
@@ -283,7 +287,6 @@ class fMMS_SenderUI(hildon.Program):
 		
 		self.osso_c = osso.Context("fMMS", "0.1.0", False)
 		
-		
 		to = self.eNumber.get_text()
 		if not self.cont.validate_phonenumber_email(to):
 			note = osso.SystemNote(self.osso_c)
@@ -291,11 +294,11 @@ class fMMS_SenderUI(hildon.Program):
 			return
 		
 		attachment = self.attachmentFile
+		
 		if attachment == "" or attachment == None:
 			attachment = None
 			self.attachmentIsResized = False
 		else:
-			log.info("attachment: %s", attachment)
 			filetype = gnomevfs.get_mime_type(attachment)
 			self.attachmentIsResized = False
 			if self.config.get_img_resize_width() != 0 and filetype.startswith("image"):
@@ -312,7 +315,7 @@ class fMMS_SenderUI(hildon.Program):
 		sender = self.config.get_phonenumber()
 		tb = self.tvMessage.get_buffer()
 		message = tb.get_text(tb.get_start_iter(), tb.get_end_iter())
-		log.info("sender: %s attachment: %s to: %s message: %s", sender, attachment, to, message)
+		log.info("attachment: %s message: %s", attachment, message)
 
 		""" Construct and send the message, off you go! """
 		# TODO: let controller do this
@@ -369,9 +372,10 @@ class fMMS_SenderUI(hildon.Program):
 		
 
 	def quit(self, *args):
-		if self.window != self.spawner:
+		if self.window == self.spawner:		
+			gtk.main_quit()
+		else:
 			self.window.destroy()
-		gtk.main_quit()
 
 	def run(self):
 		self.window.show_all()
