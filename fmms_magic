@@ -17,12 +17,12 @@ do_start() {
 		
 	$STARTIFACE
 	$ROUTETODNS
-	MMSC=`${GETMMSCHOST} | /bin/grep mmsc | /usr/bin/tail -n1 | /usr/bin/cut -d' ' -f3`
+	MMSC=`${GETMMSCHOST} | /usr/bin/tail -n1 | /usr/bin/cut -d' ' -f3`
 	MMSCIP1="`/bin/echo ${MMSC} | ${REPLACER}`.0"
 	
 	if [ $4 != "0" ]; then
 			GETMMSC2HOST="/usr/bin/nslookup $4 $5"
-			MMSC2=`${GETMMSC2HOST} | /bin/grep mmsc | /usr/bin/tail -n1 | /usr/bin/cut -d' ' -f3`
+			MMSC2=`${GETMMSC2HOST} | /usr/bin/tail -n1 | /usr/bin/cut -d' ' -f3`
 			MMSCIP2="`/bin/echo ${MMSC2} | ${REPLACER}`.0"
 	else
 		MMSCIP2="0"
@@ -30,7 +30,7 @@ do_start() {
 	
 	if [ $6 != "0" ]; then
 		GETPROXYHOST="/usr/bin/nslookup $6 $5"
-		PROXYIP=`${GETPROXYHOST} | /bin/grep mmsc | /usr/bin/tail -n1 | /usr/bin/cut -d' ' -f3`
+		PROXYIP=`${GETPROXYHOST} | /usr/bin/tail -n1 | /usr/bin/cut -d' ' -f3`
 		PROXYIP="`echo $PROXYIP | ${REPLACER}`.0"
 	else
 		PROXYIP="0"
