@@ -128,6 +128,7 @@ class PushHandler:
 			dirname = self.__get_mms_message(location, transaction)
 		except:
 			log.exception("Something went wrong with getting the message... bailing out")
+			connector.disconnect()
 			raise
 		
 		# send acknowledge we got it ok
