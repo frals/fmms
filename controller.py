@@ -353,7 +353,51 @@ class fMMS_controller():
 		else:
 		 	return False
 		
+	def get_mcc_mnc(self):
+		""" Gets the SIM cards MMC/MNC """
+		bus = dbus.SystemBus()
+		phone = dbus.Interface(bus.get_object("com.nokia.phone.SIM", "/com/nokia/phone/SIM"), "Phone.Sim")
+		hplmn = phone.read_hplmn()
+		(mcc, thirdbytes, mnc) = hplmn[0]
+		# extract 4 lowest bits (as integer)
+		mcc1 = int(mcc) & 0xF
+		# and 4 highest bits (as integer)
+		mcc2 = int(mcc) >> 4
+		# 4 lowest bits of the "united" byte is mcc3
+		mcc3 = int(thirdbytes) & 0xF
+		# 4 lowest bits of mnc is mnc1
+		mnc1 = int(mnc) & 0xF
+		# 4 highest bits of mnc is mnc2
+		mnc2 = int(mnc) >> 4
+		# if 4 highest bits of "united" byte is
+		# 0xf only 2 digits are used for mnc
+		mnc3 = int(thirdbytes) >> 4
+
+		if mnc3 == 0xf:
+			final_mnc = "%s%s" % (mnc1, mnc2)
+		else:
+			final_mnc = "%s%s%s" % (mnc1, mnc2, mnc3)
+
+		final_mcc = "%s%s%s" % (mcc1, mcc2, mcc3)
 		
+		return final_mcc, final_mnc
+
+	def get_operator_display_name(self):
+		bus = dbus.SystemBus()
+		phone = dbus.Interface(bus.get_object("com.nokia.phone.SIM", "/com/nokia/phone/SIM"), "Phone.Sim")
+		(providername, ign, ign2, err) = phone.get_service_provider_name()
+		return providername
+
+	def get_settings_from_file(mcc, mnc, displayname):
+		fn = open("/etc/operator_settings", 'r')
+		for line in fn:
+			# MCC MNC SERVICE_PROVIDER_NAME ACCESS_TYPE IAP_NAME GPRS_AP_NAME GPRS_AUTOLOGIN USER PASS EMPTY EMPTY
+			# MMS/WAP_GW_PROXY MMS/WAP_GW_PORT IP_ADDR PRIMARY_DNS SECONDARY_DNS EMPTY MMSC
+			row = line.split('\t')
+			if row[0] == 'mcc' and row[1] == mnc and row[3] == 'MMS':
+				print len(row)
+				print row
+
 	
 if __name__ == '__main__':
 	c = fMMS_controller()
