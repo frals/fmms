@@ -22,15 +22,20 @@ CONNMODE_FORCESWITCH = 3
 
 class fMMS_config:
 
-
 	def __init__(self):
 		self._fmmsdir = "/apps/fmms/"
 		self.client = gconf.client_get_default()
-		self._fmmsapndir = "/apps/fmms/apn/"
 		self.client.add_dir(self._fmmsdir, gconf.CLIENT_PRELOAD_NONE)
-		self.client.add_dir(self._fmmsapndir, gconf.CLIENT_PRELOAD_NONE)
 		if self.get_apn() == None:
-			self.set_apn("bogus")
+			self.create_new_apn()
+		# if its not our APN we copy settings to ours
+		if self.get_apn() != "z_fMMS-APN":
+			settings = self.get_apn_settings()
+			advsettings = self.get_advanced_apn_settings()
+			newapn = self.create_new_apn()
+			self.set_apn(newapn)
+			self.set_apn_settings(settings)
+			self.set_advanced_apn_settings(advsettings)
 		if self.get_pushdir() == None:
 			self.set_pushdir("/home/user/.fmms/push/")
 		if self.get_mmsdir() == None:
@@ -177,6 +182,7 @@ class fMMS_config:
 	
 	def get_mmsc(self):
 		return self.client.get_string(self._fmmsdir + "mmsc")
+
 	def get_proxy_from_apn(self):
 		apn = self.get_apn()
 		proxy = self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/proxy_http')
@@ -284,7 +290,10 @@ class fMMS_config:
 		return settings
 	
 	def create_new_apn(self):
-		apn = "fMMS-APN"
+		""" Create a new APN for MMS usage. """
+		# Name it z_fMMS as auto-connect *might* 
+		# search gconf keys in alphabetical order...
+		apn = "z_fMMS-APN"
 		self.client.add_dir('/system/osso/connectivity/IAP/' + apn, gconf.CLIENT_PRELOAD_NONE)
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + "/type", "GPRS")
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + "/name", "MMS")
@@ -311,4 +320,3 @@ class fMMS_config:
 		
 if __name__ == '__main__':
 	config = fMMS_config()
-	config.set_connmode(1)
