@@ -24,7 +24,9 @@ class fMMS_config:
 	def __init__(self):
 		self._fmmsdir = "/apps/fmms/"
 		self.client = gconf.client_get_default()
+		self._fmmsapndir = "/apps/fmms/apn/"
 		self.client.add_dir(self._fmmsdir, gconf.CLIENT_PRELOAD_NONE)
+		self.client.add_dir(self._fmmsapndir, gconf.CLIENT_PRELOAD_NONE)
 		if self.get_apn() == None:
 			self.set_apn("bogus")
 		if self.get_pushdir() == None:
@@ -157,7 +159,12 @@ class fMMS_config:
 		return self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/name')
 	
 	def get_apn(self):
-		return self.client.get_string(self._fmmsdir + "apn")
+		apn = self.client.get_string(self._fmmsdir + "apn")
+		
+		if not apn:
+			apn = self.create_new_apn()
+		
+		return apn
 		
 	def set_mmsc(self, mmsc):
 		self.client.set_string(self._fmmsdir + "mmsc", mmsc)
@@ -235,7 +242,35 @@ class fMMS_config:
 						return apnid		
 		
 		return None
+	
+	def set_apn_settings(self, settings):
+		apn = self.get_apn()
 		
+		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/gprs_accesspointname', settings['apn'])
+		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/gprs_username', settings['user'])
+		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/gprs_password', settings['pass'])
+		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/proxy_http', settings['proxy'])
+		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/proxy_http_port', settings['proxyport'])
+		self.set_mmsc(settings['mmsc'])
+		
+	def set_advanced_apn_settings(self, settings):
+		apn = self.get_apn()
+		
+		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/ipv4_dns1', settings['pdns'])
+		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/ipv4_dns2', settings['sdns'])
+		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/ipv4_address', settings['ip'])
+		
+	
+	def create_new_apn(self):
+		apn = "fMMS-APN"
+		self.client.add_dir('/system/osso/connectivity/IAP/' + apn, gconf.CLIENT_PRELOAD_NONE)
+		self.client.set_string('/system/osso/connectivity/IAP/' + apn + "/type", "GPRS")
+		self.client.set_string('/system/osso/connectivity/IAP/' + apn + "/name", "MMS")
+		#self.client.set_string('/system/osso/connectivity/IAP/' + apn + "/sim_imsi", simimsi)
+		self.client.set_string('/system/osso/connectivity/IAP/' + apn + "/ipv4_type", "AUTO")
+		self.client.set_int('/system/osso/connectivity/IAP/' + apn + "/user_added", 2)
+		
+		return apn
 		
 if __name__ == '__main__':
 	config = fMMS_config()
