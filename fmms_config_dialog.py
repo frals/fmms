@@ -28,32 +28,17 @@ class fMMS_ConfigDialog():
 
 		allVBox = gtk.VBox()
 
-		self.active_apn_index = 0
-
 		labelwidth = 16
 
 		apnHBox = gtk.HBox()
 		apn_label = gtk.Label("APN:")
 		apn_label.set_width_chars(labelwidth)
-		self.selector = self.create_apn_selector()
-		self.apn = hildon.PickerButton(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
-		self.apn.set_selector(self.selector)
-		self.apn.set_active(self.active_apn_index)
+		apn_button = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
+		apn_button.set_label("Configure")
+		apn_button.connect('clicked', self.show_apn_config)
 
 		apnHBox.pack_start(apn_label, False, True, 0)
-		apnHBox.pack_start(self.apn, True, True, 0)
-
-		mmscHBox = gtk.HBox()
-		mmsc_label = gtk.Label("MMSC:")
-		mmsc_label.set_width_chars(labelwidth)
-		self.mmsc = hildon.Entry(gtk.HILDON_SIZE_FINGER_HEIGHT)
-		mmsc_text = self.config.get_mmsc()
-		if mmsc_text != None:	
-			self.mmsc.set_text(mmsc_text)
-		else:
-			self.mmsc.set_text("http://")
-		mmscHBox.pack_start(mmsc_label, False, True, 0)
-		mmscHBox.pack_start(self.mmsc, True, True, 0)
+		apnHBox.pack_start(apn_button, True, True, 0)
 
 		numberHBox = gtk.HBox()
 		number_label = gtk.Label("Your phonenumber:")
@@ -90,22 +75,33 @@ class fMMS_ConfigDialog():
 		# havoc = CONNMODE_UGLYHACK = 1
 		# polite = CONNMODE_ICDSWITCH = 2
 		# rude = CONNMODE_FORCESWITCH = 3
-		self.havocbutton = hildon.GtkRadioButton(gtk.HILDON_SIZE_FINGER_HEIGHT)
+		
+		hbox = gtk.HButtonBox()
+		hbox.set_property("name", "GtkHBox")
+		self.havocbutton = hildon.GtkToggleButton(gtk.HILDON_SIZE_FINGER_HEIGHT)
 		self.havocbutton.set_label("Havoc")
-		self.rudebutton = hildon.GtkRadioButton(gtk.HILDON_SIZE_FINGER_HEIGHT, self.havocbutton)
+		self.havocsignal = self.havocbutton.connect('toggled', self.conn_mode_toggled)
+		self.rudebutton = hildon.GtkToggleButton(gtk.HILDON_SIZE_FINGER_HEIGHT)
 		self.rudebutton.set_label("Rude")
-		self.icdbutton = hildon.GtkRadioButton(gtk.HILDON_SIZE_FINGER_HEIGHT, self.havocbutton)
+		self.rudesignal = self.rudebutton.connect('toggled', self.conn_mode_toggled)
+		self.icdbutton = hildon.GtkToggleButton(gtk.HILDON_SIZE_FINGER_HEIGHT)
 		self.icdbutton.set_label("Polite")
+		self.icdsignal = self.icdbutton.connect('toggled', self.conn_mode_toggled)
+		
 		# Set the correct button to be active
 		self.connmode_setactive()
+		
+		hbox.pack_start(self.icdbutton, True, False, 0)
+		hbox.pack_start(self.rudebutton, True, False, 0)
+		hbox.pack_start(self.havocbutton, True, False, 0)
+
+		alignment = gtk.Alignment(0.5, 0.5, 0, 0)
+		alignment.add(hbox)
 
 		expHBox.pack_start(exp_label, False, True, 0)
-		expHBox.pack_start(self.icdbutton, True, True, 0)
-		expHBox.pack_start(self.rudebutton, True, True, 0)
-		expHBox.pack_start(self.havocbutton, True, True, 0)
+		expHBox.pack_start(alignment, False, True, 0)
 
 		allVBox.pack_start(apnHBox, False, False, 0)
-		allVBox.pack_start(mmscHBox, False, False, 0)
 		allVBox.pack_start(numberHBox, False, False, 0)
 		allVBox.pack_start(imgwidthHBox, False, False, 0)
 		allVBox.pack_end(expHBox, False, False, 0)
@@ -117,26 +113,30 @@ class fMMS_ConfigDialog():
 		ret2 = self.config_menu_button_clicked(ret)
 		dialog.destroy()
 
-	def create_apn_selector(self):
-		""" Creates and populates the APN selector. """
-		selector = hildon.TouchSelector(text = True)
-		apnlist = self.config.get_gprs_apns()
-		currval = self.config.get_apn_nicename()
-		# Populate selector
-		i = 0
-		for apn in apnlist:
-			if apn != None:
-				if apn == currval:
-					self.active_apn_index = i
-				i += 1	
-				# Add item to the column 
-				selector.append_text(apn)
-
-		selector.center_on_selected()
-		selector.set_active(0, i)
-		# Set selection mode to allow multiple selection
-		selector.set_column_selection_mode(hildon.TOUCH_SELECTOR_SELECTION_MODE_SINGLE)
-		return selector
+	def show_apn_config(self, button):
+		apndialog = APNConfigDialog()
+		
+	def conn_mode_toggled(self, widget):
+		""" Ugly hack used since its ToggleButtons """
+		self.havocbutton.handler_block(self.havocsignal)
+		self.rudebutton.handler_block(self.rudesignal)
+		self.icdbutton.handler_block(self.icdsignal)
+		if self.havocbutton == widget:
+			self.havocbutton.set_active(True)
+			self.rudebutton.set_active(False)
+			self.icdbutton.set_active(False)
+		elif self.rudebutton == widget:
+			self.havocbutton.set_active(False)
+			self.rudebutton.set_active(True)
+			self.icdbutton.set_active(False)
+		elif self.icdbutton == widget:
+			self.havocbutton.set_active(False)
+			self.rudebutton.set_active(False)
+			self.icdbutton.set_active(True)
+		self.havocbutton.handler_unblock(self.havocsignal)
+		self.rudebutton.handler_unblock(self.rudesignal)
+		self.icdbutton.handler_unblock(self.icdsignal)
+		return True
 
 	def connmode_option(self):
 		""" Returns which 'Connection Mode' button is active. """
@@ -159,27 +159,93 @@ class fMMS_ConfigDialog():
 	def config_menu_button_clicked(self, action):
 		""" Checks if we should save the Configuration options. """
 		if action == gtk.RESPONSE_APPLY:
-			log.info("%s", self.apn.get_selector().get_current_text())
-			ret_setapn = self.config.get_apnid_from_name(self.apn.get_selector().get_current_text())
-			if ret_setapn != None:
-				self.config.set_apn(ret_setapn)
-				log.info("Set apn to: %s" % ret_setapn)
-				ret = self.config.set_mmsc(self.mmsc.get_text())
-				log.info("Set mmsc to %s" % self.mmsc.get_text())
-				self.config.set_phonenumber(self.number.get_text())
-				log.info("Set phonenumber to %s" % self.number.get_text())
-				self.config.set_img_resize_width(self.imgwidth.get_text())
-				log.info("Set image width to %s" % self.imgwidth.get_text())
-				self.config.set_connmode(self.connmode_option())
-				log.info("Set connection mode %s" % self.connmode_option())				
-				banner = hildon.hildon_banner_show_information(self.window, "", "Settings saved")
-				return 0
-			else:
-				log.info("Set mmsc to %s" % self.mmsc.get_text())
-				self.config.set_phonenumber(self.number.get_text())
-				log.info("Set phonenumber to %s" % self.number.get_text())
-				self.config.set_img_resize_width(self.imgwidth.get_text())
-				log.info("Set image width to %s" % self.imgwidth.get_text())
-				banner = hildon.hildon_banner_show_information(self.window, "", "Could not save APN settings. Did you enter a correct APN?")
-				banner.set_timeout(5000)
-			return -1
+			self.config.set_phonenumber(self.number.get_text())
+			log.info("Set phonenumber to %s" % self.number.get_text())
+			self.config.set_img_resize_width(self.imgwidth.get_text())
+			log.info("Set image width to %s" % self.imgwidth.get_text())
+			self.config.set_connmode(self.connmode_option())
+			log.info("Set connection mode %s" % self.connmode_option())				
+			banner = hildon.hildon_banner_show_information(self.window, "", "Settings saved")
+			return 0
+			
+			
+class APNConfigDialog():
+	
+	def __init__(self):
+		dialog = gtk.Dialog()
+		dialog.set_title("APN Configuration")
+		
+		self.config = fMMSconf.fMMS_config()
+		
+		allVBox = gtk.VBox()
+		
+		labelwidth = 16
+
+		inputs = [('Access point name', 'apn'), ('Username', 'user'),
+			  ('Password', 'pass'), ('Proxy', 'proxy'), ('Proxy Port', 'proxyport'),
+			  ('MMSC', 'mmsc')]
+		
+		entries = {}
+		
+		current = self.config.get_apn_settings()
+
+		for labelname in inputs:
+			(labelname, var) = labelname
+			box = gtk.HBox()
+			label = gtk.Label(labelname)
+			label.set_width_chars(labelwidth)
+			vars()[var] = gtk.Entry()
+			if current[var]:
+				vars()[var].set_text(str(current[var]))
+			entries[var] = vars()[var]
+			box.pack_start(label, False, True, 0)
+			box.pack_start(vars()[var], True, True, 0)
+			allVBox.pack_start(box, False, False, 2)
+
+		button = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
+		button.set_label("Advanced")
+		button.connect('clicked', self.create_advanced_config, dialog)
+		allVBox.pack_end(button, False, False, 2)
+
+		allVBox.show_all()
+		dialog.vbox.add(allVBox)
+		dialog.add_button("Save", gtk.RESPONSE_APPLY)
+		dialog.run()
+		dialog.destroy()
+		
+	def create_advanced_config(self, widget, spawnedby):
+		dialog = gtk.Dialog()
+		dialog.set_title("Advanced Configuration")
+		dialog.set_transient_for(spawnedby)
+
+		allVBox = gtk.VBox()
+
+		labelwidth = 16
+
+		inputs = [('IP', 'ip'), ('Primary DNS', 'pdns'), ('Secondary DNS', 'sdns')]
+
+		entries = {}
+		
+		current = self.config.get_advanced_apn_settings()
+
+		for labelname in inputs:
+			(labelname, var) = labelname
+			box = gtk.HBox()
+			label = gtk.Label(labelname)
+			label.set_width_chars(labelwidth)
+			vars()[var] = gtk.Entry()
+			if current[var]:
+				vars()[var].set_text(str(current[var]))
+			entries[var] = vars()[var]
+			box.pack_start(label, False, True, 0)
+			box.pack_start(vars()[var], True, True, 0)
+			allVBox.pack_start(box, False, False, 2)
+
+		allVBox.show_all()
+		dialog.vbox.add(allVBox)
+		dialog.add_button("Save", gtk.RESPONSE_APPLY)
+		dialog.run()
+		dialog.destroy()
+		
+if __name__ == "__main__":
+	fMMS_ConfigDialog(None)
