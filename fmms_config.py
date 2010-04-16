@@ -249,15 +249,35 @@ class fMMS_config:
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/gprs_username', settings['user'])
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/gprs_password', settings['pass'])
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/proxy_http', settings['proxy'])
-		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/proxy_http_port', settings['proxyport'])
+		self.client.set_int('/system/osso/connectivity/IAP/' + apn + '/proxy_http_port', int(settings['proxyport']))
 		self.set_mmsc(settings['mmsc'])
+		
+	def get_apn_settings(self):
+		apn = self.get_apn()
+		settings = {}
+		settings['apn'] = self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/gprs_accesspointname')
+		settings['user'] = self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/gprs_username')
+		settings['pass'] = self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/gprs_password')
+		settings['proxy'] = self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/proxy_http')
+		settings['proxyport'] = self.client.get_int('/system/osso/connectivity/IAP/' + apn + '/proxy_http_port')
+		settings['mmsc'] = self.get_mmsc()
+		
+		return settings
 		
 	def set_advanced_apn_settings(self, settings):
 		apn = self.get_apn()
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/ipv4_dns1', settings['pdns'])
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/ipv4_dns2', settings['sdns'])
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/ipv4_address', settings['ip'])
-		
+	
+	def get_advanced_apn_settings(self):
+		apn = self.get_apn()
+		settings = {}
+		settings['pdns'] = self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/ipv4_dns1')
+		settings['sdns'] = self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/ipv4_dns2')
+		settings['ip'] = self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/ipv4_address')
+		return settings
+	
 	def create_new_apn(self):
 		apn = "fMMS-APN"
 		self.client.add_dir('/system/osso/connectivity/IAP/' + apn, gconf.CLIENT_PRELOAD_NONE)
