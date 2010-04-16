@@ -245,7 +245,6 @@ class fMMS_config:
 	
 	def set_apn_settings(self, settings):
 		apn = self.get_apn()
-		
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/gprs_accesspointname', settings['apn'])
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/gprs_username', settings['user'])
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/gprs_password', settings['pass'])
@@ -255,22 +254,35 @@ class fMMS_config:
 		
 	def set_advanced_apn_settings(self, settings):
 		apn = self.get_apn()
-		
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/ipv4_dns1', settings['pdns'])
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/ipv4_dns2', settings['sdns'])
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/ipv4_address', settings['ip'])
 		
-	
 	def create_new_apn(self):
 		apn = "fMMS-APN"
 		self.client.add_dir('/system/osso/connectivity/IAP/' + apn, gconf.CLIENT_PRELOAD_NONE)
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + "/type", "GPRS")
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + "/name", "MMS")
-		#self.client.set_string('/system/osso/connectivity/IAP/' + apn + "/sim_imsi", simimsi)
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + "/ipv4_type", "AUTO")
 		self.client.set_int('/system/osso/connectivity/IAP/' + apn + "/user_added", 2)
-		
+		self.unmask_apn_from_icd()
 		return apn
+		
+	def get_sim_imsi(self):
+		osso_c = osso.Context('fMMSconfig', '1.0', False)
+		rpc = osso.Rpc(osso_c)
+		imsi = rpc.rpc_run('com.nokia.phone.SIM', '/com/nokia/phone/SIM', 'Phone.Sim', 'get_imsi', (), True, True)
+		return imsi
+		
+	def mask_apn_from_icd(self):
+		apn = self.get_apn()
+		self.client.set_string('/system/osso/connectivity/IAP/' + apn + "/sim_imsi", "masked")
+		
+	def unmask_apn_from_icd(self):
+		apn = self.get_apn()
+		simimsi = self.get_sim_imsi()
+		self.client.set_string('/system/osso/connectivity/IAP/' + apn + "/sim_imsi", simimsi)
+		
 		
 if __name__ == '__main__':
 	config = fMMS_config()
