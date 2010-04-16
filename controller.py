@@ -388,17 +388,44 @@ class fMMS_controller():
 		(providername, ign, ign2, err) = phone.get_service_provider_name()
 		return providername
 
-	def get_settings_from_file(mcc, mnc, displayname):
+	def get_settings_from_file(self, mcc, mnc, displayname):
 		fn = open("/etc/operator_settings", 'r')
 		for line in fn:
-			# MCC MNC SERVICE_PROVIDER_NAME ACCESS_TYPE IAP_NAME GPRS_AP_NAME GPRS_AUTOLOGIN USER PASS EMPTY EMPTY
-			# MMS/WAP_GW_PROXY MMS/WAP_GW_PORT IP_ADDR PRIMARY_DNS SECONDARY_DNS EMPTY MMSC
+			"""
+			0 : MCC
+			1 : MNC
+			2 : SERVICE PROVIDER NAME
+			3 : ACCESS TYPE
+			4 : IAP NAME
+			5 : GPRS ACCESSPOINT NAME
+			6 : GPRS AUTOLOGIN (X = YES)
+			7 : USERNAME
+			8 : PASSWORD
+			9 : <empty>
+			10 : <empty>
+			11 : GPRS MMS/WAP GATEWAY PROXY
+			12 : GPRS MMS/WAP GATEWAY PORT
+			13 : IP ADDRESS (IF NOT FETCHED FROM SERVER)
+			14 : PRIMARY DNS ADDRESS (IF NOT FETCHED FROM SERVER)
+			15 : SECONDARY DNS ADDRESS (IF AVAILABLE)
+			16 : <empty>
+			"""
 			row = line.split('\t')
-			if row[0] == 'mcc' and row[1] == mnc and row[3] == 'MMS':
-				print len(row)
-				print row
+			if row[0] == str(mcc) and row[1] == str(mnc) and row[3] == 'MMS':
+				settings = {}
+				settings['apn'] = row[6]
+				settings['user'] = row[7]
+				settings['pass'] = row[8]
+				settings['proxy'] = row[11]
+				settings['proxyport'] = row[12]
+				settings['ip'] = row[13]
+				settings['pdns'] = row[14]
+				settings['sdns'] = row[15]
+				settings['mmsc'] = row[17]
+				return settings
+		return None
 
 	
 if __name__ == '__main__':
 	c = fMMS_controller()
-	pass
+	#print c.get_settings_from_file(310, 160, "T-Mobile")
