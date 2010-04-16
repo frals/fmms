@@ -229,8 +229,6 @@ class PushHandler:
 """ class for sending an mms """    	    
 class MMSSender:
 	def __init__(self, number=None, subject=None, message=None, attachment=None, sender=None, customMMS=None, setupConn=False):
-		print "GOT SENDER:", sender
-		print "customMMS:", customMMS
 		self.customMMS = customMMS
 		self.config = fMMSconf.fMMS_config()
 		self.cont = fMMSController.fMMS_controller()
