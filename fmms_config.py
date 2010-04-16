@@ -9,6 +9,8 @@ Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
 """
 import os
 
+import osso
+
 try:
 	import gnome.gconf as gconf
 except:
@@ -38,11 +40,11 @@ class fMMS_config:
 		if self.get_imgdir() == None:
 			self.set_imgdir("/home/user/.fmms/temp/")
 		if self.get_mmsc() == None:
-			self.set_mmsc("http://")
+			self.set_mmsc("")
 		if self.get_phonenumber() == None:
 			self.set_phonenumber("0")
 		if self.get_img_resize_width() == None:
-			self.set_img_resize_width(320)
+			self.set_img_resize_width(240)
 		if self.get_version() == None:
 			self.set_version("Unknown")
 		if self.get_connmode() == None:
@@ -79,6 +81,10 @@ class fMMS_config:
 	
 	def set_connmode(self, val):
 		self.client.set_int(self._fmmsdir + "connmode", int(val))
+		if val == CONNMODE_UGLYHACK:
+			self.mask_apn_from_icd()
+		else:
+			self.unmask_apn_from_icd()
 		
 	def get_connmode(self):
 		return self.client.get_int(self._fmmsdir + "connmode")
@@ -165,13 +171,12 @@ class fMMS_config:
 			apn = self.create_new_apn()
 		
 		return apn
-		
+
 	def set_mmsc(self, mmsc):
 		self.client.set_string(self._fmmsdir + "mmsc", mmsc)
 	
 	def get_mmsc(self):
 		return self.client.get_string(self._fmmsdir + "mmsc")
-		
 	def get_proxy_from_apn(self):
 		apn = self.get_apn()
 		proxy = self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/proxy_http')
