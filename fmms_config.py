@@ -26,14 +26,16 @@ class fMMS_config:
 		self._fmmsdir = "/apps/fmms/"
 		self.client = gconf.client_get_default()
 		self.client.add_dir(self._fmmsdir, gconf.CLIENT_PRELOAD_NONE)
-		if self.get_apn() == None:
-			self.create_new_apn()
+		apn = self.get_apn()
+		if apn == None:
+			apn = self.create_new_apn()
+			self.set_apn(apn)
 		# if its not our APN we copy settings to ours
-		if self.get_apn() != "z_fMMS-APN":
+		if apn != "z_fMMS-APN":
 			settings = self.get_apn_settings()
 			advsettings = self.get_advanced_apn_settings()
-			newapn = self.create_new_apn()
-			self.set_apn(newapn)
+			apn = self.create_new_apn()
+			self.set_apn(apn)
 			self.set_apn_settings(settings)
 			self.set_advanced_apn_settings(advsettings)
 		if self.get_pushdir() == None:
@@ -48,11 +50,11 @@ class fMMS_config:
 			self.set_mmsc("")
 		if self.get_phonenumber() == None:
 			self.set_phonenumber("0")
-		if not self.get_img_resize_width():
+		if self.get_img_resize_width() == None:
 			self.set_img_resize_width(240)
 		if self.get_version() == None:
 			self.set_version("Unknown")
-		if not self.get_connmode():
+		if self.get_connmode() == None:
 			self.set_connmode(CONNMODE_ICDSWITCH)
 		if self.get_db_path() == None:
 			self.set_db_path("/home/user/.fmms/mms.db")
@@ -162,10 +164,6 @@ class fMMS_config:
 	
 	def get_apn(self):
 		apn = self.client.get_string(self._fmmsdir + "apn")
-		
-		if not apn:
-			apn = self.create_new_apn()
-		
 		return apn
 
 	def set_mmsc(self, mmsc):
