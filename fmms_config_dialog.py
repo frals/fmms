@@ -176,7 +176,7 @@ class APNConfigDialog():
 		dialog = gtk.Dialog()
 		dialog.set_transient_for(parent)
 		dialog.set_title("APN Configuration")
-		
+		self.parent = parent
 		self.config = fMMSconf.fMMS_config()
 		self.cont = fMMSController.fMMS_controller()
 		
@@ -194,9 +194,13 @@ class APNConfigDialog():
 
 		if not current:
 			current = self.cont.get_apn_settings_automatically()
+			self.config.set_apn_settings(current)
+			log.info("Set APN settings: %s" % current)
 		
 		if current['apn'] == "":
 			current = self.cont.get_apn_settings_automatically()
+			self.config.set_apn_settings(current)
+			log.info("Set APN settings: %s" % current)
 		
 		for labelname in inputs:
 			(labelname, var) = labelname
@@ -228,7 +232,8 @@ class APNConfigDialog():
 		
 		if ret == gtk.RESPONSE_APPLY:
 			self.config.set_apn_settings(settings)
-			banner = hildon.hildon_banner_show_information(self.window, "", "APN settings saved")
+			log.info("Set APN settings: %s" % settings)
+			banner = hildon.hildon_banner_show_information(parent, "", "APN settings saved")
 		
 		dialog.destroy()
 		
@@ -245,6 +250,16 @@ class APNConfigDialog():
 		entries = {}
 		
 		current = self.config.get_advanced_apn_settings()
+		
+		if not current:
+			current = self.cont.get_apn_settings_automatically()
+			self.config.set_advanced_apn_settings(settings)
+			log.info("Set Advanced APN settings: %s" % settings)
+				
+		if current['ip'] == "":
+			current = self.cont.get_apn_settings_automatically()
+			self.config.set_advanced_apn_settings(settings)
+			log.info("Set Advanced APN settings: %s" % settings)
 
 		for labelname in inputs:
 			(labelname, var) = labelname
@@ -262,7 +277,17 @@ class APNConfigDialog():
 		allVBox.show_all()
 		dialog.vbox.add(allVBox)
 		dialog.add_button("Save", gtk.RESPONSE_APPLY)
-		dialog.run()
+		ret = dialog.run()
+		
+		settings = {}
+		for val in entries:
+			settings[val] = vars()[val].get_text()
+
+		if ret == gtk.RESPONSE_APPLY:
+			self.config.set_advanced_apn_settings(settings)
+			log.info("Set Advanced APN settings: %s" % settings)
+			banner = hildon.hildon_banner_show_information(self.parent, "", "Advanced settings saved")
+
 		dialog.destroy()
 		
 if __name__ == "__main__":

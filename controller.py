@@ -432,13 +432,11 @@ class fMMS_controller():
 		operatorname = self.get_operator_display_name()
 		settings = self.get_settings_from_file(mcc, mnc, operatorname)
 		
-		print self.are_we_tele2_se(mcc, mnc, operatorname)
-		
 		if self.are_we_tele2_se(mcc, mnc, operatorname):
 			settings = self.are_we_tele2_se(mcc, mnc, operatorname)
 		
 		log.info("Settings loaded automatically. MCC: %s MNC: %s Operatorname: %s" % (mcc, mnc, operatorname))
-		log.info("Settings: %s" % settings)
+		log.info("Settings loaded automatically: %s" % settings)
 		return settings
 	
 	def are_we_tele2_se(self, mcc, mnc, operatorname):
@@ -453,9 +451,11 @@ class fMMS_controller():
 				settings['proxy'] = "130.244.202.30"
 				settings['proxyport'] = "8080"
 				settings['mmsc'] = "http://mmsc.tele2.se"
+				settings['pdns'] = "0.0.0.0"
+				settings['sdns'] = "0.0.0.0"
+				settings['ip'] = "0.0.0.0"
 				return settings
 		return False
 	
 if __name__ == '__main__':
 	c = fMMS_controller()
-	#print c.get_settings_from_file(310, 160, "T-Mobile")
