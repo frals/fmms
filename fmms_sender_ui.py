@@ -142,8 +142,9 @@ class fMMS_SenderUI(hildon.Program):
 		self.window.show_all()
 		self.add_window(self.window)
 		
-		# Workaround to make sure osso_abook is running
-		self.get_uid_from_number("0")
+		# so appearently throwing an exception here
+		# makes osso-abook always load the contacts...
+		self.this_doesnt_exist()
 	
 	def open_contacts_dialog(self, button):
 		invalue = self.ch.contact_chooser_dialog()
