@@ -390,6 +390,8 @@ class fMMS_controller():
 
 	def get_settings_from_file(self, mcc, mnc, displayname):
 		fn = open("/etc/operator_settings", 'r')
+		mcc = str(int(mcc))
+		mnc = str(int(mnc))
 		for line in fn:
 			"""
 			0 : MCC
@@ -411,9 +413,9 @@ class fMMS_controller():
 			16 : <empty>
 			"""
 			row = line.split('\t')
-			if row[0] == str(mcc) and row[1] == str(mnc) and row[3] == 'MMS':
+			if row[0] == str(int(mcc)) and row[1] == str(int(mnc)) and row[3] == 'MMS':
 				settings = {}
-				settings['apn'] = row[6]
+				settings['apn'] = row[5]
 				settings['user'] = row[7]
 				settings['pass'] = row[8]
 				settings['proxy'] = row[11]
@@ -425,6 +427,34 @@ class fMMS_controller():
 				return settings
 		return None
 
+	def get_apn_settings_automatically(self):
+		(mcc, mnc) = self.get_mcc_mnc()
+		operatorname = self.get_operator_display_name()
+		settings = self.get_settings_from_file(mcc, mnc, operatorname)
+		
+		print self.are_we_tele2_se(mcc, mnc, operatorname)
+		
+		if self.are_we_tele2_se(mcc, mnc, operatorname):
+			settings = self.are_we_tele2_se(mcc, mnc, operatorname)
+		
+		log.info("Settings loaded automatically. MCC: %s MNC: %s Operatorname: %s" % (mcc, mnc, operatorname))
+		log.info("Settings: %s" % settings)
+		return settings
+	
+	def are_we_tele2_se(self, mcc, mnc, operatorname):
+		mcc = str(int(mcc))
+		mnc = str(int(mnc))
+		if mcc == "240" and mnc == "7":
+			if operatorname == "Tele2" or operatorname == "Comviq":
+				settings = {}
+				settings['apn'] = "internet.tele2.se"
+				settings['user'] = ""
+				settings['pass'] = ""
+				settings['proxy'] = "130.244.202.30"
+				settings['proxyport'] = "8080"
+				settings['mmsc'] = "http://mmsc.tele2.se"
+				return settings
+		return False
 	
 if __name__ == '__main__':
 	c = fMMS_controller()

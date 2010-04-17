@@ -13,6 +13,7 @@ import logging
 log = logging.getLogger('fmms.%s' % __name__)
 
 import fmms_config as fMMSconf
+import controller as fMMSController
 
 class fMMS_ConfigDialog():
 
@@ -23,7 +24,7 @@ class fMMS_ConfigDialog():
 		self.window = spawner
 		
 		dialog = gtk.Dialog()
-		#dialog.set_transient_for(self.window)
+		dialog.set_transient_for(self.window)
 		dialog.set_title("Configuration")
 
 		allVBox = gtk.VBox()
@@ -35,7 +36,7 @@ class fMMS_ConfigDialog():
 		apn_label.set_width_chars(labelwidth)
 		apn_button = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
 		apn_button.set_label("Configure")
-		apn_button.connect('clicked', self.show_apn_config)
+		apn_button.connect('clicked', self.show_apn_config, dialog)
 
 		apnHBox.pack_start(apn_label, False, True, 0)
 		apnHBox.pack_start(apn_button, True, True, 0)
@@ -110,11 +111,11 @@ class fMMS_ConfigDialog():
 		dialog.vbox.add(allVBox)
 		dialog.add_button("Save", gtk.RESPONSE_APPLY)
 		ret = dialog.run()
-		ret2 = self.config_menu_button_clicked(ret)
+		self.config_menu_button_clicked(ret)
 		dialog.destroy()
 
-	def show_apn_config(self, button):
-		apndialog = APNConfigDialog()
+	def show_apn_config(self, button, dialog):
+		apndialog = APNConfigDialog(dialog)
 		
 	def conn_mode_toggled(self, widget):
 		""" Ugly hack used since its ToggleButtons """
@@ -171,11 +172,13 @@ class fMMS_ConfigDialog():
 			
 class APNConfigDialog():
 	
-	def __init__(self):
+	def __init__(self, parent):
 		dialog = gtk.Dialog()
+		dialog.set_transient_for(parent)
 		dialog.set_title("APN Configuration")
 		
 		self.config = fMMSconf.fMMS_config()
+		self.cont = fMMSController.fMMS_controller()
 		
 		allVBox = gtk.VBox()
 		
@@ -189,14 +192,21 @@ class APNConfigDialog():
 		
 		current = self.config.get_apn_settings()
 
+		if not current:
+			current = self.cont.get_apn_settings_automatically()
+		
+		if current['apn'] == "":
+			current = self.cont.get_apn_settings_automatically()
+		
 		for labelname in inputs:
 			(labelname, var) = labelname
 			box = gtk.HBox()
 			label = gtk.Label(labelname)
 			label.set_width_chars(labelwidth)
 			vars()[var] = gtk.Entry()
-			if current[var]:
-				vars()[var].set_text(str(current[var]))
+			if current:
+				if current[var]:
+					vars()[var].set_text(str(current[var]))
 			entries[var] = vars()[var]
 			box.pack_start(label, False, True, 0)
 			box.pack_start(vars()[var], True, True, 0)
@@ -210,13 +220,21 @@ class APNConfigDialog():
 		allVBox.show_all()
 		dialog.vbox.add(allVBox)
 		dialog.add_button("Save", gtk.RESPONSE_APPLY)
-		dialog.run()
+		ret = dialog.run()
+		
+		settings = {}
+		for val in entries:
+			settings[val] = vars()[val].get_text()
+		
+		if ret == gtk.RESPONSE_APPLY:
+			self.config.set_apn_settings(settings)
+			banner = hildon.hildon_banner_show_information(self.window, "", "APN settings saved")¨
+		
 		dialog.destroy()
 		
 	def create_advanced_config(self, widget, spawnedby):
 		dialog = gtk.Dialog()
 		dialog.set_title("Advanced Configuration")
-		dialog.set_transient_for(spawnedby)
 
 		allVBox = gtk.VBox()
 
