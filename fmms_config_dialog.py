@@ -197,7 +197,7 @@ class APNConfigDialog():
 			self.config.set_apn_settings(current)
 			log.info("Set APN settings: %s" % current)
 		
-		if current['apn'] == "":
+		if current['apn'] == "" or current['mmsc'] == "":
 			current = self.cont.get_apn_settings_automatically()
 			self.config.set_apn_settings(current)
 			log.info("Set APN settings: %s" % current)
@@ -250,16 +250,17 @@ class APNConfigDialog():
 		entries = {}
 		
 		current = self.config.get_advanced_apn_settings()
+		print current
 		
 		if not current:
 			current = self.cont.get_apn_settings_automatically()
-			self.config.set_advanced_apn_settings(settings)
-			log.info("Set Advanced APN settings: %s" % settings)
+			self.config.set_advanced_apn_settings(current)
+			log.info("Set Advanced APN settings: %s" % current)
 				
-		if current['ip'] == "":
+		if current['ip'] == "" or not current['ip']:
 			current = self.cont.get_apn_settings_automatically()
-			self.config.set_advanced_apn_settings(settings)
-			log.info("Set Advanced APN settings: %s" % settings)
+			self.config.set_advanced_apn_settings(current)
+			log.info("Set Advanced APN settings: %s" % current)
 
 		for labelname in inputs:
 			(labelname, var) = labelname
@@ -267,8 +268,9 @@ class APNConfigDialog():
 			label = gtk.Label(labelname)
 			label.set_width_chars(labelwidth)
 			vars()[var] = gtk.Entry()
-			if current[var]:
-				vars()[var].set_text(str(current[var]))
+			if current:
+				if current[var]:
+					vars()[var].set_text(str(current[var]))
 			entries[var] = vars()[var]
 			box.pack_start(label, False, True, 0)
 			box.pack_start(vars()[var], True, True, 0)

@@ -48,12 +48,12 @@ class fMMS_config:
 			self.set_mmsc("")
 		if self.get_phonenumber() == None:
 			self.set_phonenumber("0")
-		if self.get_img_resize_width() == None:
+		if not self.get_img_resize_width():
 			self.set_img_resize_width(240)
 		if self.get_version() == None:
 			self.set_version("Unknown")
-		if self.get_connmode() == None:
-			self.set_connmode(2)
+		if not self.get_connmode():
+			self.set_connmode(CONNMODE_ICDSWITCH)
 		if self.get_db_path() == None:
 			self.set_db_path("/home/user/.fmms/mms.db")
 		if not self.get_useragent():
@@ -71,25 +71,16 @@ class fMMS_config:
 		if not os.path.isdir(self.get_imgdir()):
 			os.makedirs(self.get_imgdir())
 		
-	def read_config(self):
-		pass
-		
-	def set_experimental(self, val):
-		if (val == True):
-			val = 1
-		else:
-			val = 0
-		self.client.set_int(self._fmmsdir + "exp", int(val))
-	
-	def get_experimental(self):
-		return self.client.get_int(self._fmmsdir + "exp")
+		if not self.get_firstlaunch():
+			self.set_firstlaunch(1)
 	
 	def set_connmode(self, val):
+		apn = self.get_apn()
 		self.client.set_int(self._fmmsdir + "connmode", int(val))
 		if val == CONNMODE_UGLYHACK:
-			self.mask_apn_from_icd()
+			self.mask_apn_from_icd(apn)
 		else:
-			self.unmask_apn_from_icd()
+			self.unmask_apn_from_icd(apn)
 		
 	def get_connmode(self):
 		return self.client.get_int(self._fmmsdir + "connmode")
@@ -178,10 +169,12 @@ class fMMS_config:
 		return apn
 
 	def set_mmsc(self, mmsc):
-		self.client.set_string(self._fmmsdir + "mmsc", mmsc)
+		apn = self.get_apn()
+		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/mmsc', mmsc)
 	
 	def get_mmsc(self):
-		return self.client.get_string(self._fmmsdir + "mmsc")
+		apn = self.get_apn()
+		return self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/mmsc')
 
 	def get_proxy_from_apn(self):
 		apn = self.get_apn()
@@ -299,7 +292,7 @@ class fMMS_config:
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + "/name", "MMS")
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + "/ipv4_type", "AUTO")
 		self.client.set_int('/system/osso/connectivity/IAP/' + apn + "/user_added", 2)
-		self.unmask_apn_from_icd()
+		self.unmask_apn_from_icd(apn)
 		return apn
 		
 	def get_sim_imsi(self):
@@ -308,12 +301,10 @@ class fMMS_config:
 		imsi = rpc.rpc_run('com.nokia.phone.SIM', '/com/nokia/phone/SIM', 'Phone.Sim', 'get_imsi', (), True, True)
 		return imsi
 		
-	def mask_apn_from_icd(self):
-		apn = self.get_apn()
+	def mask_apn_from_icd(self, apn):
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + "/sim_imsi", "masked")
 		
-	def unmask_apn_from_icd(self):
-		apn = self.get_apn()
+	def unmask_apn_from_icd(self, apn):
 		simimsi = self.get_sim_imsi()
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + "/sim_imsi", simimsi)
 		
