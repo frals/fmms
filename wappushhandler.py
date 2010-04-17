@@ -309,9 +309,10 @@ class MMSSender:
 			outparsed = decoder.decodeResponseHeader(data)
 			parsed = True
 			
-			if mmsid != None:
-				pushid = cont.store_outgoing_push(outparsed)
-				cont.link_push_mms(pushid, mmsid)
+			if mmsid and "Response-Status" in outparsed:
+				if outparsed['Response-Status'] == "Ok":
+					pushid = cont.store_outgoing_push(outparsed)
+					cont.link_push_mms(pushid, mmsid)
 				
 		except Exception, e:
 			print type(e), e
