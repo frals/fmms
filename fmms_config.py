@@ -71,7 +71,7 @@ class fMMS_config:
 		if not os.path.isdir(self.get_imgdir()):
 			os.makedirs(self.get_imgdir())
 		
-		if not self.get_firstlaunch():
+		if self.get_firstlaunch() == None:
 			self.set_firstlaunch(1)
 	
 	def set_connmode(self, val):
