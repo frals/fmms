@@ -228,7 +228,7 @@ class APNConfigDialog():
 		
 		if ret == gtk.RESPONSE_APPLY:
 			self.config.set_apn_settings(settings)
-			banner = hildon.hildon_banner_show_information(self.window, "", "APN settings saved")¨
+			banner = hildon.hildon_banner_show_information(self.window, "", "APN settings saved")
 		
 		dialog.destroy()
 		
