@@ -283,14 +283,14 @@ class DatabaseHandler:
 			transid = mmslist['Transaction-Id']
 			del mmslist['Transaction-Id']
 			if direction == MSG_DIRECTION_OUT:
-				basedir = self.outdir + transid
+				basedir = "%s%s" % (self.outdir, transid)
 			else:
-				basedir = self.mmsdir + transid
-				
-			fpath = basedir + "/message"
+				basedir = "%s%s" % (self.mmsdir, transid)
+			
+			fpath = "%s%s" % (basedir, "/message")
 			size = os.path.getsize(fpath)
 		except:
-			log.exception("No transid/message-type, bailing out!")
+			log.exception("Something went wrong when inserting")
 			raise
 		try:
 			time = mmslist['Date']
