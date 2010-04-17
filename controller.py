@@ -108,9 +108,6 @@ class fMMS_controller():
 			loader.close()
 			return pixbuf
 			
-		
-	
-	
 	def convert_timeformat(self, intime, format, hideToday=False):
 		mtime = intime
 		try:
@@ -135,7 +132,6 @@ class fMMS_controller():
 			mtime = intime
 		
 		return mtime
-	
 	
 	def decode_mms_from_push(self, binarydata):
 		decoder = mms_pdu.MMSDecoder()
@@ -166,7 +162,6 @@ class fMMS_controller():
 		self.save_binary_push(binarydata, trans_id)
 		return (wsplist, sndr, url, trans_id)
 	
-	
 	def save_binary_push(self, binarydata, transaction):
 		data = array.array('B')
 		for b in binarydata:
@@ -192,11 +187,9 @@ class fMMS_controller():
 	
 	def get_push_list(self, types=None):
 		return self.store.get_push_list()
-		
 	
 	def is_fetched_push_by_transid(self, transactionid):
 		return self.store.is_mms_downloaded(transactionid)
-	
 	
 	def read_push_as_list(self, transactionid):
 		return self.store.get_push_message(transactionid)
@@ -287,7 +280,6 @@ class fMMS_controller():
 		log.info("storing mms...%s", trans_id)
 		mmsid = self.store_mms_message(pushid, message)
 		
-		
 	def get_mms_attachments(self, transactionid, allFiles=False):
 		return self.store.get_mms_attachments(transactionid, allFiles)
 	
@@ -304,11 +296,7 @@ class fMMS_controller():
 		log.info("fullpath: %s", fullpath)
 		if os.path.isdir(fullpath):
 			log.info("starting deletion of %s", fullpath)
-			filelist = self.get_mms_attachments(fname, allFiles=True)
-			if filelist == None:
-				filelist = []
-			filelist.append("message")
-                        filelist.append("headers")
+                        filelist = os.listdir(fullpath)
                         log.info("removing: %s", filelist)
 			for fn in filelist:
 				try:
@@ -322,6 +310,7 @@ class fMMS_controller():
 			except OSError, e:
 				log.exception("failed to remove: %s %s", type(e), e)
 				raise
+		
 		self.store.delete_mms_message(fname)
 		
 	def delete_push_message(self, fname):
