@@ -189,7 +189,7 @@ class DatabaseHandler:
 		except:
 			log.exception("No transid/message-type, bailing out!")
 			raise
-		fpath = self.outdir + transid
+		fpath = "%s%s" % (self.outdir, transid)
 		vals = (transid, 0, msgtype, fpath)
 		c.execute("insert into push (transactionid, content_location, msg_time, msg_type, file) VALUES (?, ?, datetime('now'), ?, ?)", vals)
 		pushid = c.lastrowid
