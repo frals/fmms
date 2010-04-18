@@ -198,8 +198,9 @@ class APNConfigDialog():
 		
 		if current['apn'] == "" or current['mmsc'] == "":
 			current = self.cont.get_apn_settings_automatically()
-			self.config.set_apn_settings(current)
-			log.info("Set APN settings: %s" % current)
+			if current:
+				self.config.set_apn_settings(current)
+				log.info("Set APN settings: %s" % current)
 		
 		for labelname in inputs:
 			(labelname, var) = labelname
