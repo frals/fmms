@@ -127,6 +127,8 @@ class fMMS_SenderUI(hildon.Program):
 			log.info("Copying file to: %s" % dst)
 			copy(withfile, dst)
 			self.attachmentFile = dst
+			self.fromSharingService = True
+			self.fromSharingFile = dst
 			self.set_thumbnail(self.attachmentFile)
 
 		""" Show it all! """
@@ -336,7 +338,7 @@ class fMMS_SenderUI(hildon.Program):
 					if self.attachmentIsResized == True:
 						log.info("Removing temporary image: %s", attachment)
 						os.remove(attachment)
-					
+
 					self.quit()
 					return
 			
@@ -365,9 +367,13 @@ class fMMS_SenderUI(hildon.Program):
 			hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
 			self.bSend.set_sensitive(True)
 
-		
+	def from_sharing_service(self):
+		if self.fromSharingService:
+			log.info("Removing fromsharingfile: %s", self.fromSharingFile)
+			os.remove(self.fromSharingFile)
 
 	def quit(self, *args):
+		self.from_sharing_service()
 		if self.window == self.spawner:		
 			gtk.main_quit()
 		else:
