@@ -368,9 +368,12 @@ class fMMS_SenderUI(hildon.Program):
 			self.bSend.set_sensitive(True)
 
 	def from_sharing_service(self):
-		if self.fromSharingService:
-			log.info("Removing fromsharingfile: %s", self.fromSharingFile)
-			os.remove(self.fromSharingFile)
+		try:
+			if self.fromSharingService:
+				log.info("Removing fromsharingfile: %s", self.fromSharingFile)
+				os.remove(self.fromSharingFile)
+		except:
+			pass
 
 	def quit(self, *args):
 		self.from_sharing_service()
