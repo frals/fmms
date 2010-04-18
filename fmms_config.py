@@ -73,8 +73,10 @@ class fMMS_config:
 		if not os.path.isdir(self.get_imgdir()):
 			os.makedirs(self.get_imgdir())
 		
-		if self.get_firstlaunch() == None:
+		if self.get_firstlaunch() == 0:
 			self.set_firstlaunch(1)
+			self.set_img_resize_width(240)
+			self.set_connmode(CONNMODE_ICDSWITCH)
 	
 	def set_connmode(self, val):
 		apn = self.get_apn()

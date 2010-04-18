@@ -174,12 +174,12 @@ class fMMS_GUI(hildon.Program):
 			log.info("liststore time: %s" % round(t2-t1, 3))
 			self.refreshlistview = False
 			
-			if self.config.get_firstlaunch() == 1:
+			if self.config.get_firstlaunch() < 2:
 						note = osso.SystemNote(self.osso_c)
 						firstlaunchmessage = "NOTE: Read the thread on talk.maemo.org."
 						note = hildon.hildon_note_new_information(self.window, firstlaunchmessage)
 						dialog = fMMSConfigDialog.fMMS_ConfigDialog(self.window)
-						self.config.set_firstlaunch(0)
+						self.config.set_firstlaunch(2)
 						note.run()
 						note.destroy()
 						
