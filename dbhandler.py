@@ -133,7 +133,7 @@ class DatabaseHandler:
 			result['PUSHID'] = line['idpush']
 			result['Transaction-Id'] = line['transactionid']
 			result['Content-Location'] = line['content_location']
-			if line['time'] != "":
+			if line['time']:
 				result['Time'] = line['time']
 			else:
 				result['Time'] = line['msg_time']
@@ -367,11 +367,14 @@ class DatabaseHandler:
 		mmsid = self.get_mmsid_from_transactionid(transactionid)
 		retlist = {}
 		
-		c.execute("select * from mms WHERE id = ? LIMIT 1;", (mmsid,))
+		c.execute("select *, datetime(msg_time, 'localtime') as time from mms WHERE id = ? LIMIT 1;", (mmsid,))
 				
 		for line in c:
 			retlist['Transaction-Id'] = line['transactionid']
-			retlist['Time'] = line['msg_time']
+			if line['time']:
+				retlist['Time'] = line['time']
+			else:
+				retlist['Time'] = line['msg_time']
 
 		if mmsid != None:
 			c.execute("select * from mms_headers WHERE mms_id = ?;", (mmsid, ))
