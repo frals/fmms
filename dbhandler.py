@@ -126,14 +126,17 @@ class DatabaseHandler:
 		c = self.conn.cursor()
 		retlist = []
 		# TODO: better where clause
-		c.execute("select * from push where msg_type != 'm-notifyresp-ind' order by msg_time DESC")
+		c.execute("select *, datetime(msg_time, 'localtime') as time from push where msg_type != 'm-notifyresp-ind' order by msg_time DESC")
 		pushlist = c.fetchall()
 		for line in pushlist:
 			result = {}
 			result['PUSHID'] = line['idpush']
 			result['Transaction-Id'] = line['transactionid']
 			result['Content-Location'] = line['content_location']
-			result['Time'] = line['msg_time']
+			if line['time'] != "":
+				result['Time'] = line['time']
+			else:
+				result['Time'] = line['msg_time']
 			result['Message-Type'] = line['msg_type']
 			c.execute("select * from push_headers WHERE push_id = ?", (line['idpush'],))
 			for line2 in c:
@@ -213,8 +216,6 @@ class DatabaseHandler:
 		c = self.conn.cursor()
 		c.execute("update mms set read = 1 where transactionid = ?", (transactionid, ))
 		self.conn.commit()
-	
-	
 
 	def get_push_message(self, transid):
 		""" retrieves a push message from the db and returns it as a dict """
@@ -243,7 +244,6 @@ class DatabaseHandler:
 			retlist[hdr] = val
 		
 		return retlist
-	
 
 	def is_mms_downloaded(self, transid):
 		c = self.conn.cursor()
@@ -257,7 +257,6 @@ class DatabaseHandler:
 		else:
 			return False
 			
-	
 	def is_message_read(self, transactionid):
 		c = self.conn.cursor()
 		vals = (transactionid,)
@@ -302,7 +301,7 @@ class DatabaseHandler:
 		contact = 0
 		if dateset == False:
 			vals = (pushid, transid, isread, direction, size, contact, fpath)
-			c.execute("insert into mms (pushid, transactionid, msg_time, read, direction, size, contact, file) VALUES (?, ?, datetime('now', 'localtime'), ?, ?, ?, ?, ?)", vals)
+			c.execute("insert into mms (pushid, transactionid, msg_time, read, direction, size, contact, file) VALUES (?, ?, datetime('now'), ?, ?, ?, ?, ?)", vals)
 		else:
 			vals = (pushid, transid, time, isread, direction, size, contact, fpath)
 			c.execute("insert into mms (pushid, transactionid, msg_time, read, direction, size, contact, file) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", vals)
@@ -347,7 +346,6 @@ class DatabaseHandler:
 		log.info("inserting description: %s", description)
 		c.execute("insert into mms_headers (mms_id, header, value) VALUES (?, ?, ?)", vals)
 		conn.commit()
-
 		return mmsid
 
 	def get_mms_attachments(self, transactionid, allFiles=False):
@@ -363,7 +361,6 @@ class DatabaseHandler:
 				filelist.append(line['file'])
 
 			return filelist
-
 
 	def get_mms_headers(self, transactionid):
 		c = self.conn.cursor()
@@ -416,8 +413,7 @@ class DatabaseHandler:
 			return uri
 		except:
 			return None
-	
-	
+
 	def get_pushid_from_transactionid(self, transactionid):
 		c = self.conn.cursor()
 		c.execute("select * from push where transactionid == ?", (transactionid, ))
