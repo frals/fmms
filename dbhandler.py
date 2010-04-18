@@ -302,7 +302,7 @@ class DatabaseHandler:
 		contact = 0
 		if dateset == False:
 			vals = (pushid, transid, isread, direction, size, contact, fpath)
-			c.execute("insert into mms (pushid, transactionid, msg_time, read, direction, size, contact, file) VALUES (?, ?, datetime('now'), ?, ?, ?, ?, ?)", vals)
+			c.execute("insert into mms (pushid, transactionid, msg_time, read, direction, size, contact, file) VALUES (?, ?, datetime('now', 'localtime'), ?, ?, ?, ?, ?)", vals)
 		else:
 			vals = (pushid, transid, time, isread, direction, size, contact, fpath)
 			c.execute("insert into mms (pushid, transactionid, msg_time, read, direction, size, contact, file) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", vals)
