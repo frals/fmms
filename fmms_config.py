@@ -38,6 +38,7 @@ class fMMS_config:
 			self.set_apn(apn)
 			self.set_apn_settings(settings)
 			self.set_advanced_apn_settings(advsettings)
+			self.set_mmsc(self.get_old_mmsc())
 		if self.get_pushdir() == None:
 			self.set_pushdir("/home/user/.fmms/push/")
 		if self.get_mmsdir() == None:
@@ -77,6 +78,9 @@ class fMMS_config:
 			self.set_firstlaunch(1)
 			self.set_img_resize_width(240)
 			self.set_connmode(CONNMODE_ICDSWITCH)
+
+	def get_old_mmsc(self):
+		return self.client.get_string(self._fmmsdir + 'mmsc')
 	
 	def set_connmode(self, val):
 		apn = self.get_apn()
@@ -174,7 +178,10 @@ class fMMS_config:
 	
 	def get_mmsc(self):
 		apn = self.get_apn()
-		return self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/mmsc')
+		mmsc = self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/mmsc')
+		if not mmsc:
+			mmsc = ""
+		return mmsc
 
 	def get_proxy_from_apn(self):
 		apn = self.get_apn()
