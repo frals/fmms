@@ -161,7 +161,6 @@ class fMMS_ConfigDialog():
 		""" Checks if we should save the Configuration options. """
 		if action == gtk.RESPONSE_APPLY:
 			self.config.set_phonenumber(self.number.get_text())
-			log.info("Set phonenumber to %s" % self.number.get_text())
 			self.config.set_img_resize_width(self.imgwidth.get_text())
 			log.info("Set image width to %s" % self.imgwidth.get_text())
 			self.config.set_connmode(self.connmode_option())
