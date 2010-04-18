@@ -88,11 +88,16 @@ class fMMS_Viewer(hildon.Program):
 		reply.set_label("Reply")
 		reply.connect('clicked', self.mms_menu_button_clicked, fname)
 		
+		forward = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
+		forward.set_label("Forward")
+		forward.connect('clicked', self.mms_menu_button_clicked, fname)
+		
 		delete = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
 		delete.set_label("Delete")
 		delete.connect('clicked', self.mms_menu_button_clicked, fname)
 		
 		menu.append(reply)
+		menu.append(forward)
 		menu.append(headers)
 		menu.append(delete)
 	
@@ -142,7 +147,12 @@ class fMMS_Viewer(hildon.Program):
 			ret = self.create_headers_dialog(fname)
 		elif buttontext == "Reply":
 			number = self.cont.get_replyuri_from_transid(fname)
-			fMMSSenderUI.fMMS_SenderUI(tonumber=number).run()
+			fMMSSenderUI.fMMS_SenderUI(spawner=self.window, tonumber=number).run()
+		elif buttontext == "Forward":
+			tbuffer = self.textview.get_buffer()
+			msg = tbuffer.get_text(tbuffer.get_start_iter(), tbuffer.get_end_iter())
+			fn = self.attachment
+			fMMSSenderUI.fMMS_SenderUI(spawner=self.window, withfile=fn, message=msg)
 		elif buttontext == "Delete":
 			self.delete_dialog(fname)
 
@@ -235,14 +245,14 @@ class fMMS_Viewer(hildon.Program):
 		container.pack_start(sep, False, False, 0)
 		# TODO: add correct padding to first item in next container
 				
-		textview = gtk.TextView()
-		textview.set_editable(False)
-		textview.set_cursor_visible(False)
-		textview.set_wrap_mode(gtk.WRAP_WORD)
-		textview.set_justification(gtk.JUSTIFY_CENTER)
+		self.textview = gtk.TextView()
+		self.textview.set_editable(False)
+		self.textview.set_cursor_visible(False)
+		self.textview.set_wrap_mode(gtk.WRAP_WORD)
+		self.textview.set_justification(gtk.JUSTIFY_CENTER)
 		black = gtk.gdk.Color(red=0, green=0, blue=0)
-		textview.modify_base(gtk.STATE_NORMAL, black)
-		textview.modify_text(gtk.STATE_NORMAL, gtk.gdk.color_parse("white"))
+		self.textview.modify_base(gtk.STATE_NORMAL, black)
+		self.textview.modify_text(gtk.STATE_NORMAL, gtk.gdk.color_parse("white"))
 		textbuffer = gtk.TextBuffer()
 		direction = self.cont.get_direction_mms(filename)
 		
@@ -277,7 +287,7 @@ class fMMS_Viewer(hildon.Program):
 				img = gtk.Image()
 				#img.set_from_file(path + "/" + fname)
 				fullpath = "%s/%s" % (path, fname)
-				im = Image.open(fullpath)
+				im = Image.open(fnpath)
 				im.thumbnail((384, 384), Image.NEAREST)
 				pixbuf = self.cont.image2pixbuf(im)
 				img = gtk.Image()
@@ -286,18 +296,20 @@ class fMMS_Viewer(hildon.Program):
 				menu = self.mms_img_menu(fullpath)
 				ebox.tap_and_hold_setup(menu)
 				container.add(ebox)
+				self.attachment = fnpath
 			elif isText or ext.startswith(".txt"):
 				fp = open(path + "/" + fname, 'r')
 				contents = fp.read()
 				fp.close()
 				textbuffer.insert(textbuffer.get_end_iter(), contents)
 			elif name != "message" and name != "headers" and not ext.startswith(".smil") and filetype != "application/smil":
+				self.attachment = fnpath
 				attachButton = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL, fname)
 				attachButton.connect('clicked', self.mms_img_clicked, fnpath)
 				container.pack_end(attachButton, False, False, 0)
 				
-		textview.set_buffer(textbuffer)
-		container.pack_start(textview)
+		self.textview.set_buffer(textbuffer)
+		container.pack_start(self.textview)
 		hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
 		
 		
