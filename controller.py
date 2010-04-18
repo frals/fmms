@@ -399,8 +399,7 @@ class fMMS_controller():
 			16 : <empty>
 			"""
 			row = line.split('\t')
-			if row[0] == str(int(mcc)) and row[1] == str(int(mnc)) and
-			row[3] == 'MMS' and row[2] == displayname:
+			if row[0] == mcc and row[1] == mnc and row[3] == 'MMS' and displayname in row[2]:
 				settings = {}
 				settings['apn'] = row[5]
 				settings['user'] = row[7]
