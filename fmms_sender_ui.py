@@ -234,7 +234,7 @@ class fMMS_SenderUI(hildon.Program):
 	def resize_img(self, filename):
 		try:
 			
-			hildon.hildon_banner_show_information(self.window, "", "fMMS: Resizing image, this might take a while...")
+			hildon.hildon_banner_show_information(self.window, "", "Resizing and sending...")
 			self.force_ui_update()
 			
 			img = Image.open(filename)
