@@ -85,24 +85,25 @@ class fMMS_SenderUI(hildon.Program):
 		
 		centerBox = gtk.HBox()
 		
-		eboxFrame = gtk.Frame()
-		eboxFrame.set_shadow_type(gtk.SHADOW_ETCHED_OUT)
+		
 		self.imageBox = gtk.EventBox()
-		self.imageBox.set_size_request(200, 200)
-		#self.imageBox.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("blue"))
-		self.imageBoxContent = gtk.Label("Tap to add image")
+		self.imageBox.set_size_request(400, 200)
+		
+		self.imageBoxContent = gtk.Fixed()
+		border = gtk.Image()
+		border.set_from_file("/opt/fmms/dotted_border.png")
+		addimglabel = gtk.Label("Tap to add image")
+		addimglabel.set_justify(gtk.JUSTIFY_CENTER)
+		addimglabel.set_size_request(300, 50)
+		
+		self.imageBoxContent.put(border, 0, 0)
+		self.imageBoxContent.put(addimglabel, 50, 100)
+		
 		self.imageBox.add(self.imageBoxContent)
 		self.imageBox.connect('button-press-event', self.open_file_dialog)
 		
-		
-		""" this stuff doesnt really work yet.. """
-		eboxFrame.set_border_width(2)
-		eboxFrame.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("blue"))
-		
-		eboxFrame.add(self.imageBox)
-		
-		centerBox.pack_start(eboxFrame, True, False, 0)
-		
+		centerBox.pack_start(self.imageBox, True, False, 0)
+
 		self.tvMessage = hildon.TextView()
 		self.tvMessage.set_property("name", "hildon-fullscreen-textview")
 		self.tvMessage.set_wrap_mode(gtk.WRAP_CHAR)
@@ -116,7 +117,6 @@ class fMMS_SenderUI(hildon.Program):
 		midBox.pack_start(self.tvMessage)
 		
 		pan.add_with_viewport(midBox)
-		#pan.add_with_viewport(self.tvMessage)
 		
 		self.attachmentFile = ""
 		
@@ -167,28 +167,23 @@ class fMMS_SenderUI(hildon.Program):
 			pixbuf = self.cont.image2pixbuf(im)
 			image = gtk.Image()
 			image.set_from_pixbuf(pixbuf)
-			self.imageBox.remove(self.imageBoxContent)
-			self.imageBoxContent = image
-			self.imageBox.add(self.imageBoxContent)
-			self.imageBox.show_all()
 		elif filetype.startswith("audio"):
 			icon_theme = gtk.icon_theme_get_default()
 			pixbuf = icon_theme.load_icon("mediaplayer_default_album", 128, 0)
 			image = gtk.Image()
-			image.set_from_pixbuf(pixbuf)
-			self.imageBox.remove(self.imageBoxContent)
-			self.imageBoxContent = image
-			self.imageBox.add(self.imageBoxContent)
-			self.imageBox.show_all()
+			image.set_from_pixbuf(pixbuf)			
 		elif filetype.startswith("video"):
 			icon_theme = gtk.icon_theme_get_default()
 			pixbuf = icon_theme.load_icon("general_video", 128, 0)
 			image = gtk.Image()
 			image.set_from_pixbuf(pixbuf)
-			self.imageBox.remove(self.imageBoxContent)
-			self.imageBoxContent = image
-			self.imageBox.add(self.imageBoxContent)
-			self.imageBox.show_all()
+		else:
+			return
+		
+		self.imageBox.remove(self.imageBoxContent)
+		self.imageBoxContent = image
+		self.imageBox.add(self.imageBoxContent)
+		self.imageBox.show_all()
 		return
 
 		
@@ -289,7 +284,7 @@ class fMMS_SenderUI(hildon.Program):
 		self.osso_c = osso.Context("fMMS", "0.1.0", False)
 		
 		to = self.eNumber.get_text()
-		if not self.cont.validate_phonenumber_email(to):
+		if not self.cont.validate_phonenumber_email(to) or to == "":
 			note = osso.SystemNote(self.osso_c)
 			note.system_note_dialog("Invalid phonenumber, must only contain + and digits" , 'notice')
 			return
@@ -361,7 +356,7 @@ class fMMS_SenderUI(hildon.Program):
 			text = str(exc.args[1])
 			note = osso.SystemNote(self.osso_c)
 			errmsg = code + " " + text
-			note.system_note_dialog("Sending failed:\nError: " + errmsg + " \nPlease make sure APN settings are correct" , 'notice')
+			note.system_note_dialog("Sending failed:\nError: " + errmsg + " \nPlease make sure your APN settings are correct" , 'notice')
 			#raise
 		except Exception, exc:
 			log.exception("sender: %s %s", type(exc), exc)
