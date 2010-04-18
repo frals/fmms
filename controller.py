@@ -230,14 +230,12 @@ class fMMS_controller():
 		log.info("returning message!")
 		return message
 	
-	
 	def is_mms_read(self, transactionid):
 		return self.store.is_message_read(transactionid)
 
 	
 	def mark_mms_read(self, transactionid):
 		self.store.mark_message_read(transactionid)
-	
 	
 	def store_mms_message(self, pushid, message):
 		mmsid = self.store.insert_mms_message(pushid, message)
@@ -332,7 +330,6 @@ class fMMS_controller():
 		self.delete_mms_message(transactionid)
 		self.delete_push_message(transactionid)
 	
-
 	def validate_phonenumber_email(self, nr):
 		nr = str(nr)
 		nr = nr.replace("+", "")
@@ -446,6 +443,7 @@ class fMMS_controller():
 				settings['ip'] = "0.0.0.0"
 				return settings
 		return False
-	
+
+
 if __name__ == '__main__':
 	c = fMMS_controller()
