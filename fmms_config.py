@@ -29,7 +29,6 @@ class fMMS_config:
 		self.client = gconf.client_get_default()
 		self.client.add_dir(self._fmmsdir, gconf.CLIENT_PRELOAD_NONE)
 		apn = self.get_apn()
-		log.info("Current APN: %s" % apn)
 		if apn == None:
 			apn = self.create_new_apn()
 			self.set_apn(apn)
