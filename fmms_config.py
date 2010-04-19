@@ -215,50 +215,6 @@ class fMMS_config:
 			return passwd
 		else:
 			return ""
-			
-	def get_gprs_apns(self):
-		# get all IAP's
-		dirs = self.client.all_dirs('/system/osso/connectivity/IAP')
-		apnlist = []
-		for subdir in dirs:
-			# get all sub entries.. this might be costy?
-			all_entries = self.client.all_entries(subdir)
-			# this is a big loop as well, possible to make it easier?
-			# make this faster
-			for entry in all_entries:
-				(path, sep, shortname) = entry.key.rpartition('/')
-				# this SHOULD always be a int
-				if shortname == 'type' and entry.value.type == gconf.VALUE_STRING and entry.value.get_string() == "GPRS":	
-					# split it so we can get the id
-					#(spath, sep, apnid) = path.rpartition('/')
-					apname = self.client.get_string(path + '/name')
-					apnlist.append(apname)
-		
-		return apnlist
-	
-	""" get the gconf alias for the name, be it the real name or
-	an arbitrary string """
-	def get_apnid_from_name(self, apnname):
-		# get all IAP's
-		dirs = self.client.all_dirs('/system/osso/connectivity/IAP')
-		
-		for subdir in dirs:
-			# get all sub entries.. this might be costy?
-			all_entries = self.client.all_entries(subdir)
-			# this is a big loop as well, possible to make it easier?
-			for entry in all_entries:
-				(path, sep, shortname) = entry.key.rpartition('/')
-				
-				# this SHOULD always be a string
-				if shortname == 'name':				
-					if entry.value.type == gconf.VALUE_STRING:
-						_value = entry.value.get_string()
-					if _value == apnname:
-						# split it so we can get the id
-						(spath, sep, apnid) = path.rpartition('/')		
-						return apnid		
-		
-		return None
 	
 	def set_apn_settings(self, settings):
 		apn = self.get_apn()
