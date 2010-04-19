@@ -8,6 +8,7 @@ Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
 @license: GNU GPLv2, see COPYING file.
 """
 import os
+import logging
 
 import osso
 
@@ -23,10 +24,12 @@ CONNMODE_FORCESWITCH = 3
 class fMMS_config:
 
 	def __init__(self):
+		log = logging.getLogger('fmms.%s' % __name__)
 		self._fmmsdir = "/apps/fmms/"
 		self.client = gconf.client_get_default()
 		self.client.add_dir(self._fmmsdir, gconf.CLIENT_PRELOAD_NONE)
 		apn = self.get_apn()
+		log.info("Current APN: %s" % apn)
 		if apn == None:
 			apn = self.create_new_apn()
 			self.set_apn(apn)
@@ -34,6 +37,9 @@ class fMMS_config:
 		if apn != "z_fMMS-APN":
 			settings = self.get_apn_settings()
 			advsettings = self.get_advanced_apn_settings()
+			log.info("Importing old settings from: %s" % apn)
+			log.info("APN settings: %s" % settings)
+			log.info("Advanced settings: %s" % advsettings)
 			apn = self.create_new_apn()
 			self.set_apn(apn)
 			self.set_apn_settings(settings)
@@ -256,6 +262,13 @@ class fMMS_config:
 	
 	def set_apn_settings(self, settings):
 		apn = self.get_apn()
+		if not settings:
+			settings['apn'] = ""
+			settings['user'] = ""
+			settings['pass'] = ""
+			settings['proxy'] = ""
+			settings['proxyport'] = ""
+			settings['mmsc'] = ""
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/gprs_accesspointname', settings['apn'])
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/gprs_username', settings['user'])
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/gprs_password', settings['pass'])
@@ -277,6 +290,10 @@ class fMMS_config:
 		
 	def set_advanced_apn_settings(self, settings):
 		apn = self.get_apn()
+		if not settings:
+			settings['pdns'] == "0.0.0.0"
+			settings['sdns'] == "0.0.0.0"
+			settings['ip'] == "0.0.0.0"
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/ipv4_dns1', settings['pdns'])
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/ipv4_dns2', settings['sdns'])
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/ipv4_address', settings['ip'])

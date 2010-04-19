@@ -250,7 +250,6 @@ class APNConfigDialog():
 		entries = {}
 		
 		current = self.config.get_advanced_apn_settings()
-		print current
 		
 		if not current:
 			current = self.cont.get_apn_settings_automatically()
