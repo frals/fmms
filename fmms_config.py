@@ -263,17 +263,23 @@ class fMMS_config:
 	def set_apn_settings(self, settings):
 		apn = self.get_apn()
 		if not settings:
+			settings = {}
 			settings['apn'] = ""
 			settings['user'] = ""
 			settings['pass'] = ""
 			settings['proxy'] = ""
-			settings['proxyport'] = ""
+			settings['proxyport'] = "0"
 			settings['mmsc'] = ""
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/gprs_accesspointname', settings['apn'])
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/gprs_username', settings['user'])
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/gprs_password', settings['pass'])
-		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/proxy_http', settings['proxy'])
-		self.client.set_int('/system/osso/connectivity/IAP/' + apn + '/proxy_http_port', int(settings['proxyport']))
+		
+		if not settings['proxy'] or settings['proxy'] == "":
+			self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/proxytype', "NONE")	
+		else:
+			self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/proxy_http', settings['proxy'])
+			self.client.set_int('/system/osso/connectivity/IAP/' + apn + '/proxy_http_port', int(settings['proxyport']))
+		
 		self.set_mmsc(settings['mmsc'])
 		
 	def get_apn_settings(self):
@@ -282,8 +288,10 @@ class fMMS_config:
 		settings['apn'] = self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/gprs_accesspointname')
 		settings['user'] = self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/gprs_username')
 		settings['pass'] = self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/gprs_password')
-		settings['proxy'] = self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/proxy_http')
-		settings['proxyport'] = self.client.get_int('/system/osso/connectivity/IAP/' + apn + '/proxy_http_port')
+		proxytype = self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/proxytype')
+		if proxytype != "NONE":
+			settings['proxy'] = self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/proxy_http')
+			settings['proxyport'] = self.client.get_int('/system/osso/connectivity/IAP/' + apn + '/proxy_http_port')
 		settings['mmsc'] = self.get_mmsc()
 		
 		return settings
@@ -291,9 +299,10 @@ class fMMS_config:
 	def set_advanced_apn_settings(self, settings):
 		apn = self.get_apn()
 		if not settings:
-			settings['pdns'] == "0.0.0.0"
-			settings['sdns'] == "0.0.0.0"
-			settings['ip'] == "0.0.0.0"
+			settings = {}
+			settings['pdns'] = "0.0.0.0"
+			settings['sdns'] = "0.0.0.0"
+			settings['ip'] = "0.0.0.0"
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/ipv4_dns1', settings['pdns'])
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/ipv4_dns2', settings['sdns'])
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/ipv4_address', settings['ip'])

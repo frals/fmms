@@ -190,13 +190,14 @@ class APNConfigDialog():
 		entries = {}
 		
 		current = self.config.get_apn_settings()
+		log.info("Current APN settings: %s" % current)
 
 		if not current:
 			current = self.cont.get_apn_settings_automatically()
 			self.config.set_apn_settings(current)
 			log.info("Set APN settings: %s" % current)
 		
-		if current['apn'] == "" or current['mmsc'] == "":
+		if not current['apn'] or current['mmsc'] == "":
 			current = self.cont.get_apn_settings_automatically()
 			if current:
 				self.config.set_apn_settings(current)
