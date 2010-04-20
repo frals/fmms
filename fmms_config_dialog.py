@@ -213,6 +213,8 @@ class APNConfigDialog():
 			label = gtk.Label(labelname)
 			label.set_width_chars(labelwidth)
 			vars()[var] = gtk.Entry()
+			if var == "proxyport":
+				vars()[var].set_property('hildon-input-mode', gtk.HILDON_GTK_INPUT_MODE_NUMERIC)
 			if current:
 				if current.get(var, None):
 					vars()[var].set_text(str(current[var]))
@@ -221,24 +223,42 @@ class APNConfigDialog():
 			box.pack_start(vars()[var], True, True, 0)
 			allVBox.pack_start(box, False, False, 2)
 
+		box = gtk.HBox()
+		label = gtk.Label("In 99/100 cases you don't need to change anything in advanced.")
+		#label.set_width_chars(labelwidth)
+		label.set_line_wrap(True)
 		button = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
 		button.set_label("Advanced")
 		button.connect('clicked', self.create_advanced_config, dialog)
-		allVBox.pack_end(button, False, False, 2)
+		box.pack_start(label, True, True, 0)
+		box.pack_start(button, True, True, 0)
+		
+		allVBox.pack_end(box, False, False, 2)
 
 		allVBox.show_all()
 		dialog.vbox.add(allVBox)
 		dialog.add_button("Save", gtk.RESPONSE_APPLY)
-		ret = dialog.run()
 		
-		settings = {}
-		for val in entries:
-			settings[val] = vars()[val].get_text()
-		
-		if ret == gtk.RESPONSE_APPLY:
-			self.config.set_apn_settings(settings)
-			log.info("Set APN settings: %s" % settings)
-			banner = hildon.hildon_banner_show_information(parent, "", "APN settings saved")
+		while 1:
+			ret = dialog.run()
+			settings = {}
+			for val in entries:
+				settings[val] = vars()[val].get_text()
+
+			if ret == gtk.RESPONSE_APPLY:
+				# We can hardcode the checks here since
+				# the fields have to exist here
+				if settings['apn'] == "":
+					banner = hildon.hildon_banner_show_information(parent, "", "Invalid APN.")
+				elif settings['mmsc'] == "":
+					banner = hildon.hildon_banner_show_information(parent, "", "Invalid MMSC.")
+				else:
+					self.config.set_apn_settings(settings)
+					log.info("Set APN settings: %s" % settings)
+					banner = hildon.hildon_banner_show_information(parent, "", "APN settings saved")
+					break
+			elif ret == -4:
+				break
 		
 		dialog.destroy()
 		
