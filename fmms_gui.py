@@ -239,9 +239,14 @@ class fMMS_GUI(hildon.Program):
 		""" Determine what button was clicked in the app menu. """
 		buttontext = button.get_label()
 		if buttontext == "Configuration":
-			dialog = fMMSConfigDialog.fMMS_ConfigDialog(self.window)
+			try:
+				dialog = fMMSConfigDialog.fMMS_ConfigDialog(self.window)
+			except:
+				log.exception("Config dialog failed")
+				raise
 		elif buttontext == "About":
 			ret = self.create_about_dialog()
+			
 	
 	def new_mms_button_clicked(self, button):
 		""" Fired when the 'New MMS' button is clicked. """
@@ -369,7 +374,7 @@ class fMMS_GUI(hildon.Program):
 		except Exception, e:
 			log.exception("%s %s", type(e), e)
 			#raise
-			banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Failed to delete message.")
+			banner = hildon.hildon_banner_show_information(self.window, "", "Failed to delete message.")
 
 	def liststore_delete_clicked(self, widget):
 		""" Shows a confirm dialog when Delete menu is clicked.
@@ -394,7 +399,7 @@ class fMMS_GUI(hildon.Program):
 		dialog.show_all()
 		ret = dialog.run()
 		if ret == 1:
-			log.info("deleting %s", filename)
+			log.info("Deleting %s", filename)
 			self.delete_push_mms(filename)
 			self.liststore.remove(miter)
 		dialog.destroy()
