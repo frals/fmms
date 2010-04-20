@@ -210,7 +210,7 @@ class APNConfigDialog():
 			label.set_width_chars(labelwidth)
 			vars()[var] = gtk.Entry()
 			if current:
-				if current[var]:
+				if current.get(var, None):
 					vars()[var].set_text(str(current[var]))
 			entries[var] = vars()[var]
 			box.pack_start(label, False, True, 0)
