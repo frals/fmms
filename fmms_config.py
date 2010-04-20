@@ -232,6 +232,7 @@ class fMMS_config:
 		if not settings['proxy'] or settings['proxy'] == "":
 			self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/proxytype', "NONE")	
 		else:
+			self.client.unset('/system/osso/connectivity/IAP/' + apn + '/proxytype')
 			self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/proxy_http', settings['proxy'])
 			self.client.set_int('/system/osso/connectivity/IAP/' + apn + '/proxy_http_port', int(settings['proxyport']))
 		
