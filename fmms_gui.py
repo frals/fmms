@@ -175,19 +175,14 @@ class fMMS_GUI(hildon.Program):
 			self.refreshlistview = False
 			
 			if self.config.get_firstlaunch() < 2:
-						#note = osso.SystemNote(self.osso_c)
-						#firstlaunchmessage = "NOTE: Read the thread on talk.maemo.org."
-						#note = hildon.hildon_note_new_information(self.window, firstlaunchmessage)
 						settings = self.config.get_apn_settings()
 						if settings.get('apn', '') == '' or settings.get('mmsc', '') == '':
 							auto = self.cont.get_apn_settings_automatically()
 							self.config.set_apn_settings(auto)
-						settings = self.config.get_apn_settings()
+							settings = self.config.get_apn_settings()
 						if settings.get('apn', '') == '' or settings.get('mmsc', '') == '':
 							dialog = fMMSConfigDialog.fMMS_ConfigDialog(self.window)
 						self.config.set_firstlaunch(2)
-						#note.run()
-						#note.destroy()
 						
 			self.take_ss()
 			
@@ -349,9 +344,9 @@ class fMMS_GUI(hildon.Program):
 					description = ""
 
 			primarytext = ' <span font_desc="%s" foreground="%s"><sup>%s</sup></span>' % (secondarytxt, secondarycolor, mtime)
-			secondarytext = '\n<span font_desc="%s" foreground="%s">%s</span>' % (secondarytxt, secondarycolor, description)
+			secondarytext = '\n<span font_desc="%s" foreground="%s">%s</span>' % (secondarytxt, secondarycolor, cgi.escape(description))
 			if not isread and direction == fMMSController.MSG_DIRECTION_IN:
-				sender = '<span foreground="%s">%s</span>' % (highlightcolor, sender)
+				sender = '<span foreground="%s">%s</span>' % (highlightcolor, cgi.escape(sender))
 			stringline = "%s%s%s" % (sender, primarytext, secondarytext)
 			self.liststore.append([icon, stringline, avatar, fname, sender])
 
