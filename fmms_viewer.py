@@ -264,6 +264,7 @@ class fMMS_Viewer(hildon.Program):
 		
 		filelist = self.cont.get_mms_attachments(filename)
 		log.info("filelist: %s", filelist)
+		self.attachment = None
 		for fname in filelist:
 			(name, ext) = os.path.splitext(fname)
 			fnpath = os.path.join(path, fname)
