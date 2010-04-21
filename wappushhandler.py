@@ -85,11 +85,14 @@ class PushHandler:
 		log.info("saving...")
 		# Controller should save it
 		pushid = self.cont.save_push_message(data)
-		log.info("notifying push...")
-		# Send a notify we got the SMS Push and parsed it A_OKEY!
-		self.notify_mms(dbus_loop, sndr, "SMS Push for MMS received")
-		log.info("fetching mms...")
-		path = self._get_mms_message(url, trans_id)
+		try:
+			log.info("fetching mms...")
+			path = self._get_mms_message(url, trans_id)
+		except:
+			log.info("failed to fetch - notifying push...")
+			# Send a notify we got the SMS Push and parsed it A_OKEY!
+			self.notify_mms(dbus_loop, sndr, "SMS Push for MMS received")
+			raise
 		log.info("decoding mms... path: %s", path)
 		message = self.cont.decode_binary_mms(path)
 		log.info("storing mms...")
@@ -167,7 +170,7 @@ class PushHandler:
 			if proxyurl == "" or proxyurl == None:
 				log.info("connecting without proxy")
 			else:
-				proxyfull = str(proxyurl) + ":" + str(proxyport)
+				proxyfull = "%s:%s" % (str(proxyurl), str(proxyport))
 				log.info("connecting with proxy %s", proxyfull)
 				proxy = urllib2.ProxyHandler({"http": proxyfull})
 				opener = urllib2.build_opener(proxy)
