@@ -57,15 +57,12 @@ class fMMS_ConfigDialog():
 		imgwidthHBox = gtk.HBox()
 		imgwidth_label = gtk.Label("Resize image width:")
 		imgwidth_label.set_width_chars(labelwidth)
-		self.imgwidth = hildon.Entry(gtk.HILDON_SIZE_FINGER_HEIGHT)
-		self.imgwidth.set_max_length(5)
-		#self.imgwidth_signal = self.imgwidth.connect('insert_text', self.insert_resize_cb)
-		self.imgwidth.set_property('hildon-input-mode', gtk.HILDON_GTK_INPUT_MODE_NUMERIC)
-		imgwidth_text = self.config.get_img_resize_width()
-		if imgwidth_text != None:
-			self.imgwidth.set_text(str(imgwidth_text))
-		else:
-			self.imgwidth.set_text("")
+		self.imgmodes = [('Small', '240'), ('Medium', '320'), ('Large', '640'), ('Original', '0')]
+		self.active_imgselector_index = 0
+		self.imgselector = self.create_img_selector()
+		self.imgwidth = hildon.PickerButton(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
+		self.imgwidth.set_selector(self.imgselector)
+		self.imgwidth.set_active(self.active_imgselector_index)
 		imgwidthHBox.pack_start(imgwidth_label, False, True, 0)
 		imgwidthHBox.pack_start(self.imgwidth, True, True, 0)
 
@@ -113,6 +110,20 @@ class fMMS_ConfigDialog():
 		ret = dialog.run()
 		self.config_menu_button_clicked(ret)
 		dialog.destroy()
+
+	def create_img_selector(self):
+		selector = hildon.TouchSelector(text=True)
+		current = self.config.get_img_resize_width()
+		i = 0
+		for (m, size) in self.imgmodes:
+			if str(size) == str(current):
+				self.active_imgselector_index = i
+			selector.append_text(m)
+			i += 1
+		selector.center_on_selected()
+		selector.set_active(0, self.active_imgselector_index)
+		selector.set_column_selection_mode(hildon.TOUCH_SELECTOR_SELECTION_MODE_SINGLE)
+		return selector
 
 	def show_apn_config(self, button, dialog):
 		try:
@@ -165,8 +176,13 @@ class fMMS_ConfigDialog():
 		""" Checks if we should save the Configuration options. """
 		if action == gtk.RESPONSE_APPLY:
 			self.config.set_phonenumber(self.number.get_text())
-			self.config.set_img_resize_width(self.imgwidth.get_text())
-			log.info("Set image width to %s" % self.imgwidth.get_text())
+			selectorlabel = self.imgwidth.get_selector().get_current_text()
+			size = 0
+			for (label, val) in self.imgmodes:
+				if label == selectorlabel:
+					size = val
+			self.config.set_img_resize_width(size)
+			log.info("Set image width to %s" % size)
 			self.config.set_connmode(self.connmode_option())
 			log.info("Set connection mode %s" % self.connmode_option())				
 			banner = hildon.hildon_banner_show_information(self.window, "", "Settings saved")
