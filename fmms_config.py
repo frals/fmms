@@ -33,7 +33,7 @@ class fMMS_config:
 			apn = self.create_new_apn()
 			self.set_apn(apn)
 		# if its not our APN we copy settings to ours
-		if apn != "z_fMMS-APN":
+		"""if apn != "z_fMMS-APN":
 			settings = self.get_apn_settings()
 			advsettings = self.get_advanced_apn_settings()
 			log.info("Importing old settings from: %s" % apn)
@@ -43,7 +43,7 @@ class fMMS_config:
 			self.set_apn(apn)
 			self.set_apn_settings(settings)
 			self.set_advanced_apn_settings(advsettings)
-			self.set_mmsc(self.get_old_mmsc())
+			self.set_mmsc(self.get_old_mmsc())"""
 		if self.get_pushdir() == None:
 			self.set_pushdir("/home/user/.fmms/push/")
 		if self.get_mmsdir() == None:
