@@ -125,21 +125,18 @@ class fMMS_Viewer(hildon.Program):
 			self.delete_push_mms(filename)
 		dialog.destroy()
 	
-	
 	""" delete push & mms """
 	def delete_push_mms(self, fname):
 		log.info("deleting message: %s", fname)
 		try:
 			self.cont.wipe_message(fname)
-			banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Message deleted")
+			#banner = hildon.hildon_banner_show_information(self.window, "", "Message deleted")
 			self.force_ui_update()
 			self.window.destroy()
 		except Exception, e:
 			log.exception("%s %s", type(e), e)
-			banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Failed to delete message.")
-		
-	
-	
+			banner = hildon.hildon_banner_show_information(self.window, "", "Failed to delete message.")
+
 	""" actions for mms menu """
 	def mms_menu_button_clicked(self, button, fname):
 		buttontext = button.get_label()
@@ -180,7 +177,6 @@ class fMMS_Viewer(hildon.Program):
 			hbox.pack_start(label, False, False, 0)
 			allVBox.pack_start(hbox)
 
-
 		allVBox.show_all()
 		
 		pan.add_with_viewport(allVBox)
@@ -198,7 +194,7 @@ class fMMS_Viewer(hildon.Program):
 		self.force_ui_update()
 		
 		if not self.cont.is_fetched_push_by_transid(filename):
-			banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Trying to download MMS...")
+			banner = hildon.hildon_banner_show_information(self.window, "", "Trying to download MMS...")
 			self.force_ui_update()
 			self.cont.get_mms_from_push(filename)
 			self.cont.mark_mms_read(filename)

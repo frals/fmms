@@ -79,7 +79,6 @@ class PushHandler:
 
 		log.info("decoding...")
 		
-		
 		(data, sndr, url, trans_id) = self.cont.decode_mms_from_push(binarydata)
 		
 		log.info("saving...")
@@ -101,14 +100,12 @@ class PushHandler:
 		self.notify_mms(dbus_loop, sndr, "New MMS", trans_id);
 		return 0
 
-
 	""" handle incoming ip push """
 	# TODO: implement this
 	def _incoming_ip_push(self, src_ip, dst_ip, src_port, dst_port, wsp_header, wsp_payload):
 		if(_DBG):
 			log.info("SRC: %s:%s", src_ip, src_port)
 			log.info("DST: %s:%s", dst_ip, dst_port)
-
 
 	""" notifies the user with a org.freedesktop.Notifications.Notify, really fancy """
 	def notify_mms(self, dbus_loop, sender, message, path=None):
@@ -121,9 +118,7 @@ class PushHandler:
 		else:
 			interface.Notify("MMS", 0, '', message, sender, choices, {"category": "email-message", "dialog-type": 4, "led-pattern": "PatternCommunicationEmail", "dbus-callback-default": "se.frals.fmms /se/frals/fmms se.frals.fmms open_mms string:\"" + path + "\""}, -1)
 
-
 	def _get_mms_message(self, location, transaction):
-		
 		connector = MasterConnector()
 		connector.connect(location)
 				
@@ -146,9 +141,6 @@ class PushHandler:
 		
 		return dirname
 		
-			
-
-
 	""" get the mms message from content-location """
 	""" thanks benaranguren on talk.maemo.org for patch including x-wap-profile header """
 	def __get_mms_message(self, location, transaction):
@@ -196,11 +188,10 @@ class PushHandler:
 			bus = dbus.SystemBus()
 			proxy = bus.get_object('org.freedesktop.Notifications', '/org/freedesktop/Notifications')
 			interface = dbus.Interface(proxy,dbus_interface='org.freedesktop.Notifications')
-			interface.SystemNoteInfoprint ("fMMS: Failed to download MMS message.")
+			interface.SystemNoteInfoprint ("Failed to download MMS message.")
 			raise
 		
 		return dirname
-
 
 	def _send_notify_resp(self, transid):
 		mms = MMSMessage(True)
@@ -214,8 +205,7 @@ class PushHandler:
 		out = sender.sendMMS(mms)
 		log.info("m-notifyresp-ind: %s", out)
 		return out
-	
-	
+		
 	def _send_acknowledge(self, transid):
 		mms = MMSMessage(True)
 		mms.headers['Message-Type'] = "m-acknowledge-ind"
@@ -418,8 +408,6 @@ class ICDConnector:
 			connection.request_connection_by_id(iap.get_id(), conic.CONNECT_FLAG_NONE)
 		else:
 			connection.request_connection(conic.CONNECT_FLAG_NONE)
-		
-		
 		
 
 """ this is the 'force switch' autoconnecter """

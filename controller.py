@@ -19,6 +19,7 @@ import array
 import re
 import time
 import urlparse
+import subprocess
 
 import dbus
 from dbus.mainloop.glib import DBusGMainLoop
@@ -183,7 +184,6 @@ class fMMS_controller():
 		"""
 		pushid = self.store.insert_push_message(data)
 		return pushid
-	
 	
 	def get_push_list(self, types=None):
 		return self.store.get_push_list()
@@ -367,6 +367,16 @@ class fMMS_controller():
 		final_mcc = "%s%s%s" % (mcc1, mcc2, mcc3)
 		
 		return final_mcc, final_mnc
+
+	def get_current_connection_iap_id(self):
+		bus = dbus.SystemBus()
+		icd = dbus.Interface(bus.get_object("com.nokia.icd", "/com/nokia/icd"), "com.nokia.icd")
+		(iap, ign, ign, ign, ign, ign, ign) = icd.get_statistics()
+		return iap
+
+	def disconnect_current_connection(self):
+		args = "DISCONNECT"
+		retcode = subprocess.call(["/opt/fmms/fmms_magic", args])
 
 	def get_operator_display_name(self):
 		bus = dbus.SystemBus()

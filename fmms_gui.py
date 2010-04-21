@@ -371,10 +371,8 @@ class fMMS_GUI(hildon.Program):
 		""" Deletes both the MMS and the PUSH message. """
 		try:
 			self.cont.wipe_message(fname)
-			#banner = hildon.hildon_banner_show_information(self.window, "", "fMMS: Message deleted")
 		except Exception, e:
 			log.exception("%s %s", type(e), e)
-			#raise
 			banner = hildon.hildon_banner_show_information(self.window, "", "Failed to delete message.")
 
 	def liststore_delete_clicked(self, widget):
@@ -432,21 +430,46 @@ class fMMS_GUI(hildon.Program):
 		# the 4th value is the transactionid (start counting at 0)
 		transactionid = model.get_value(miter, 3)
 		
-		if not self.cont.is_mms_read(transactionid) and not self.cont.get_direction_mms(transactionid) == fMMSController.MSG_DIRECTION_OUT:
-			self.refreshlistview = True
+		switch = False
+		if not self.cont.is_fetched_push_by_transid(transactionid) and self.config.get_connmode() == fMMSconf.CONNMODE_ICDSWITCH:
+			if not self.cont.get_current_connection_iap_id() == self.config.get_apn():
+				switch = self.show_switch_conn_dialog()
+		
+		if switch:
+			self.cont.disconnect_current_connection()
+		#if not self.cont.is_mms_read(transactionid) and not self.cont.get_direction_mms(transactionid) == fMMSController.MSG_DIRECTION_OUT:
+			#self.refreshlistview = True
 		
 		try:
 			viewer = fMMSViewer.fMMS_Viewer(transactionid, spawner=self)
 		except Exception, e:
-			log.exception("%s %s", type(e), e)
+			log.exception("Failed to open viewer with transaction id: %s" % transactionid)
 			#raise
 		hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
+
+	def show_switch_conn_dialog(self):
+		self.refreshlistview = False
+		dialog = gtk.Dialog()
+		dialog.set_title("Switch connection?")
+		dialog.set_transient_for(self.window)
+		label = gtk.Label("Would you like me to terminate your current connection to fetch the MMS?")
+		label.set_line_wrap(True)
+		dialog.vbox.add(label)
+		dialog.add_button("Yes", gtk.RESPONSE_YES)
+		dialog.add_button("No", gtk.RESPONSE_NO)
+		dialog.vbox.show_all()
+		ret = dialog.run()
+		switch = False
+		if ret == gtk.RESPONSE_YES:
+			switch = True
+		dialog.destroy()
+		self.force_ui_update()
+		return switch
 		
 	def run(self):
 		""" Run. """
 		self.window.show_all()
 		gtk.main()
-
 
 if __name__ == "__main__":
 	try:
