@@ -175,13 +175,19 @@ class fMMS_GUI(hildon.Program):
 			self.refreshlistview = False
 			
 			if self.config.get_firstlaunch() < 2:
-						note = osso.SystemNote(self.osso_c)
-						firstlaunchmessage = "NOTE: Read the thread on talk.maemo.org."
-						note = hildon.hildon_note_new_information(self.window, firstlaunchmessage)
-						dialog = fMMSConfigDialog.fMMS_ConfigDialog(self.window)
+						#note = osso.SystemNote(self.osso_c)
+						#firstlaunchmessage = "NOTE: Read the thread on talk.maemo.org."
+						#note = hildon.hildon_note_new_information(self.window, firstlaunchmessage)
+						settings = self.config.get_apn_settings()
+						if settings.get('apn', '') == '' or settings.get('mmsc', '') == '':
+							auto = self.cont.get_apn_settings_automatically()
+							self.config.set_apn_settings(auto)
+						settings = self.config.get_apn_settings()
+						if settings.get('apn', '') == '' or settings.get('mmsc', '') == '':
+							dialog = fMMSConfigDialog.fMMS_ConfigDialog(self.window)
 						self.config.set_firstlaunch(2)
-						note.run()
-						note.destroy()
+						#note.run()
+						#note.destroy()
 						
 			self.take_ss()
 			
