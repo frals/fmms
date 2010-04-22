@@ -24,7 +24,7 @@ import fmms_config as fMMSconf
 import fmms_sender_ui as fMMSSenderUI
 import fmms_viewer as fMMSViewer
 import fmms_config_dialog as fMMSConfigDialog
-import controller as fMMSController
+import controller_gtk as fMMSController
 import contacts as ContactH
 
 import logging
@@ -35,7 +35,7 @@ class fMMS_GUI(hildon.Program):
 
 	def __init__(self):
 		""" Initializes the GUI, creating all widgets. """
-		self.cont = fMMSController.fMMS_controller()
+		self.cont = fMMSController.fMMS_controllerGTK()
 		self.config = fMMSconf.fMMS_config()
 		self._mmsdir = self.config.get_mmsdir()
 		self._pushdir = self.config.get_pushdir()

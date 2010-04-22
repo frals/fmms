@@ -16,7 +16,7 @@ from wappushhandler import PushHandler
 import controller as fMMSController
 
 import logging
-log = logging.getLogger('fmms.%s' % __name__)
+log = logging.getLogger('fmms.fmmsd')
 
 class MMSHandler(dbus.service.Object):
 	def __init__(self):
@@ -25,15 +25,19 @@ class MMSHandler(dbus.service.Object):
 		# Here the object path
 		dbus.service.Object.__init__(self, bus_name, '/se/frals/mms')
 
-
 	# TODO: This should filter by bearer and not number of arguments, really, it should.
 	# Here the interface name, and the method is named same as on dbus.
 	""" According to wappushd.h SMS PUSH is one less argument """
 	@dbus.service.method(dbus_interface='com.nokia.WAPPushHandler')
 	def HandleWAPPush(self, bearer, source, srcport, dstport, header, payload):
 		handler = PushHandler()
-		ret = handler._incoming_sms_push(source, srcport, dstport, header, payload)
-		return 0
+		try:
+			ret = handler._incoming_sms_push(source, srcport, dstport, header, payload)
+		except:
+			pass
+		log.info("All done, signing off!")
+		# we shouldnt quit since there might be another message waiting
+		#loop.quit()
 
 	""" According to wappushd.h IP PUSH is one more argument 
 	@dbus.service.method(dbus_interface='com.nokia.WAPPushHandler')
@@ -43,8 +47,9 @@ class MMSHandler(dbus.service.Object):
 		return 0
 	"""
 
-dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-bus = dbus.SystemBus()
-loop = gobject.MainLoop()
-server = MMSHandler()
-loop.run()
+if __name__ == '__main__':
+	dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+	bus = dbus.SystemBus()
+	loop = gobject.MainLoop()
+	server = MMSHandler()
+	loop.run()

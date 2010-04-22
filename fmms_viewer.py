@@ -21,7 +21,7 @@ import Image
 
 from wappushhandler import PushHandler
 import fmms_config as fMMSconf
-import controller as fMMSController
+import controller_gtk as fMMSController
 import fmms_sender_ui as fMMSSenderUI
 import contacts as ContactH
 import dbhandler as DBHandler
@@ -32,7 +32,7 @@ log = logging.getLogger('fmms.%s' % __name__)
 class fMMS_Viewer(hildon.Program):
 
 	def __init__(self, fname, standalone=False, spawner=None):
-		self.cont = fMMSController.fMMS_controller()
+		self.cont = fMMSController.fMMS_controllerGTK()
 		self.ch = ContactH.ContactHandler()
 		self.standalone = standalone
 		self.config = fMMSconf.fMMS_config()

@@ -25,7 +25,7 @@ from gnome import gnomevfs
 from wappushhandler import MMSSender
 import fmms_config as fMMSconf
 import contacts as ContactH
-import controller as fMMSController
+import controller_gtk as fMMSController
 
 import logging
 log = logging.getLogger('fmms.%s' % __name__)
@@ -37,7 +37,7 @@ class fMMS_SenderUI(hildon.Program):
 		
 		self.config = fMMSconf.fMMS_config()
 		self.ch = ContactH.ContactHandler()
-		self.cont = fMMSController.fMMS_controller()
+		self.cont = fMMSController.fMMS_controllerGTK()
 		self.subject = subject
 		
 		self.window = hildon.StackableWindow()
