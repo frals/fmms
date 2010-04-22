@@ -32,8 +32,9 @@ class fMMS_ConfigDialog():
 		labelwidth = 16
 
 		apnHBox = gtk.HBox()
-		apn_label = gtk.Label("APN:")
+		apn_label = gtk.Label("Access Point")
 		apn_label.set_width_chars(labelwidth)
+		apn_label.set_alignment(0, 0.5)
 		apn_button = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
 		apn_button.set_label("Configure")
 		apn_button.connect('clicked', self.show_apn_config, dialog)
@@ -42,8 +43,9 @@ class fMMS_ConfigDialog():
 		apnHBox.pack_start(apn_button, True, True, 0)
 
 		numberHBox = gtk.HBox()
-		number_label = gtk.Label("Your phonenumber:")
+		number_label = gtk.Label("Your phonenumber")
 		number_label.set_width_chars(labelwidth)
+		number_label.set_alignment(0, 0.5)
 		self.number = hildon.Entry(gtk.HILDON_SIZE_FINGER_HEIGHT)
 		self.number.set_property('hildon-input-mode', gtk.HILDON_GTK_INPUT_MODE_TELE)
 		number_text = self.config.get_phonenumber()
@@ -55,8 +57,9 @@ class fMMS_ConfigDialog():
 		numberHBox.pack_start(self.number, True, True, 0)
 
 		imgwidthHBox = gtk.HBox()
-		imgwidth_label = gtk.Label("Resize image width:")
+		imgwidth_label = gtk.Label("Resize image width")
 		imgwidth_label.set_width_chars(labelwidth)
+		imgwidth_label.set_alignment(0, 0.5)
 		self.imgmodes = [('Small', '240'), ('Medium', '320'), ('Large', '640'), ('Original', '0')]
 		self.active_imgselector_index = 0
 		self.imgselector = self.create_img_selector()
@@ -70,6 +73,7 @@ class fMMS_ConfigDialog():
 		expHBox = gtk.HBox()
 		exp_label = gtk.Label("Connection mode")
 		exp_label.set_width_chars(labelwidth)
+		exp_label.set_alignment(0, 0.5)
 		# havoc = CONNMODE_UGLYHACK = 1
 		# polite = CONNMODE_ICDSWITCH = 2
 		# rude = CONNMODE_FORCESWITCH = 3
@@ -99,10 +103,10 @@ class fMMS_ConfigDialog():
 		expHBox.pack_start(exp_label, False, True, 0)
 		expHBox.pack_start(alignment, False, True, 0)
 
-		allVBox.pack_start(apnHBox, False, False, 0)
-		allVBox.pack_start(numberHBox, False, False, 0)
-		allVBox.pack_start(imgwidthHBox, False, False, 0)
-		allVBox.pack_end(expHBox, False, False, 0)
+		allVBox.pack_start(apnHBox, False, False, 2)
+		allVBox.pack_start(numberHBox, False, False, 2)
+		allVBox.pack_start(imgwidthHBox, False, False, 2)
+		allVBox.pack_end(expHBox, False, False, 2)
 
 		allVBox.show_all()
 		dialog.vbox.add(allVBox)
@@ -228,6 +232,7 @@ class APNConfigDialog():
 			box = gtk.HBox()
 			label = gtk.Label(labelname)
 			label.set_width_chars(labelwidth)
+			label.set_alignment(0, 0.5)
 			vars()[var] = gtk.Entry()
 			if var == "proxyport":
 				vars()[var].set_property('hildon-input-mode', gtk.HILDON_GTK_INPUT_MODE_NUMERIC)
@@ -307,6 +312,7 @@ class APNConfigDialog():
 			box = gtk.HBox()
 			label = gtk.Label(labelname)
 			label.set_width_chars(labelwidth)
+			label.set_alignment(0, 0.5)
 			vars()[var] = gtk.Entry()
 			if current:
 				if current.get(var, None):
