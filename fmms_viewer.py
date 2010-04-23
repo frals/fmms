@@ -9,17 +9,14 @@ Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
 """
 import os
 import sys
-import time
 
 import gtk
 import hildon
 import gobject
 import osso
 from gnome import gnomevfs
-import dbus
 import Image
 
-from wappushhandler import PushHandler
 import fmms_config as fMMSconf
 import controller_gtk as fMMSController
 import fmms_sender_ui as fMMSSenderUI
@@ -65,19 +62,19 @@ class fMMS_Viewer(hildon.Program):
 		self.window.set_app_menu(mms_menu)
 		self.window.show_all()
 	
-	""" lets call it quits! """
 	def quit(self, *args):
+		""" lets call it quits! """
 		self.window.destroy()
 		if self.standalone == True:
 			gtk.main_quit()
 	
-	""" forces ui update, kinda... god this is AWESOME """
 	def force_ui_update(self):
+		""" forces ui update, kinda... god this is AWESOME """
 		while gtk.events_pending():
 			gtk.main_iteration(False)
 				
-	""" create app menu for mms viewing window """
 	def create_mms_menu(self, fname):
+		""" create app menu for mms viewing window """
 		menu = hildon.AppMenu()
 		
 		headers = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
@@ -100,11 +97,9 @@ class fMMS_Viewer(hildon.Program):
 		menu.append(forward)
 		menu.append(headers)
 		menu.append(delete)
-	
 		menu.show_all()
 		
 		return menu		
-	
 	
 	def delete_dialog(self, filename):
 		dialog = gtk.Dialog()
@@ -125,8 +120,8 @@ class fMMS_Viewer(hildon.Program):
 			self.delete_push_mms(filename)
 		dialog.destroy()
 	
-	""" delete push & mms """
 	def delete_push_mms(self, fname):
+		""" delete push & mms """
 		log.info("deleting message: %s", fname)
 		try:
 			self.cont.wipe_message(fname)
@@ -137,8 +132,8 @@ class fMMS_Viewer(hildon.Program):
 			log.exception("%s %s", type(e), e)
 			banner = hildon.hildon_banner_show_information(self.window, "", "Failed to delete message.")
 
-	""" actions for mms menu """
 	def mms_menu_button_clicked(self, button, fname):
+		""" actions for mms menu """
 		buttontext = button.get_label()
 		if buttontext == "Headers":
 			ret = self.create_headers_dialog(fname)
@@ -153,8 +148,8 @@ class fMMS_Viewer(hildon.Program):
 		elif buttontext == "Delete":
 			self.delete_dialog(fname)
 
-	""" show headers in a dialog """
 	def create_headers_dialog(self, fname):
+		""" show headers in a dialog """
 		dialog = gtk.Dialog()
 		dialog.set_title("Headers")
 		
@@ -187,9 +182,9 @@ class fMMS_Viewer(hildon.Program):
 		dialog.destroy()
 		return ret
 	
-	""" parse mms and push each part to the container 
-	    fetches the mms if its not downloaded         """
 	def _parse_mms(self, filename, container):
+		""" parse mms and push each part to the container 
+		    fetches the mms if its not downloaded         """
 		hildon.hildon_gtk_window_set_progress_indicator(self.window, 1)
 		self.force_ui_update()
 		
@@ -309,9 +304,8 @@ class fMMS_Viewer(hildon.Program):
 		container.pack_start(self.textview)
 		hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
 		
-		
-	""" action on click on image/button """
 	def mms_img_clicked(self, widget, data):
+		""" action on click on image/button """
 		log.info("img clicked: %s", data)
 		path = str("file://" + data)
 		# gnomevfs seems to be better than mimetype when guessing mimetype for us
@@ -333,9 +327,8 @@ class fMMS_Viewer(hildon.Program):
 			log.info("path %s", str(path))
 			#rpc.rpc_run("com.nokia.osso_filemanager", "/com/nokia/osso_filemanager", "com.nokia.osso_filemanager", "open_folder", (str, path))
 
-
-	""" long press on image creates this """
 	def mms_img_menu(self, data=None):
+		""" long press on image creates this """
 		menu = gtk.Menu()
 		menu.set_property("name", "hildon-context-sensitive-menu")
 
