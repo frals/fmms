@@ -8,18 +8,15 @@ Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
 @license: GNU GPLv2, see COPYING file.
 """
 import os
-import time
 import socket
 import re
 import Image
-import StringIO
 from shutil import copy
 
 import gtk
 import hildon
 import gobject
 import osso
-import dbus
 from gnome import gnomevfs
 
 from wappushhandler import MMSSender
@@ -187,7 +184,6 @@ class fMMS_SenderUI(hildon.Program):
 		self.imageBox.add(self.imageBoxContent)
 		self.imageBox.show_all()
 		return
-
 		
 	def open_file_dialog(self, button, data=None):
 		#fsm = hildon.FileSystemModel()
@@ -211,24 +207,10 @@ class fMMS_SenderUI(hildon.Program):
 			fcd.destroy()
 		return True
 	
-	
-	""" from http://snippets.dzone.com/posts/show/655 """
-	def image2pixbuf(self, im):
-		file1 = StringIO.StringIO()
-		im.save(file1, "ppm")
-		contents = file1.getvalue()
-		file1.close()
-		loader = gtk.gdk.PixbufLoader("pnm")
-		loader.write(contents, len(contents))
-		pixbuf = loader.get_pixbuf()
-		loader.close()
-		return pixbuf
-
-	
-	""" resize an image """
-	""" thanks tomaszf for this function """
-	""" slightly modified by frals """
 	def resize_img(self, filename):
+		""" resize an image """
+		""" thanks tomaszf for this function """
+		""" slightly modified by frals """
 		try:
 			
 			hildon.hildon_banner_show_information(self.window, "", "Resizing and sending...")
