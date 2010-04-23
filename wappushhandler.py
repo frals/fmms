@@ -185,7 +185,7 @@ class PushHandler:
 			log.exception("fatal: %s %s", type(e), e)
 			bus = dbus.SystemBus()
 			proxy = bus.get_object('org.freedesktop.Notifications', '/org/freedesktop/Notifications')
-			interface = dbus.Interface(proxy,dbus_interface='org.freedesktop.Notifications')
+			interface = dbus.Interface(proxy, dbus_interface='org.freedesktop.Notifications')
 			interface.SystemNoteInfoprint ("Failed to download MMS message.")
 			raise
 		
