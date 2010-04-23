@@ -432,8 +432,8 @@ class DatabaseHandler:
 		c.execute("select file from mms where transactionid = ?", (transactionid, ))
 		res = c.fetchone()
 		try:
-			file = res['file']
-			return file
+			fn = res['file']
+			return fn
 		except:
 			return None
 	
@@ -442,8 +442,8 @@ class DatabaseHandler:
 		c.execute("select file from push where transactionid = ?", (transactionid, ))
 		res = c.fetchone()
 		try:
-			file = res['file']
-			return file
+			fn = res['file']
+			return fn
 		except:
 			return None
 	
