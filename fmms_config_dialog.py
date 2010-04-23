@@ -274,6 +274,7 @@ class APNConfigDialog():
 				elif settings['mmsc'] == "":
 					banner = hildon.hildon_banner_show_information(parent, "", "Invalid MMSC.")
 				else:
+					settings['proxy'] = self.cont.convert_to_real_ip(settings['proxy'])
 					self.config.set_apn_settings(settings)
 					log.info("Set APN settings: %s" % settings)
 					banner = hildon.hildon_banner_show_information(parent, "", "APN settings saved")

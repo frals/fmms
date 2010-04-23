@@ -52,7 +52,18 @@ class fMMS_controller():
 		ret = ret[1].split(":")[0]
 		
 		return ret
-			
+	
+	def convert_to_real_ip(self, indata):
+		# Check if it looks like an IP
+		if re.search(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", indata):
+			ip = indata.split(".")
+			dot = "."
+			final = []
+			for octet in ip:
+				final.append(str(int(octet)))
+			indata = dot.join(final)
+		return indata
+	
 	def convert_timeformat(self, intime, format, hideToday=False):
 		mtime = intime
 		try:
