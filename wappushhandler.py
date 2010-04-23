@@ -7,7 +7,6 @@ Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
 
 @license: GNU GPLv2, see COPYING file.
 """
-import sys
 import os
 import dbus
 import urllib2
@@ -18,7 +17,6 @@ import array
 import subprocess
 
 import dbus
-from dbus.mainloop.glib import DBusGMainLoop
 import conic
 
 from mms import message
@@ -48,9 +46,9 @@ class PushHandler:
 		self._apn_nicename = self.config.get_apn_nicename()
 		self._incoming = self.config.get_imgdir() + "/LAST_INCOMING"
 
-	""" handle incoming push over sms """
 	def _incoming_sms_push(self, source, src_port, dst_port, wsp_header, wsp_payload):
-		dbus_loop = DBusGMainLoop()
+		""" handle incoming push over sms """
+		#dbus_loop = DBusGMainLoop()
 		args = (source, src_port, dst_port, wsp_header, wsp_payload)
 		
 		# TODO: dont hardcode
@@ -90,33 +88,33 @@ class PushHandler:
 		except:
 			log.info("failed to fetch - notifying push...")
 			# Send a notify we got the SMS Push and parsed it A_OKEY!
-			self.notify_mms(dbus_loop, sndr, "SMS Push for MMS received")
+			self.notify_mms(sndr, "SMS Push for MMS received")
 			raise
 		log.info("decoding mms... path: %s", path)
 		message = self.cont.decode_binary_mms(path)
 		log.info("storing mms...")
-		mmsid = self.cont.store_mms_message(pushid, message)
+		self.cont.store_mms_message(pushid, message)
 		log.info("notifying mms...")
-		self.notify_mms(dbus_loop, sndr, "New MMS", trans_id);
+		self.notify_mms(sndr, "New MMS", trans_id);
 		return 0
 
-	""" handle incoming ip push """
 	# TODO: implement this
 	def _incoming_ip_push(self, src_ip, dst_ip, src_port, dst_port, wsp_header, wsp_payload):
+		""" handle incoming ip push """
 		if(_DBG):
 			log.info("SRC: %s:%s", src_ip, src_port)
 			log.info("DST: %s:%s", dst_ip, dst_port)
 
-	""" notifies the user with a org.freedesktop.Notifications.Notify, really fancy """
-	def notify_mms(self, dbus_loop, sender, message, path=None):
+	def notify_mms(self, sender, msg, path=None):
+		""" notifies the user with a org.freedesktop.Notifications.Notify, really fancy """
 		bus = dbus.SystemBus()
 		proxy = bus.get_object('org.freedesktop.Notifications', '/org/freedesktop/Notifications')
-		interface = dbus.Interface(proxy,dbus_interface='org.freedesktop.Notifications')
+		interface = dbus.Interface(proxy, dbus_interface='org.freedesktop.Notifications')
 		choices = ['default', 'cancel']
 		if path == None:
-			interface.Notify('MMS', 0, '', message, sender, choices, {"category": "sms-message", "dialog-type": 4, "led-pattern": "PatternCommunicationEmail", "dbus-callback-default": "se.frals.fmms /se/frals/fmms se.frals.fmms open_gui"}, -1)
+			interface.Notify('MMS', 0, '', msg, sender, choices, {"category": "sms-message", "dialog-type": 4, "led-pattern": "PatternCommunicationEmail", "dbus-callback-default": "se.frals.fmms /se/frals/fmms se.frals.fmms open_gui"}, -1)
 		else:
-			interface.Notify("MMS", 0, '', message, sender, choices, {"category": "email-message", "dialog-type": 4, "led-pattern": "PatternCommunicationEmail", "dbus-callback-default": "se.frals.fmms /se/frals/fmms se.frals.fmms open_mms string:\"" + path + "\""}, -1)
+			interface.Notify("MMS", 0, '', msg, sender, choices, {"category": "email-message", "dialog-type": 4, "led-pattern": "PatternCommunicationEmail", "dbus-callback-default": "se.frals.fmms /se/frals/fmms se.frals.fmms open_mms string:\"" + path + "\""}, -1)
 
 	def _get_mms_message(self, location, transaction):
 		connector = MasterConnector()
@@ -132,7 +130,7 @@ class PushHandler:
 		# send acknowledge we got it ok
 		try:
 			socket.setdefaulttimeout(20)
-			ack = self._send_acknowledge(transaction)
+			self._send_acknowledge(transaction)
 			log.info("ack sent")
 		except:
 			log.exception("sending ack failed")
@@ -141,9 +139,9 @@ class PushHandler:
 		
 		return dirname
 		
-	""" get the mms message from content-location """
-	""" thanks benaranguren on talk.maemo.org for patch including x-wap-profile header """
 	def __get_mms_message(self, location, transaction):
+		""" get the mms message from content-location """
+		# thanks benaranguren on talk.maemo.org for patch including x-wap-profile header
 		log.info("getting file: %s", location)
 		try:
 			(proxyurl, proxyport) = self.config.get_proxy_from_apn()
@@ -152,8 +150,8 @@ class PushHandler:
 				socket.setdefaulttimeout(20)
 				notifyresp = self._send_notify_resp(transaction)
 				log.info("notifyresp sent")
-			except Exception, e:
-				log.exception("notify sending failed: %s %s", type(e), e)
+			except:
+				log.exception("notify sending failed")
 			
 			# TODO: configurable time-out?
 			timeout = 30
@@ -218,10 +216,11 @@ class PushHandler:
 		log.info("m-acknowledge-ind: %s", out)
 		return out
 
-
-""" class for sending an mms """    	    
+    	    
 class MMSSender:
-	def __init__(self, number=None, subject=None, message=None, attachment=None, sender=None, customMMS=None, setupConn=False):
+	""" class for sending an mms """
+	
+	def __init__(self, number=None, subject=None, msg=None, attachment=None, sender=None, customMMS=None, setupConn=False):
 		self.customMMS = customMMS
 		self.config = fMMSconf.fMMS_config()
 		self.cont = fMMSController.fMMS_controller()
@@ -229,7 +228,7 @@ class MMSSender:
 		if customMMS == None:
 			self.number = number
 			self.subject = subject
-			self.message = message
+			self.message = msg
 			self.attachment = attachment
 			self._mms = None
 			self._sender = sender
@@ -322,15 +321,14 @@ class MMSSender:
 		return res.status, res.reason, outparsed, parsed
 
 
-""" handles setting up and (might) take down connection(s) """
 class MasterConnector:
+	""" handles setting up and (might) take down connection(s) """
 
 	def __init__(self):
 		self.cont = fMMSController.fMMS_controller()
 		self.config = fMMSconf.fMMS_config()
 		self._apn = self.config.get_apn()
 		self._apn_nicename = self.config.get_apn_nicename()
-	
 	
 	def connect(self, location="0"):
 		if (self.config.get_connmode() == CONNMODE_UGLYHACK):
@@ -362,33 +360,30 @@ class MasterConnector:
 			# TODO: dont sleep this long unless we have to
 			time.sleep(15)
 	
-	
 	def disconnect(self):
 		try:
 			self.connector.disconnect()
 		except:
 			log.exception("Failed to close connection.")
-	
 
 
-
-""" this is the 'nice' autoconnecter, only goes online on
-the mms apn if no other conn is active """
 class ICDConnector:
-	
+	""" this is the 'nice' autoconnecter, only goes online on
+	the mms apn if no other conn is active """
+
 	def __init__(self, apn):
 		self.apn = apn
 		self.connection = conic.Connection()
 		
-	def connection_cb(self, connection, event, magic):
-		#log.info("connection_cb(%s, %s, %x)" % (connection, event, magic))
+	def connection_cb(self, connection, event, mgc):
+		#log.info("connection_cb(%s, %s, %x)" % (connection, event, mgc))
 		pass	
 		
 	def disconnect(self):
 		connection = self.connection
                 connection.disconnect_by_id(self.apn)
-                log.info("ICDConnector requested disconnect from id: %s", self.apn)
-	
+		log.info("ICDConnector requested disconnect from id: %s", self.apn)
+
 	def connect(self):
 		global magic
 
@@ -410,10 +405,10 @@ class ICDConnector:
 			connection.request_connection(conic.CONNECT_FLAG_NONE)
 		
 
-""" this is the 'force switch' autoconnecter """
-""" credits to Stuart Hopkins for implementing this as
-a shell script and submitting as a patch """
 class ForceConnector:
+	""" this is the 'force switch' autoconnecter """
+	# credits to Stuart Hopkins for implementing this as
+	# a shell script and submitting as a patch
 	
 	def __init__(self, apn):
 		self.apn = apn
@@ -428,8 +423,8 @@ class ForceConnector:
 		self.previousconn = iapid
 		log.info("ForceConnector saved previous connection. ID: %s", iapid)
 		
-	def connection_cb(self, connection, event, magic):
-		#log.info("connection_cb(%s, %s, %x)" % (connection, event, magic))
+	def connection_cb(self, connection, event, mgc):
+		#log.info("connection_cb(%s, %s, %x)" % (connection, event, mgc))
 		pass
 		
 	""" restore connection to previous """
@@ -442,7 +437,7 @@ class ForceConnector:
 		global magic
 		
 		args = "DISCONNECT"
-		retcode = subprocess.call(["/opt/fmms/fmms_magic", args])
+		subprocess.call(["/opt/fmms/fmms_magic", args])
 		log.info("ForceConnector disconnecting from active connection.")
 
 		if apn == None:
@@ -465,8 +460,8 @@ class ForceConnector:
 			connection.request_connection(conic.CONNECT_FLAG_NONE)
 
 
-""" the ugly-hack autoconnector """
 class UglyHackHandler:
+	""" the ugly-hack autoconnector """
 	
 	def __init__(self, apn, username="", password="", proxy="0", mmsc1="0", mmsc2="0"):
 		self.apn = apn
@@ -503,5 +498,5 @@ class UglyHackHandler:
 		(apn, ctype, self.iface, self.ipaddr, connected, self.tx, self.rx) = self.conn.GetStatus()
 		args = "STOP %s" % self.iface
 		retcode = subprocess.call(["/opt/fmms/fmms_magic", args])
-		log.info("disconnecting connection. rx: %s tx: %s" % (self.tx, self.rx))
+		log.info("disconnecting connection. rx: %s tx: %s" % (self.rx, self.tx))
 		self.conn.Disconnect()
