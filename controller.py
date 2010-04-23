@@ -9,7 +9,6 @@ Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
 """
 import logging
 import logging.config
-import StringIO
 
 logging.config.fileConfig('/opt/fmms/logger.conf')
 log = logging.getLogger('fmms.%s' % __name__)
@@ -22,7 +21,6 @@ import urlparse
 import subprocess
 
 import dbus
-from dbus.mainloop.glib import DBusGMainLoop
 
 import fmms_config as fMMSconf
 import dbhandler as DBHandler
@@ -38,6 +36,7 @@ MSG_READ = 1
 class fMMS_controller():
 	
 	def __init__(self):
+		""" initialize """
 		self.config = fMMSconf.fMMS_config()
 		self._mmsdir = self.config.get_mmsdir()
 		self._pushdir = self.config.get_pushdir()
@@ -45,15 +44,16 @@ class fMMS_controller():
 		self.store = DBHandler.DatabaseHandler()
 	
 	def get_host_from_url(self, url):
+		""" gets the hostname from an url """
 		if not url.startswith("http://"):
 			url = "http://%s" % url
 
 		ret = urlparse.urlparse(url)
 		ret = ret[1].split(":")[0]
-		
 		return ret
 	
 	def convert_to_real_ip(self, indata):
+		""" converts a ip with leading zeroes to a real ip """
 		# Check if it looks like an IP
 		if re.search(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", indata):
 			ip = indata.split(".")
@@ -86,17 +86,17 @@ class fMMS_controller():
 		except:
 			log.info("stftime failed: %s %s", type(e), e)
 			mtime = intime
-		
 		return mtime
 	
 	def decode_mms_from_push(self, binarydata):
+		""" decodes the given mms """
 		decoder = mms_pdu.MMSDecoder()
 		wsplist = decoder.decodeCustom(binarydata)
 
 		sndr, url, trans_id = None, None, None
 		bus = dbus.SystemBus()
 		proxy = bus.get_object('org.freedesktop.Notifications', '/org/freedesktop/Notifications')
-		interface = dbus.Interface(proxy,dbus_interface='org.freedesktop.Notifications')
+		interface = dbus.Interface(proxy, dbus_interface='org.freedesktop.Notifications')
 
 		try:
 			url = wsplist["Content-Location"]
@@ -119,19 +119,18 @@ class fMMS_controller():
 		return (wsplist, sndr, url, trans_id)
 	
 	def save_binary_push(self, binarydata, transaction):
+		""" saves the binary push message """
 		data = array.array('B')
 		for b in binarydata:
 			data.append(b)
-		# TODO: move to config?
-		if not os.path.isdir(self._pushdir):
-			os.makedirs(self._pushdir)
+
 		try:
 			fp = open(self._pushdir + transaction, 'wb')
 			fp.write(data)
 			log.info("saved binary push: %s", fp)
 			fp.close()
 		except Exception, e:
-			log.exception("failed to save binary push: %s %s", type(e), e)
+			log.exception("failed to save binary push")
 			raise
 	
 	def save_push_message(self, data):
@@ -141,6 +140,7 @@ class fMMS_controller():
 		return pushid
 	
 	def get_push_list(self, types=None):
+		""" gets a list of all push messages """
 		return self.store.get_push_list()
 	
 	def is_fetched_push_by_transid(self, transactionid):
