@@ -10,19 +10,13 @@ Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
 import os
 import time
 import cgi
-import re
 
 import gtk
 import hildon
 import osso
 import gobject
-import dbus
-from gnome import gnomevfs
 
-from wappushhandler import PushHandler
 import fmms_config as fMMSconf
-import fmms_sender_ui as fMMSSenderUI
-import fmms_viewer as fMMSViewer
 import fmms_config_dialog as fMMSConfigDialog
 import controller_gtk as fMMSController
 import contacts as ContactH
@@ -37,18 +31,19 @@ class fMMS_GUI(hildon.Program):
 		""" Initializes the GUI, creating all widgets. """
 		self.cont = fMMSController.fMMS_controllerGTK()
 		self.config = fMMSconf.fMMS_config()
-		self._mmsdir = self.config.get_mmsdir()
-		self._pushdir = self.config.get_pushdir()
 		self.ch = ContactH.ContactHandler()
 		
 		self.osso_c = osso.Context("se.frals.fmms", self.config.get_version(), False)
 		self.osso_rpc = osso.Rpc(self.osso_c)
-		self.osso_rpc.set_rpc_callback("se.frals.fmms","/se/frals/fmms","se.frals.fmms", self.cb_open_fmms, self.osso_c)
+		self.osso_rpc.set_rpc_callback("se.frals.fmms", "/se/frals/fmms", "se.frals.fmms", self.cb_open_fmms, self.osso_c)
 		
 		self.refreshlistview = True
+		self.viewerimported = False
+		self.senderimported = False
 		
 		self.avatarlist = {}
 		self.namelist = {}
+		self.nrlist = {}
 	
 		hildon.Program.__init__(self)
 		program = hildon.Program.get_instance()
@@ -139,6 +134,21 @@ class fMMS_GUI(hildon.Program):
 		self.window.show_all()
 		self.add_window(self.window)
 
+	def import_viewer(self):
+		""" This is used to import viewer only when we need it
+		    as its quite a hog """
+		if not self.viewerimported:
+			import fmms_viewer as fMMSViewer
+			global fMMSViewer
+			self.viewerimported = True
+
+	def import_sender(self):
+		""" This is used to import sender_ui only when we need it
+		    as its quite a hog """
+		if not self.senderimported:
+			import fmms_sender_ui as fMMSSenderUI
+			global fMMSSenderUI
+			self.senderimported = True
 
 	def take_ss(self):
 		""" Takes a screenshot of the application used by hildon to show while loading.
@@ -181,7 +191,7 @@ class fMMS_GUI(hildon.Program):
 							self.config.set_apn_settings(auto)
 							settings = self.config.get_apn_settings()
 						if settings.get('apn', '') == '' or settings.get('mmsc', '') == '':
-							dialog = fMMSConfigDialog.fMMS_ConfigDialog(self.window)
+							fMMSConfigDialog.fMMS_ConfigDialog(self.window)
 						self.config.set_firstlaunch(2)
 						
 			self.take_ss()
@@ -194,10 +204,11 @@ class fMMS_GUI(hildon.Program):
 		if method == 'open_mms':
 			filename = args[0]
 			self.refreshlistview = True
+			self.import_viewer()
 			if self.cont.is_fetched_push_by_transid(filename):
 				hildon.hildon_gtk_window_set_progress_indicator(self.window, 1)
 				self.force_ui_update()
-				viewer = fMMSViewer.fMMS_Viewer(filename)
+				fMMSViewer.fMMS_Viewer(filename)
 				hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
 				return
 			else:
@@ -207,12 +218,14 @@ class fMMS_GUI(hildon.Program):
 		elif method == 'send_mms':
 			log.info("launching sender with args: %s", args)
 			self.refreshlistview = True
+			self.import_sender()
 			fMMSSenderUI.fMMS_SenderUI(tonumber=args[0]).run()
 			return
 		elif method == 'send_via_service':
 			log.info("launching sendviaservice with args: %s", args)
 			self.refreshlistview = False
-			ret = fMMSSenderUI.fMMS_SenderUI(withfile=args[0], subject=args[1], message=args[2]).run()
+			self.import_sender()
+			fMMSSenderUI.fMMS_SenderUI(withfile=args[0], subject=args[1], message=args[2]).run()
 			self.quit()
 		else:
 			return
@@ -241,18 +254,19 @@ class fMMS_GUI(hildon.Program):
 		buttontext = button.get_label()
 		if buttontext == "Configuration":
 			try:
-				dialog = fMMSConfigDialog.fMMS_ConfigDialog(self.window)
+				fMMSConfigDialog.fMMS_ConfigDialog(self.window)
 			except:
 				log.exception("Config dialog failed")
 				raise
 		elif buttontext == "About":
-			ret = self.create_about_dialog()
+			self.create_about_dialog()
 			
 	
 	def new_mms_button_clicked(self, button):
 		""" Fired when the 'New MMS' button is clicked. """
 		self.refreshlistview = True
-		ret = fMMSSenderUI.fMMS_SenderUI(self.window).run()
+		self.import_sender()
+		fMMSSenderUI.fMMS_SenderUI(self.window).run()
 		
 	def create_about_dialog(self):
 		""" Create and display the About dialog. """
@@ -274,8 +288,8 @@ class fMMS_GUI(hildon.Program):
 
 		pushlist = self.cont.get_push_list()
 
-		primarytxt = self.cont.get_primary_font().to_string()
-		primarycolor = self.cont.get_primary_color().to_string()
+		#primarytxt = self.cont.get_primary_font().to_string()
+		#primarycolor = self.cont.get_primary_color().to_string()
 		highlightcolor = self.cont.get_active_color().to_string()
 		secondarytxt = self.cont.get_secondary_font().to_string()
 		secondarycolor = self.cont.get_secondary_color().to_string()
@@ -294,38 +308,33 @@ class fMMS_GUI(hildon.Program):
 			fname = varlist['Transaction-Id']
 			direction = self.cont.get_direction_mms(fname)
 
-			isread = False
-			if self.cont.is_mms_read(fname):
-				isread = True
+			isread = self.cont.is_mms_read(fname)
 
-			try:
-				sender = varlist['From']
-				sender = sender.replace("/TYPE=PLMN", "")
-			except:
-				sender = "0000000"
+			sender = varlist.get('From', '00000').replace("/TYPE=PLMN", "")
 
 			if direction == fMMSController.MSG_DIRECTION_OUT:
 				sender = self.cont.get_mms_headers(varlist['Transaction-Id'])
 				sender = sender['To'].replace("/TYPE=PLMN", "")
 
-			# TODO: cleanup
-			senderuid = self.ch.get_uid_from_number(sender)
-			avatar = default_avatar
+			senderuid = self.nrlist.get(sender, None)
+			if not senderuid:
+				senderuid = self.ch.get_uid_from_number(sender)
+				self.nrlist[sender] = senderuid
 
+			# need to check against None as uid might be 0
 			if senderuid != None:
-				sender = self.namelist.get(senderuid, '')
-				if sender == '':
+				sender = self.namelist.get(senderuid, None)
+				if not sender:
 					sender = self.ch.get_displayname_from_uid(senderuid)
 				
-				avatartest = self.avatarlist.get(senderuid, '')
-				if avatartest == '':
-					avatartest = self.ch.get_photo_from_uid(senderuid, 48)
-				if avatartest != None:
-					avatar = avatartest
+				avatar = self.avatarlist.get(senderuid, None)
+				if not avatar:
+					avatar = self.ch.get_photo_from_uid(senderuid, 48)
+					if not avatar:
+						avatar = default_avatar
 
 				self.namelist[senderuid] = sender
 				self.avatarlist[senderuid] = avatar
-
 
 			if direction == fMMSController.MSG_DIRECTION_OUT:
 				icon = replied_icon
@@ -338,10 +347,7 @@ class fMMS_GUI(hildon.Program):
 				headerlist = self.cont.get_mms_headers(fname)
 				description = cgi.escape(headerlist['Description'])
 			except:
-				try:
-					description = varlist['Subject']
-				except:
-					description = ""
+				description = varlist.get('Subject', '')
 
 			primarytext = ' <span font_desc="%s" foreground="%s"><sup>%s</sup></span>' % (secondarytxt, secondarycolor, mtime)
 			secondarytext = '\n<span font_desc="%s" foreground="%s">%s</span>' % (secondarytxt, secondarycolor, cgi.escape(description))
@@ -372,8 +378,8 @@ class fMMS_GUI(hildon.Program):
 		try:
 			self.cont.wipe_message(fname)
 		except Exception, e:
-			log.exception("%s %s", type(e), e)
-			banner = hildon.hildon_banner_show_information(self.window, "", "Failed to delete message.")
+			log.exception("failed to delete push mms")
+			hildon.hildon_banner_show_information(self.window, "", "Failed to delete message.")
 
 	def liststore_delete_clicked(self, widget):
 		""" Shows a confirm dialog when Delete menu is clicked.
@@ -404,7 +410,6 @@ class fMMS_GUI(hildon.Program):
 		dialog.destroy()
 		return
 	
-
 	def liststore_mms_menu(self):
 		""" Creates the context menu and shows it. """
 		menu = gtk.Menu()
@@ -440,14 +445,16 @@ class fMMS_GUI(hildon.Program):
 		#if not self.cont.is_mms_read(transactionid) and not self.cont.get_direction_mms(transactionid) == fMMSController.MSG_DIRECTION_OUT:
 			#self.refreshlistview = True
 		
+		self.import_viewer()
 		try:
-			viewer = fMMSViewer.fMMS_Viewer(transactionid, spawner=self)
+			fMMSViewer.fMMS_Viewer(transactionid, spawner=self)
 		except Exception, e:
 			log.exception("Failed to open viewer with transaction id: %s" % transactionid)
 			#raise
 		hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
 
 	def show_switch_conn_dialog(self):
+		""" Show confirmation dialog asking if we should disconnect """
 		self.refreshlistview = False
 		dialog = gtk.Dialog()
 		dialog.set_title("Switch connection?")
