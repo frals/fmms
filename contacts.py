@@ -7,8 +7,6 @@ Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
 
 @license: GNU GPLv2, see COPYING file.
 """
-from operator import itemgetter
-from locale import setlocale, strxfrm, LC_ALL, strcoll
 import time
 import ctypes
 

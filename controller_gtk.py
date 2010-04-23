@@ -7,6 +7,7 @@ Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
 
 @license: GNU GPLv2, see COPYING file.
 """
+import StringIO
 
 import gtk
 
