@@ -327,6 +327,7 @@ class fMMS_GUI(hildon.Program):
 				senderuid = self.ch.get_uid_from_number(sender)
 				self.nrlist[sender] = senderuid
 
+			avatar = default_avatar
 			# need to check against None as uid might be 0
 			if senderuid != None:
 				sender = self.namelist.get(senderuid, None)
