@@ -17,7 +17,6 @@ import osso
 import gobject
 
 import fmms_config as fMMSconf
-import fmms_config_dialog as fMMSConfigDialog
 import controller_gtk as fMMSController
 import contacts as ContactH
 
@@ -40,6 +39,7 @@ class fMMS_GUI(hildon.Program):
 		self.refreshlistview = True
 		self.viewerimported = False
 		self.senderimported = False
+		self.cdimported = False
 		
 		self.avatarlist = {}
 		self.namelist = {}
@@ -150,6 +150,14 @@ class fMMS_GUI(hildon.Program):
 			global fMMSSenderUI
 			self.senderimported = True
 
+	def import_configdialog(self):
+		""" This is used to import configdialog only when we need it
+		    as its quite a hog """
+		if not self.cdimported:
+			import fmms_config_dialog as fMMSConfigDialog
+			global fMMSConfigDialog
+			self.cdimported = True
+
 	def take_ss(self):
 		""" Takes a screenshot of the application used by hildon to show while loading.
 
@@ -191,6 +199,7 @@ class fMMS_GUI(hildon.Program):
 							self.config.set_apn_settings(auto)
 							settings = self.config.get_apn_settings()
 						if settings.get('apn', '') == '' or settings.get('mmsc', '') == '':
+							self.import_configdialog()
 							fMMSConfigDialog.fMMS_ConfigDialog(self.window)
 						self.config.set_firstlaunch(2)
 						
@@ -253,11 +262,8 @@ class fMMS_GUI(hildon.Program):
 		""" Determine what button was clicked in the app menu. """
 		buttontext = button.get_label()
 		if buttontext == "Configuration":
-			try:
-				fMMSConfigDialog.fMMS_ConfigDialog(self.window)
-			except:
-				log.exception("Config dialog failed")
-				raise
+			self.import_configdialog()
+			fMMSConfigDialog.fMMS_ConfigDialog(self.window)
 		elif buttontext == "About":
 			self.create_about_dialog()
 			
