@@ -13,6 +13,9 @@ import gtk
 
 import controller
 
+import logging
+log = logging.getLogger('fmms.%s' % __name__)
+
 MSG_DIRECTION_IN = 0
 MSG_DIRECTION_OUT = 1
 MSG_UNREAD = 0
@@ -64,12 +67,16 @@ class fMMS_controllerGTK(controller.fMMS_controller):
 			loader.close()
 			return pixbuf
 		except IOError, e:
-			log.exception("Failed to convert")
-			im.save(file1, "gif")
-			contents = file1.getvalue()
-			file1.close()
-			loader = gtk.gdk.PixbufLoader()
-			loader.write(contents, len(contents))
-			pixbuf = loader.get_pixbuf()
-			loader.close()
-			return pixbuf
+			log.info("Failed to convert, trying as gif.")
+			try:
+				im.save(file1, "gif")
+				contents = file1.getvalue()
+				file1.close()
+				loader = gtk.gdk.PixbufLoader()
+				loader.write(contents, len(contents))
+				pixbuf = loader.get_pixbuf()
+				loader.close()
+				return pixbuf
+			except:
+				log.exception("Failed to convert")
+				raise
