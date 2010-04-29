@@ -9,6 +9,10 @@ Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
 """
 import os
 import logging
+import logging.config
+
+logging.config.fileConfig('/opt/fmms/logger.conf')
+log = logging.getLogger('fmms.%s' % __name__)
 
 import osso
 
@@ -24,7 +28,6 @@ CONNMODE_FORCESWITCH = 3
 class fMMS_config:
 
 	def __init__(self):
-		self.log = logging.getLogger('fmms.%s' % __name__)
 		self._fmmsdir = "/apps/fmms/"
 		self.client = gconf.client_get_default()
 		self.client.add_dir(self._fmmsdir, gconf.CLIENT_PRELOAD_NONE)
@@ -333,7 +336,6 @@ class fMMS_config:
 		# when this function returns
 		# iaps[0] == INET, iaps[1] == MMS
 		iaps = self.get_active_iaps()
-		#print iaps
 		if len(iaps) > 1:
 			primary = iaps[0]
 			secondary = iaps[1]
@@ -341,13 +343,12 @@ class fMMS_config:
 			primaryadv = self.get_advanced_apn_settings(primary)
 			secondarysettings = self.get_apn_settings(secondary)
 			secondaryadv = self.get_advanced_apn_settings(secondary)
-			self.log.info("CURRENT PRIMARY: %s %s" % (primarysettings, primaryadv))
-			self.log.info("CURRENT SECONDARY: %s %s" % (secondarysettings, secondaryadv))
+			log.info("CURRENT PRIMARY (%s): %s %s" % (primary, primarysettings, primaryadv))
+			log.info("CURRENT SECONDARY (%s): %s %s" % (secondary, secondarysettings, secondaryadv))
 			
 			primaryiap = self.client.get_int('/system/osso/connectivity/IAP/' + primary + '/fmms')
 			if primaryiap:
-				#print "Primary is really fMMS."
-				self.log.info("Primary is used by fMMS, switching.")
+				log.info("Primary is used by fMMS, switching.")
 				pass
 			else:
 				return
@@ -356,13 +357,13 @@ class fMMS_config:
 			self.set_advanced_apn_settings(primaryadv, secondary)
 			self.set_apn_settings(secondarysettings, primary)
 			self.set_advanced_apn_settings(secondaryadv, primary)
-			primarysettings = self.get_apn_settings(secondary)
-			primaryadv = self.get_advanced_apn_settings(secondary)
-			secondarysettings = self.get_apn_settings(primary)
-			secondaryadv = self.get_advanced_apn_settings(primary)
-			self.log.info("NEW PRIMARY: %s %s" % (primarysettings, primaryadv))
-			self.log.info("NEW SECONDARY: %s %s" % (secondarysettings, secondaryadv))
-			self.log.info("SETTING MMS TO: %s" % (secondary))
+			primarysettings = self.get_apn_settings(primary)
+			primaryadv = self.get_advanced_apn_settings(primary)
+			secondarysettings = self.get_apn_settings(secondary)
+			secondaryadv = self.get_advanced_apn_settings(secondary)
+			log.info("NEW PRIMARY (%s): %s %s" % (primary, primarysettings, primaryadv))
+			log.info("NEW SECONDARY (%s): %s %s" % (secondary, secondarysettings, secondaryadv))
+			log.info("SETTING MMS TO: %s" % (secondary))
 			self.set_apn(secondary)
 		else:
 			return iaps[0]
