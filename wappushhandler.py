@@ -93,7 +93,7 @@ class PushHandler:
 		log.info("decoding mms... path: %s", path)
 		message = self.cont.decode_binary_mms(path)
 		log.info("storing mms...")
-		self.cont.store_mms_message(pushid, message)
+		self.cont.store_mms_message(pushid, message, transactionId=trans_id)
 		log.info("notifying mms...")
 		self.notify_mms(sndr, "New MMS", trans_id);
 		return 0

@@ -106,7 +106,7 @@ class fMMS_controller():
 			log.info("transid: %s", trans_id)
 		except Exception, e:
 			log.exception("no content-location/transid in push; aborting: %s %s", type(e), e)
-			interface.SystemNoteInfoprint ("Failed to parse SMS PUSH.")
+			interface.SystemNoteInfoprint("Failed to parse SMS PUSH.")
 			raise
 		try:
 			sndr = wsplist["From"]
@@ -187,12 +187,13 @@ class fMMS_controller():
 	
 	def is_mms_read(self, transactionid):
 		return self.store.is_message_read(transactionid)
-
 	
 	def mark_mms_read(self, transactionid):
 		self.store.mark_message_read(transactionid)
 	
-	def store_mms_message(self, pushid, message):
+	def store_mms_message(self, pushid, message, transactionId=None):
+		if transactionId:
+			message.headers['Transaction-Id'] = transactionId
 		mmsid = self.store.insert_mms_message(pushid, message)
 		return mmsid
 	
@@ -221,7 +222,9 @@ class fMMS_controller():
 	
 	def get_mms_from_push(self, transactionid):
 		plist = self.store.get_push_message(transactionid)
-		trans_id = plist['Transaction-Id']
+		#trans_id = plist['Transaction-Id']
+		# lets reuse the transactionid we already got
+		trans_id = transactionid
 		pushid = plist['PUSHID']
 		url = plist['Content-Location']
 		
