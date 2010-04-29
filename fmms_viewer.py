@@ -85,6 +85,10 @@ class fMMS_Viewer(hildon.Program):
 		reply.set_label("Reply")
 		reply.connect('clicked', self.mms_menu_button_clicked, fname)
 		
+		replysms = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
+		replysms.set_label("Reply via SMS")
+		replysms.connect('clicked', self.mms_menu_button_clicked, fname)
+		
 		forward = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
 		forward.set_label("Forward")
 		forward.connect('clicked', self.mms_menu_button_clicked, fname)
@@ -94,6 +98,7 @@ class fMMS_Viewer(hildon.Program):
 		delete.connect('clicked', self.mms_menu_button_clicked, fname)
 		
 		menu.append(reply)
+		menu.append(replysms)
 		menu.append(forward)
 		menu.append(headers)
 		menu.append(delete)
@@ -140,6 +145,16 @@ class fMMS_Viewer(hildon.Program):
 		elif buttontext == "Reply":
 			number = self.cont.get_replyuri_from_transid(fname)
 			fMMSSenderUI.fMMS_SenderUI(spawner=self.window, tonumber=number).run()
+		elif buttontext == "Reply via SMS":
+			number = self.cont.get_replyuri_from_transid(fname)
+			if "@" in number:
+				note = osso.SystemNote(self.osso_c)
+				note.system_note_dialog("Reply address does not look like a phone number, sorry." , 'notice')
+			else:
+				rpc = osso.Rpc(self.osso_c)
+				nr = "sms:%s" % str(number)
+				args = (nr, "")
+				rpc.rpc_run('com.nokia.MessagingUI', '/com/nokia/MessagingUI', 'com.nokia.MessagingUI', 'messaging_ui_interface_start_sms', args, True, True)
 		elif buttontext == "Forward":
 			tbuffer = self.textview.get_buffer()
 			msg = tbuffer.get_text(tbuffer.get_start_iter(), tbuffer.get_end_iter())
