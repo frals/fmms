@@ -9,7 +9,7 @@ Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
 """
 import os
 import time
-import cgi
+from cgi import escape
 
 import gtk
 import hildon
@@ -353,15 +353,15 @@ class fMMS_GUI(hildon.Program):
 
 			try:
 				headerlist = self.cont.get_mms_headers(fname)
-				description = cgi.escape(headerlist['Description'])
+				description = headerlist['Description']
 			except:
 				description = varlist.get('Subject', '')
 
 			primarytext = ' <span font_desc="%s" foreground="%s"><sup>%s</sup></span>' % (secondarytxt, secondarycolor, mtime)
-			secondarytext = '\n<span font_desc="%s" foreground="%s">%s</span>' % (secondarytxt, secondarycolor, cgi.escape(description))
+			secondarytext = '\n<span font_desc="%s" foreground="%s">%s</span>' % (secondarytxt, secondarycolor, escape(description))
 			if not isread and direction == fMMSController.MSG_DIRECTION_IN:
 				sender = '<span foreground="%s">%s</span>' % (highlightcolor, cgi.escape(sender))
-			stringline = "%s%s%s" % (sender, primarytext, secondarytext)
+			stringline = "%s%s%s" % (escape(sender), primarytext, secondarytext)
 			self.liststore.append([icon, stringline, avatar, fname, sender])
 
 	def quit(self, *args):
