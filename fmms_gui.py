@@ -360,7 +360,7 @@ class fMMS_GUI(hildon.Program):
 			primarytext = ' <span font_desc="%s" foreground="%s"><sup>%s</sup></span>' % (secondarytxt, secondarycolor, mtime)
 			secondarytext = '\n<span font_desc="%s" foreground="%s">%s</span>' % (secondarytxt, secondarycolor, escape(description))
 			if not isread and direction == fMMSController.MSG_DIRECTION_IN:
-				sender = '<span foreground="%s">%s</span>' % (highlightcolor, cgi.escape(sender))
+				sender = '<span foreground="%s">%s</span>' % (highlightcolor, escape(sender))
 			stringline = "%s%s%s" % (escape(sender), primarytext, secondarytext)
 			self.liststore.append([icon, stringline, avatar, fname, sender])
 
