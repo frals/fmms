@@ -24,7 +24,7 @@ CONNMODE_FORCESWITCH = 3
 class fMMS_config:
 
 	def __init__(self):
-		log = logging.getLogger('fmms.%s' % __name__)
+		self.log = logging.getLogger('fmms.%s' % __name__)
 		self._fmmsdir = "/apps/fmms/"
 		self.client = gconf.client_get_default()
 		self.client.add_dir(self._fmmsdir, gconf.CLIENT_PRELOAD_NONE)
@@ -83,6 +83,7 @@ class fMMS_config:
 			self.set_firstlaunch(1)
 			self.set_img_resize_width(240)
 			self.set_connmode(CONNMODE_ICDSWITCH)
+			self.switcharoo()
 
 	def get_old_mmsc(self):
 		return self.client.get_string(self._fmmsdir + 'mmsc')
@@ -164,9 +165,10 @@ class fMMS_config:
 		
 	""" note this takes the *id* from gconf and not the *display name* """
 	def set_apn(self, apn):
-		#apn = apn.replace(" ", "@32@")
-		#self.client.set_string(self._fmmsdir + "apn_nicename", apn)
+		if self.get_apn():
+			self.client.unset('/system/osso/connectivity/IAP/' + self.get_apn() + '/fmms')
 		self.client.set_string(self._fmmsdir + "apn", apn)
+		self.client.set_int('/system/osso/connectivity/IAP/' + apn + '/fmms', 1)
 		
 	def get_apn_nicename(self):
 		#return self.client.get_string(self._fmmsdir + "apn_nicename")
@@ -215,8 +217,9 @@ class fMMS_config:
 		else:
 			return ""
 	
-	def set_apn_settings(self, settings):
-		apn = self.get_apn()
+	def set_apn_settings(self, settings, apn=None):
+		if not apn:
+			apn = self.get_apn()
 		if not settings:
 			settings = {}
 			settings['apn'] = ""
@@ -229,21 +232,25 @@ class fMMS_config:
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/gprs_username', settings['user'])
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/gprs_password', settings['pass'])
 		
-		if not settings['proxy'] or settings['proxy'] == "":
+		if settings.get('proxy', "") == "" or not settings.get('proxy'):
 			self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/proxytype', "NONE")
 			self.client.unset('/system/osso/connectivity/IAP/' + apn + '/proxy_http')
 			self.client.unset('/system/osso/connectivity/IAP/' + apn + '/proxy_http_port')
 		else:
 			self.client.unset('/system/osso/connectivity/IAP/' + apn + '/proxytype')
 			self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/proxy_http', settings['proxy'])
-			if settings['proxyport'] == "":
+			if settings.get('proxyport', "") == "":
 				settings['proxyport'] = 80
 			self.client.set_int('/system/osso/connectivity/IAP/' + apn + '/proxy_http_port', int(settings['proxyport']))
 		
+		if settings.get('name'):
+			self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/name', settings['name'])
+		
 		self.set_mmsc(settings['mmsc'])
 		
-	def get_apn_settings(self):
-		apn = self.get_apn()
+	def get_apn_settings(self, apn=None):
+		if not apn:
+			apn = self.get_apn()
 		settings = {}
 		settings['apn'] = self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/gprs_accesspointname')
 		settings['user'] = self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/gprs_username')
@@ -253,22 +260,27 @@ class fMMS_config:
 			settings['proxy'] = self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/proxy_http')
 			settings['proxyport'] = self.client.get_int('/system/osso/connectivity/IAP/' + apn + '/proxy_http_port')
 		settings['mmsc'] = self.get_mmsc()
-		
+		settings['name'] = self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/name')
 		return settings
 		
-	def set_advanced_apn_settings(self, settings):
-		apn = self.get_apn()
+	def set_advanced_apn_settings(self, settings, apn=None):
+		if not apn:
+			apn = self.get_apn()
 		if not settings:
 			settings = {}
 			settings['pdns'] = "0.0.0.0"
 			settings['sdns'] = "0.0.0.0"
 			settings['ip'] = "0.0.0.0"
-		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/ipv4_dns1', settings['pdns'])
-		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/ipv4_dns2', settings['sdns'])
-		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/ipv4_address', settings['ip'])
+		if settings['pdns']:
+			self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/ipv4_dns1', settings['pdns'])
+		if settings['sdns']:
+			self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/ipv4_dns2', settings['sdns'])
+		if settings['ip']:
+			self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/ipv4_address', settings['ip'])
 	
-	def get_advanced_apn_settings(self):
-		apn = self.get_apn()
+	def get_advanced_apn_settings(self, apn=None):
+		if not apn:
+			apn = self.get_apn()
 		settings = {}
 		settings['pdns'] = self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/ipv4_dns1')
 		settings['sdns'] = self.client.get_string('/system/osso/connectivity/IAP/' + apn + '/ipv4_dns2')
@@ -284,7 +296,7 @@ class fMMS_config:
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + "/type", "GPRS")
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + "/name", "MMS")
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + "/ipv4_type", "AUTO")
-		self.client.set_int('/system/osso/connectivity/IAP/' + apn + "/user_added", 2)
+		self.client.set_int('/system/osso/connectivity/IAP/' + apn + "/user_added", 1)
 		self.unmask_apn_from_icd(apn)
 		return apn
 		
@@ -301,6 +313,59 @@ class fMMS_config:
 		simimsi = self.get_sim_imsi()
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + "/sim_imsi", simimsi)
 		
+	def get_active_iaps(self):
+		# get all IAP's
+		dirs = self.client.all_dirs('/system/osso/connectivity/IAP')
+		simimsi = self.get_sim_imsi()
+		aps = []
+		for subdir in dirs:
+			_value = self.client.get_string(subdir + "/sim_imsi")
+			if _value == simimsi:
+				# split it so we can get the id
+				(spath, sep, apnid) = subdir.rpartition('/')
+				aps.append(apnid)
+		return aps
+		
+	def switcharoo(self):
+		# this assumes the only other APN with the same
+		# IMSI is the one that should be default for stuff...
+		# iaps[0] == MMS APN, iaps[1] == INET
+		# when this function returns
+		# iaps[0] == INET, iaps[1] == MMS
+		iaps = self.get_active_iaps()
+		#print iaps
+		if len(iaps) > 1:
+			primary = iaps[0]
+			secondary = iaps[1]
+			primarysettings = self.get_apn_settings(primary)
+			primaryadv = self.get_advanced_apn_settings(primary)
+			secondarysettings = self.get_apn_settings(secondary)
+			secondaryadv = self.get_advanced_apn_settings(secondary)
+			self.log.info("CURRENT PRIMARY: %s %s" % (primarysettings, primaryadv))
+			self.log.info("CURRENT SECONDARY: %s %s" % (secondarysettings, secondaryadv))
+			
+			primaryiap = self.client.get_int('/system/osso/connectivity/IAP/' + primary + '/fmms')
+			if primaryiap:
+				#print "Primary is really fMMS."
+				self.log.info("Primary is used by fMMS, switching.")
+				pass
+			else:
+				return
+			
+			self.set_apn_settings(primarysettings, secondary)
+			self.set_advanced_apn_settings(primaryadv, secondary)
+			self.set_apn_settings(secondarysettings, primary)
+			self.set_advanced_apn_settings(secondaryadv, primary)
+			primarysettings = self.get_apn_settings(secondary)
+			primaryadv = self.get_advanced_apn_settings(secondary)
+			secondarysettings = self.get_apn_settings(primary)
+			secondaryadv = self.get_advanced_apn_settings(primary)
+			self.log.info("NEW PRIMARY: %s %s" % (primarysettings, primaryadv))
+			self.log.info("NEW SECONDARY: %s %s" % (secondarysettings, secondaryadv))
+			self.log.info("SETTING MMS TO: %s" % (secondary))
+			self.set_apn(secondary)
+		else:
+			return iaps[0]
 		
 if __name__ == '__main__':
 	config = fMMS_config()

@@ -202,6 +202,7 @@ class fMMS_GUI(hildon.Program):
 							self.import_configdialog()
 							fMMSConfigDialog.fMMS_ConfigDialog(self.window)
 						self.config.set_firstlaunch(2)
+						self.config.switcharoo()
 						
 			self.take_ss()
 			
