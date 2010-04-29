@@ -361,7 +361,9 @@ class fMMS_GUI(hildon.Program):
 			secondarytext = '\n<span font_desc="%s" foreground="%s">%s</span>' % (secondarytxt, secondarycolor, escape(description))
 			if not isread and direction == fMMSController.MSG_DIRECTION_IN:
 				sender = '<span foreground="%s">%s</span>' % (highlightcolor, escape(sender))
-			stringline = "%s%s%s" % (escape(sender), primarytext, secondarytext)
+			else:
+				sender = escape(sender)
+			stringline = "%s%s%s" % (sender, primarytext, secondarytext)
 			self.liststore.append([icon, stringline, avatar, fname, sender])
 
 	def quit(self, *args):
