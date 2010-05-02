@@ -9,9 +9,6 @@ Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
 """
 import os
 import logging
-import logging.config
-
-logging.config.fileConfig('/opt/fmms/logger.conf')
 log = logging.getLogger('fmms.%s' % __name__)
 
 import osso
@@ -32,6 +29,7 @@ class fMMS_config:
 		self.client = gconf.client_get_default()
 		self.client.add_dir(self._fmmsdir, gconf.CLIENT_PRELOAD_NONE)
 		apn = self.get_apn()
+
 		if apn == None:
 			apn = self.create_new_apn()
 			self.set_apn(apn)
@@ -86,7 +84,7 @@ class fMMS_config:
 			self.set_firstlaunch(1)
 			self.set_img_resize_width(240)
 			self.set_connmode(CONNMODE_ICDSWITCH)
-			self.switcharoo()
+			#self.switcharoo()
 
 	def get_old_mmsc(self):
 		return self.client.get_string(self._fmmsdir + 'mmsc')
@@ -292,9 +290,8 @@ class fMMS_config:
 	
 	def create_new_apn(self):
 		""" Create a new APN for MMS usage. """
-		# Name it z_fMMS as auto-connect *might* 
-		# search gconf keys in alphabetical order...
-		apn = "z_fMMS-APN"
+		# gconf_list_all_dirs is pretty random...
+		apn = "0000-0000-0000-0000"
 		self.client.add_dir('/system/osso/connectivity/IAP/' + apn, gconf.CLIENT_PRELOAD_NONE)
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + "/type", "GPRS")
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + "/name", "MMS")
@@ -329,13 +326,14 @@ class fMMS_config:
 				aps.append(apnid)
 		return aps
 		
-	def switcharoo(self):
+	def switcharoo(self, force=False):
 		# this assumes the only other APN with the same
 		# IMSI is the one that should be default for stuff...
 		# iaps[0] == MMS APN, iaps[1] == INET
 		# when this function returns
 		# iaps[0] == INET, iaps[1] == MMS
 		iaps = self.get_active_iaps()
+		log.info("IAPs: %s" % iaps)
 		if len(iaps) > 1:
 			primary = iaps[0]
 			secondary = iaps[1]
@@ -347,16 +345,19 @@ class fMMS_config:
 			log.info("CURRENT SECONDARY (%s): %s %s" % (secondary, secondarysettings, secondaryadv))
 			
 			primaryiap = self.client.get_int('/system/osso/connectivity/IAP/' + primary + '/fmms')
-			if primaryiap:
+			if primaryiap and not force:
 				log.info("Primary is used by fMMS, switching.")
 				pass
 			else:
+				log.info("IAPs seems to be in order, moving along")
 				return
 			
 			self.set_apn_settings(primarysettings, secondary)
 			self.set_advanced_apn_settings(primaryadv, secondary)
 			self.set_apn_settings(secondarysettings, primary)
 			self.set_advanced_apn_settings(secondaryadv, primary)
+			# from this point on, the "secondary"
+			# contains the settings from the old "primary"
 			primarysettings = self.get_apn_settings(primary)
 			primaryadv = self.get_advanced_apn_settings(primary)
 			secondarysettings = self.get_apn_settings(secondary)
@@ -370,4 +371,4 @@ class fMMS_config:
 		
 if __name__ == '__main__':
 	config = fMMS_config()
-	config.switcharoo()
+	config.switcharoo(force=True)

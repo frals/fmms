@@ -16,11 +16,12 @@ import hildon
 import osso
 import gobject
 
-import fmms_config as fMMSconf
 import controller_gtk as fMMSController
 import contacts as ContactH
+import fmms_config as fMMSconf
 
 import logging
+
 log = logging.getLogger('fmms.%s' % __name__)
 
 class fMMS_GUI(hildon.Program):
@@ -193,17 +194,22 @@ class fMMS_GUI(hildon.Program):
 			self.refreshlistview = False
 			
 			if self.config.get_firstlaunch() < 2:
-						settings = self.config.get_apn_settings()
-						if settings.get('apn', '') == '' or settings.get('mmsc', '') == '':
-							auto = self.cont.get_apn_settings_automatically()
-							self.config.set_apn_settings(auto)
-							settings = self.config.get_apn_settings()
-						if settings.get('apn', '') == '' or settings.get('mmsc', '') == '':
-							self.import_configdialog()
-							fMMSConfigDialog.fMMS_ConfigDialog(self.window)
-						self.config.set_firstlaunch(2)
-						self.config.switcharoo()
-						
+				settings = self.config.get_apn_settings()
+				if settings.get('apn', '') == '' or settings.get('mmsc', '') == '':
+					auto = self.cont.get_apn_settings_automatically()
+					self.config.set_apn_settings(auto)
+					settings = self.config.get_apn_settings()
+				if settings.get('apn', '') == '' or settings.get('mmsc', '') == '':
+					self.import_configdialog()
+					fMMSConfigDialog.fMMS_ConfigDialog(self.window)
+				self.config.set_firstlaunch(2)
+				log.info("Seems this is the first time we are running.")
+				try:
+					log.info("SWITCHAROOOOOOOOOOOO")
+					self.config.switcharoo()
+				except:
+					log.exception("bugg")
+
 			self.take_ss()
 			
 		return True
@@ -268,7 +274,6 @@ class fMMS_GUI(hildon.Program):
 		elif buttontext == "About":
 			self.create_about_dialog()
 			
-	
 	def new_mms_button_clicked(self, button):
 		""" Fired when the 'New MMS' button is clicked. """
 		self.refreshlistview = True
