@@ -13,10 +13,7 @@ log = logging.getLogger('fmms.%s' % __name__)
 
 import osso
 
-try:
-	import gnome.gconf as gconf
-except:
-	import gconf
+import gconf
 
 CONNMODE_UGLYHACK = 1
 CONNMODE_ICDSWITCH = 2
@@ -325,6 +322,50 @@ class fMMS_config:
 				(spath, sep, apnid) = subdir.rpartition('/')
 				aps.append(apnid)
 		return aps
+
+	def get_all_aps(self):
+		# get all IAP's
+		dirs = self.client.all_dirs('/system/osso/connectivity/IAP')
+		stuff = []
+		for subdir in dirs:
+			(path, sep, iapid) = subdir.rpartition('/')
+			tmp = {}
+			tmp['FMMS_KEY_NAME'] = (iapid, gconf.VALUE_STRING)
+			all_entries = self.client.all_entries(subdir)
+			for entry in all_entries:
+				(path, sep, shortname) = entry.key.rpartition('/')
+				if entry.value.type == gconf.VALUE_STRING:
+					_value = entry.value.get_string()
+				elif entry.value.type == gconf.VALUE_INT:
+					_value = entry.value.get_int()
+				elif entry.value.type == gconf.VALUE_BOOL:
+					_value = entry.value.get_bool()
+				elif entry.value.type == gconf.VALUE_LIST:
+					_value = []
+					for n in entry.value.get_list():
+						_value.append(n.get_int())
+				else:
+					_value = None
+				_type = entry.value.type
+				tmp[shortname] = (_value, _type)
+				
+			stuff.append(tmp)
+			
+		return stuff
+
+	def set_settings_for_apn(self, apn, settings):
+		for st in settings:
+			if not st == 'FMMS_KEY_NAME':
+				if settings[st][1] == gconf.VALUE_STRING:
+					self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/' + st, settings[st][0])
+				elif settings[st][1] == gconf.VALUE_INT:
+					self.client.set_int('/system/osso/connectivity/IAP/' + apn + '/' + st, settings[st][0])
+				elif settings[st][1] == gconf.VALUE_BOOL:
+					self.client.set_bool('/system/osso/connectivity/IAP/' + apn + '/' + st, settings[st][0])
+				elif settings[st][1] == gconf.VALUE_LIST:
+					self.client.set_list('/system/osso/connectivity/IAP/' + apn + '/' + st, gconf.VALUE_INT, settings[st][0])
+				else:
+					log.info("failed to insert:", settings[st][0])
 		
 	def switcharoo(self, force=False):
 		# this assumes the only other APN with the same
@@ -337,33 +378,40 @@ class fMMS_config:
 		if len(iaps) > 1:
 			primary = iaps[0]
 			secondary = iaps[1]
-			primarysettings = self.get_apn_settings(primary)
-			primaryadv = self.get_advanced_apn_settings(primary)
-			secondarysettings = self.get_apn_settings(secondary)
-			secondaryadv = self.get_advanced_apn_settings(secondary)
-			log.info("CURRENT PRIMARY (%s): %s %s" % (primary, primarysettings, primaryadv))
-			log.info("CURRENT SECONDARY (%s): %s %s" % (secondary, secondarysettings, secondaryadv))
+			allaps = self.get_all_aps()
+			for sub in allaps:
+				if sub['FMMS_KEY_NAME'][0] == iaps[0]:
+					primarysettings = sub
+				elif sub['FMMS_KEY_NAME'][0] == iaps[1]:
+					secondarysettings = sub
+
+			log.info("CURRENT PRIMARY (%s): %s" % (primary, primarysettings))
+			log.info("CURRENT SECONDARY (%s): %s" % (secondary, secondarysettings))
 			
 			primaryiap = self.client.get_int('/system/osso/connectivity/IAP/' + primary + '/fmms')
-			if primaryiap and not force:
+			if primaryiap or force:
 				log.info("Primary is used by fMMS, switching.")
 				pass
 			else:
 				log.info("IAPs seems to be in order, moving along")
 				return
 			
-			self.set_apn_settings(primarysettings, secondary)
-			self.set_advanced_apn_settings(primaryadv, secondary)
-			self.set_apn_settings(secondarysettings, primary)
-			self.set_advanced_apn_settings(secondaryadv, primary)
+			# clear out the old settings
+			self.client.recursive_unset('/system/osso/connectivity/IAP/' + primary, gconf.UNSET_INCLUDING_SCHEMA_NAMES)
+			self.client.recursive_unset('/system/osso/connectivity/IAP/' + secondary, gconf.UNSET_INCLUDING_SCHEMA_NAMES)
+			
+			self.set_settings_for_apn(secondary, primarysettings)
+			self.set_settings_for_apn(primary, secondarysettings)
 			# from this point on, the "secondary"
 			# contains the settings from the old "primary"
-			primarysettings = self.get_apn_settings(primary)
-			primaryadv = self.get_advanced_apn_settings(primary)
-			secondarysettings = self.get_apn_settings(secondary)
-			secondaryadv = self.get_advanced_apn_settings(secondary)
-			log.info("NEW PRIMARY (%s): %s %s" % (primary, primarysettings, primaryadv))
-			log.info("NEW SECONDARY (%s): %s %s" % (secondary, secondarysettings, secondaryadv))
+			allaps = self.get_all_aps()
+			for sub in allaps:
+				if sub['FMMS_KEY_NAME'][0] == iaps[0]:
+					primarysettings = sub
+				elif sub['FMMS_KEY_NAME'][0] == iaps[1]:
+					secondarysettings = sub
+			log.info("NEW PRIMARY (%s): %s" % (primary, primarysettings))
+			log.info("NEW SECONDARY (%s): %s" % (secondary, secondarysettings))
 			log.info("SETTING MMS TO: %s" % (secondary))
 			self.set_apn(secondary)
 		else:
