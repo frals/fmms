@@ -45,6 +45,11 @@ class fMMS_controller():
 	
 	def get_host_from_url(self, url):
 		""" gets the hostname from an url """
+		# change HTTP:// etc to lowercase because
+		# havoc connector depends on it
+		m = re.search(r"http\:\/\/(?i)", url)
+		if m:
+			url = url.replace(m.group(0), "http://")
 		if not url.startswith("http://"):
 			url = "http://%s" % url
 
