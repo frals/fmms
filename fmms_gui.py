@@ -204,11 +204,7 @@ class fMMS_GUI(hildon.Program):
 					fMMSConfigDialog.fMMS_ConfigDialog(self.window)
 				self.config.set_firstlaunch(2)
 				log.info("Seems this is the first time we are running.")
-				try:
-					log.info("SWITCHAROOOOOOOOOOOO")
-					self.config.switcharoo()
-				except:
-					log.exception("bugg")
+				self.config.switcharoo()
 
 			self.take_ss()
 			

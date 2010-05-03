@@ -33,6 +33,7 @@ magic = 0xacdcacdc
 CONNMODE_UGLYHACK = 1
 CONNMODE_ICDSWITCH = 2
 CONNMODE_FORCESWITCH = 3
+CONNMODE_NULL = 10
 
 _DBG = True
 
@@ -359,10 +360,15 @@ class MasterConnector:
 			self.connector.connect()
 			# TODO: dont sleep this long unless we have to
 			time.sleep(15)
+		
+		elif (self.config.get_connmode() == CONNMODE_NULL):
+			log.info("NOOP CONNMODE")
+			self.connector = None
 	
 	def disconnect(self):
 		try:
-			self.connector.disconnect()
+			if self.connector:
+				self.connector.disconnect()
 		except:
 			log.exception("Failed to close connection.")
 
