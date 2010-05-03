@@ -18,38 +18,35 @@ import gconf
 CONNMODE_UGLYHACK = 1
 CONNMODE_ICDSWITCH = 2
 CONNMODE_FORCESWITCH = 3
+CONNMODE_NULL = 10
 
 class fMMS_config:
 
 	def __init__(self):
 		self._fmmsdir = "/apps/fmms/"
 		self.client = gconf.client_get_default()
+		# checking if the dir exists takes longer than just creating it...
 		self.client.add_dir(self._fmmsdir, gconf.CLIENT_PRELOAD_NONE)
 		apn = self.get_apn()
-
 		if apn == None:
 			apn = self.create_new_apn()
 			self.set_apn(apn)
-		# if its not our APN we copy settings to ours
-		"""if apn != "z_fMMS-APN":
-			settings = self.get_apn_settings()
-			advsettings = self.get_advanced_apn_settings()
-			log.info("Importing old settings from: %s" % apn)
-			log.info("APN settings: %s" % settings)
-			log.info("Advanced settings: %s" % advsettings)
-			apn = self.create_new_apn()
-			self.set_apn(apn)
-			self.set_apn_settings(settings)
-			self.set_advanced_apn_settings(advsettings)
-			self.set_mmsc(self.get_old_mmsc())"""
-		if self.get_pushdir() == None:
-			self.set_pushdir("/home/user/.fmms/push/")
-		if self.get_mmsdir() == None:
-			self.set_mmsdir("/home/user/.fmms/mms/")
-		if self.get_outdir() == None:
-			self.set_outdir("/home/user/.fmms/sent/")
-		if self.get_imgdir() == None:
-			self.set_imgdir("/home/user/.fmms/temp/")
+		pushdir = self.get_pushdir()
+		if pushdir == None:
+			pushdir = "/home/user/.fmms/push/"
+			self.set_pushdir(pushdir)
+		mmsdir = self.get_mmsdir()
+		if mmsdir == None:
+			mmsdir = "/home/user/.fmms/mms/"
+			self.set_mmsdir(mmsdir)
+		outdir = self.get_outdir()
+		if outdir == None:
+			outdir = "/home/user/.fmms/sent/"
+			self.set_outdir(outdir)
+		imgdir = self.get_imgdir()
+		if imgdir == None:
+			imgdir = "/home/user/.fmms/temp/"
+			self.set_imgdir(imgdir)
 		if self.get_mmsc() == None:
 			self.set_mmsc("")
 		if self.get_phonenumber() == None:
@@ -65,23 +62,22 @@ class fMMS_config:
 		if not self.get_useragent():
 			self.set_useragent("NokiaN95/11.0.026; Series60/3.1 Profile/MIDP-2.0 Configuration/CLDC-1.1")
 		# Create dirs, for good measures
-		if not os.path.isdir(self.get_pushdir()):
-			os.makedirs(self.get_pushdir())
+		if not os.path.isdir(pushdir):
+			os.makedirs(pushdir)
 		
-		if not os.path.isdir(self.get_mmsdir()):
-			os.makedirs(self.get_mmsdir())
+		if not os.path.isdir(mmsdir):
+			os.makedirs(mmsdir)
 
-		if not os.path.isdir(self.get_outdir()):
-			os.makedirs(self.get_outdir())
+		if not os.path.isdir(outdir):
+			os.makedirs(outdir)
 			
-		if not os.path.isdir(self.get_imgdir()):
-			os.makedirs(self.get_imgdir())
+		if not os.path.isdir(imgdir):
+			os.makedirs(imgdir)
 		
 		if self.get_firstlaunch() == 0:
 			self.set_firstlaunch(1)
 			self.set_img_resize_width(240)
 			self.set_connmode(CONNMODE_ICDSWITCH)
-			#self.switcharoo()
 
 	def get_old_mmsc(self):
 		return self.client.get_string(self._fmmsdir + 'mmsc')
@@ -89,10 +85,11 @@ class fMMS_config:
 	def set_connmode(self, val):
 		apn = self.get_apn()
 		self.client.set_int(self._fmmsdir + "connmode", int(val))
-		if val == CONNMODE_UGLYHACK:
+		if val == CONNMODE_UGLYHACK or val == CONNMODE_NULL:
 			self.mask_apn_from_icd(apn)
 		else:
 			self.unmask_apn_from_icd(apn)
+			self.switcharoo()
 		
 	def get_connmode(self):
 		return self.client.get_int(self._fmmsdir + "connmode")
