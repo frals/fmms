@@ -232,7 +232,7 @@ class fMMS_config:
 			self.client.unset('/system/osso/connectivity/IAP/' + apn + '/proxy_http')
 			self.client.unset('/system/osso/connectivity/IAP/' + apn + '/proxy_http_port')
 		else:
-			self.client.unset('/system/osso/connectivity/IAP/' + apn + '/proxytype')
+			self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/proxytype', "MANUAL")
 			self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/proxy_http', settings['proxy'])
 			if settings.get('proxyport', "") == "":
 				settings['proxyport'] = 80
