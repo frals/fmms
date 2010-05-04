@@ -255,6 +255,20 @@ class MMSSender:
 		self._mms.addPage(slide)
 	
 	def sendMMS(self, customData=None):
+		try:
+			(status, reason, outparsed, parsed) = self._sendMMS(customData)
+		except:
+			log.exception("Failed to send message.")
+		
+		if self.setupConn == True:
+			try:
+				self.connector.disconnect()
+			except:
+				log.exception("Failed to close connection.")
+		
+		return status, reason, outparsed, parsed
+	
+	def _sendMMS(self, customData=None):
 		mmsid = None
 		if customData != None:
 			log.info("using custom mms")
@@ -264,6 +278,8 @@ class MMSSender:
 		
 		(proxyurl, proxyport) = self.config.get_proxy_from_apn()
 		mms = self._mms.encode()
+		
+		socket.setdefaulttimeout(120)
 		
 		headers = {'Content-Type':'application/vnd.wap.mms-message', 'User-Agent' : self.config.get_useragent(), 'x-wap-profile' : 'http://mms.frals.se/n900.rdf'}
 		#headers = {'Content-Type':'application/vnd.wap.mms-message'}
@@ -312,12 +328,6 @@ class MMSSender:
 			outparsed = out
 			
 		log.info("MMSC RESPONDED: %s", outparsed)
-
-		if self.setupConn == True:
-			try:
-				self.connector.disconnect()
-			except:
-				log.exception("Failed to close connection.")
 		
 		return res.status, res.reason, outparsed, parsed
 
@@ -473,6 +483,8 @@ class UglyHackHandler:
 		self.apn = apn
 		self.username = username
 		self.password = password
+		if proxy == None:
+			proxy = 0
 		self.proxyip = proxy
 		self.mmsc1 = mmsc1
 		self.mmsc2 = mmsc2
