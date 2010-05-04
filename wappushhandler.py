@@ -259,12 +259,13 @@ class MMSSender:
 			(status, reason, outparsed, parsed) = self._sendMMS(customData)
 		except:
 			log.exception("Failed to send message.")
-		
-		if self.setupConn == True:
-			try:
-				self.connector.disconnect()
-			except:
-				log.exception("Failed to close connection.")
+			raise
+		finally:
+			if self.setupConn == True:
+				try:
+					self.connector.disconnect()
+				except:
+					log.exception("Failed to close connection.")
 		
 		return status, reason, outparsed, parsed
 	

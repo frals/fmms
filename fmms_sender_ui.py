@@ -343,8 +343,10 @@ class fMMS_SenderUI(hildon.Program):
 			note.system_note_dialog("Sending failed:\nError: " + errmsg + " \nPlease make sure your APN settings are correct" , 'notice')
 			#raise
 		except Exception, exc:
-			log.exception("sender: %s %s", type(exc), exc)
-			raise
+			log.exception("Sender failed.")
+			note = osso.SystemNote(self.osso_c)
+			note.system_note_dialog("Sending failed:\nGeneral error, please contact the author." , 'notice')
+			#raise
 		finally:
 			hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
 			self.bSend.set_sensitive(True)
