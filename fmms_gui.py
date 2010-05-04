@@ -324,6 +324,8 @@ class fMMS_GUI(hildon.Program):
 				sender = self.cont.get_mms_headers(varlist['Transaction-Id'])
 				sender = sender['To'].replace("/TYPE=PLMN", "")
 
+			sendernr = sender
+
 			senderuid = self.nrlist.get(sender, None)
 			if not senderuid:
 				senderuid = self.ch.get_uid_from_number(sender)
@@ -335,6 +337,8 @@ class fMMS_GUI(hildon.Program):
 				sender = self.namelist.get(senderuid, None)
 				if not sender:
 					sender = self.ch.get_displayname_from_uid(senderuid)
+				if not sender:
+					sender = sendernr
 				
 				avatar = self.avatarlist.get(senderuid, None)
 				if not avatar:
