@@ -251,7 +251,11 @@ class MMSSender:
 			self._mms.headers['To'] = str(self.number)
 		else:
 			self._mms.headers['To'] = str(self.number) + '/TYPE=PLMN'
-		self._mms.headers['From'] = str(self._sender) + '/TYPE=PLMN'
+		if self._sender == '0':
+			self._mms.headers['From'] = ''
+		else:
+			self._mms.headers['From'] = str(self._sender) + '/TYPE=PLMN'
+		
 		self._mms.addPage(slide)
 	
 	def sendMMS(self, customData=None):
