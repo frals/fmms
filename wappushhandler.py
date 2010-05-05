@@ -360,14 +360,14 @@ class MasterConnector:
 
 		elif (self.config.get_connmode() == CONNMODE_ICDSWITCH):
 			log.info("RUNNING IN ICDSWITCH MODE")
-			self.connector = ICDConnector(self._apn_nicename)
+			self.connector = ICDConnector(self._apn)
 			self.connector.connect()
 			# TODO: dont sleep this long unless we have to
 			time.sleep(15)
 
 		elif (self.config.get_connmode() == CONNMODE_FORCESWITCH):
 			log.info("RUNNING IN FORCESWITCH MODE")
-			self.connector = ForceConnector(self._apn_nicename)
+			self.connector = ForceConnector(self._apn)
 			self.connector.connect()
 			# TODO: dont sleep this long unless we have to
 			time.sleep(15)
@@ -409,13 +409,13 @@ class ICDConnector:
 		iaps = connection.get_all_iaps()
 		iap = None
 		for i in iaps:
-			if i.get_name() == self.apn:
+			if i.get_id() == self.apn:
 				iap = i
-
-		connection.disconnect()
-		log.info("ICDConnector trying to connect to: %s", iap.get_name())
+		
+		if iap:
+			connection.disconnect()
+			log.info("ICDConnector trying to connect to ID: %s", iap.get_id())
 		connection.connect("connection-event", self.connection_cb, magic)
-
 		if iap:
 			connection.request_connection_by_id(iap.get_id(), conic.CONNECT_FLAG_NONE)
 		else:
@@ -436,7 +436,10 @@ class ForceConnector:
 		bus = dbus.SystemBus()
 		proxy = bus.get_object('com.nokia.icd', '/com/nokia/icd')
 		icd = dbus.Interface(proxy, 'com.nokia.icd')
-		(iapid, arg, arg1, arg2, arg3, arg4, arg5) = icd.get_statistics()
+		try:
+			(iapid, arg, arg1, arg2, arg3, arg4, arg5) = icd.get_statistics()
+		except:
+			iapid = None
 		self.previousconn = iapid
 		log.info("ForceConnector saved previous connection. ID: %s", iapid)
 		
@@ -465,10 +468,11 @@ class ForceConnector:
 		iaps = connection.get_all_iaps()
 		iap = None
 		for i in iaps:
-			if i.get_name() == apn or i.get_id() == apn:
+			if i.get_id() == apn:
 				iap = i
 		
-		log.info("ForceConnector trying to connect to: ID: %s Name: %s" % (iap.get_id(), iap.get_name()))
+		if iap:		
+			log.info("ForceConnector trying to connect to: ID: %s" % iap.get_id())
 		connection.connect("connection-event", self.connection_cb, magic)
 		
 		if iap:
