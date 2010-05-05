@@ -342,12 +342,11 @@ class fMMS_SenderUI(hildon.Program):
 			errmsg = code + " " + text
 			note.system_note_dialog("Sending failed:\nError: " + errmsg + " \nPlease make sure your APN settings are correct" , 'notice')
 			#raise
-		except DBusException, exc:
-			log.exception("Sender DBUS failure:")
 		except Exception, exc:
 			log.exception("Sender failed.")
-			#note = osso.SystemNote(self.osso_c)
-			#note.system_note_dialog("Sending failed:\nGeneral error, please contact the author." , 'notice')
+			note = osso.SystemNote(self.osso_c)
+			errmsg = "%s" % exc
+			note.system_note_dialog("Sending failed:\n%s" % errmsg, 'notice')
 			#raise
 		finally:
 			hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
