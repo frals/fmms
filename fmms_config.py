@@ -331,19 +331,22 @@ class fMMS_config:
 			all_entries = self.client.all_entries(subdir)
 			for entry in all_entries:
 				(path, sep, shortname) = entry.key.rpartition('/')
-				if entry.value.type == gconf.VALUE_STRING:
+				try:
+					_type = entry.value.type
+				except Exception, exc:
+					_type = None
+				if _type == gconf.VALUE_STRING:
 					_value = entry.value.get_string()
-				elif entry.value.type == gconf.VALUE_INT:
+				elif _type == gconf.VALUE_INT:
 					_value = entry.value.get_int()
-				elif entry.value.type == gconf.VALUE_BOOL:
+				elif _type == gconf.VALUE_BOOL:
 					_value = entry.value.get_bool()
-				elif entry.value.type == gconf.VALUE_LIST:
+				elif _type == gconf.VALUE_LIST:
 					_value = []
 					for n in entry.value.get_list():
 						_value.append(n.get_int())
 				else:
 					_value = None
-				_type = entry.value.type
 				tmp[shortname] = (_value, _type)
 				
 			stuff.append(tmp)
@@ -370,6 +373,7 @@ class fMMS_config:
 		# iaps[0] == MMS APN, iaps[1] == INET
 		# when this function returns
 		# iaps[0] == INET, iaps[1] == MMS
+		self.client.clear_cache()
 		iaps = self.get_active_iaps()
 		log.info("IAPs: %s" % iaps)
 		if len(iaps) > 1:
@@ -388,7 +392,6 @@ class fMMS_config:
 			primaryiap = self.client.get_int('/system/osso/connectivity/IAP/' + primary + '/fmms')
 			if primaryiap or force:
 				log.info("Primary is used by fMMS, switching.")
-				pass
 			else:
 				log.info("IAPs seems to be in order, moving along")
 				return
@@ -396,6 +399,8 @@ class fMMS_config:
 			# clear out the old settings
 			self.client.recursive_unset('/system/osso/connectivity/IAP/' + primary, gconf.UNSET_INCLUDING_SCHEMA_NAMES)
 			self.client.recursive_unset('/system/osso/connectivity/IAP/' + secondary, gconf.UNSET_INCLUDING_SCHEMA_NAMES)
+			# clear gconf cache (seems like a good idea?)
+			self.client.clear_cache()
 			
 			self.set_settings_for_apn(secondary, primarysettings)
 			self.set_settings_for_apn(primary, secondarysettings)
