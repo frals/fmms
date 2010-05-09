@@ -232,16 +232,16 @@ class fMMS_Viewer(hildon.Program):
 		self.window.set_title("MMS - " + str(sender))
 
 		namelabel = gtk.Label(sender)
-                namelabel.set_alignment(0, 0.5)
+		namelabel.set_alignment(0, 0.5)
 
-                mtime = headerlist['Time']
+		mtime = headerlist['Time']
 		mtime = self.cont.convert_timeformat(mtime, "%Y-%m-%d | %H:%M")
 					
-                timestring = '<span foreground="#666666">' + mtime + "</span>"
-                timelabel = gtk.Label(timestring)
-                timelabel.set_use_markup(True)
-                timelabel.set_alignment(1, 0.5)
-                
+		timestring = '<span foreground="#666666">' + mtime + "</span>"
+		timelabel = gtk.Label(timestring)
+		timelabel.set_use_markup(True)
+		timelabel.set_alignment(1, 0.5)
+
 		topbox.pack_start(label, False, False, 20)
 		topbox.pack_start(namelabel, True, True, 0)
 		topbox.pack_end(timelabel, False, False, 10)

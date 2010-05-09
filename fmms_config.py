@@ -118,15 +118,15 @@ class fMMS_config:
 	def get_firstlaunch(self):
 		return self.client.get_int(self._fmmsdir + "firstlaunch")
 	
-        def set_img_resize_width(self, width):
-        	try:
-        		width = int(width)
-        	except ValueError:
-                	width = 0
-                self.client.set_int(self._fmmsdir + "img_resize_width", width)
+	def set_img_resize_width(self, width):
+		try:
+			width = int(width)
+		except ValueError:
+			width = 0
+		self.client.set_int(self._fmmsdir + "img_resize_width", width)
 
-        def get_img_resize_width(self):
-                return self.client.get_int(self._fmmsdir + "img_resize_width") 	
+	def get_img_resize_width(self):
+		return self.client.get_int(self._fmmsdir + "img_resize_width")
 	
 	def set_phonenumber(self, number):
 		self.client.set_string(self._fmmsdir + "phonenumber", number)
@@ -138,7 +138,7 @@ class fMMS_config:
 		self.client.set_string(self._fmmsdir + "pushdir", path)
 		
 	def get_pushdir(self):
-		return self.client.get_string(self._fmmsdir + "pushdir")		
+		return self.client.get_string(self._fmmsdir + "pushdir")
 		
 	def set_mmsdir(self, path):
 		self.client.set_string(self._fmmsdir + "mmsdir", path)

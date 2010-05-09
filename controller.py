@@ -257,8 +257,8 @@ class fMMS_controller():
 		log.info("fullpath: %s", fullpath)
 		if os.path.isdir(fullpath):
 			log.info("starting deletion of %s", fullpath)
-                        filelist = os.listdir(fullpath)
-                        log.info("removing: %s", filelist)
+			filelist = os.listdir(fullpath)
+			log.info("removing: %s", filelist)
 			for fn in filelist:
 				try:
 					fullfn = fullpath + "/" + fn

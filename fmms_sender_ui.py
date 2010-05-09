@@ -336,10 +336,14 @@ class fMMS_SenderUI(hildon.Program):
 			#raise
 		except socket.error, exc:
 			log.exception("sender: %s %s", type(exc), exc)
-			code = str(exc.args[0])
-			text = str(exc.args[1])
+			try:
+				code = str(exc.args[0])
+				text = str(exc.args[1])
+			except:
+				code = exc
+				text = ""
 			note = osso.SystemNote(self.osso_c)
-			errmsg = code + " " + text
+			errmsg = "%s %s" % (code, text)
 			note.system_note_dialog("Sending failed:\nError: " + errmsg + " \nPlease make sure your APN settings are correct" , 'notice')
 			#raise
 		except Exception, exc:

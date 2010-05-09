@@ -96,7 +96,7 @@ class PushHandler:
 		log.info("storing mms...")
 		self.cont.store_mms_message(pushid, message, transactionId=trans_id)
 		log.info("notifying mms...")
-		self.notify_mms(sndr, "New MMS", trans_id);
+		self.notify_mms(sndr, "New MMS", trans_id)
 		return 0
 
 	# TODO: implement this
@@ -402,7 +402,7 @@ class ICDConnector:
 		
 	def disconnect(self):
 		connection = self.connection
-                connection.disconnect_by_id(self.apn)
+		connection.disconnect_by_id(self.apn)
 		log.info("ICDConnector requested disconnect from id: %s", self.apn)
 
 	def connect(self):
