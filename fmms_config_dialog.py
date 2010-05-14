@@ -42,7 +42,7 @@ class fMMS_ConfigDialog():
 		apnHBox.pack_start(apn_label, False, True, 0)
 		apnHBox.pack_start(apn_button, True, True, 0)
 
-		numberHBox = gtk.HBox()
+		"""numberHBox = gtk.HBox()
 		number_label = gtk.Label("Your phonenumber")
 		number_label.set_width_chars(labelwidth)
 		number_label.set_alignment(0, 0.5)
@@ -54,7 +54,7 @@ class fMMS_ConfigDialog():
 		else:
 			self.number.set_text("")
 		numberHBox.pack_start(number_label, False, True, 0)
-		numberHBox.pack_start(self.number, True, True, 0)
+		numberHBox.pack_start(self.number, True, True, 0)"""
 
 		imgwidthHBox = gtk.HBox()
 		imgwidth_label = gtk.Label("Resize image width")
@@ -104,7 +104,7 @@ class fMMS_ConfigDialog():
 		expHBox.pack_start(alignment, False, True, 0)
 
 		allVBox.pack_start(apnHBox, False, False, 2)
-		allVBox.pack_start(numberHBox, False, False, 2)
+		#allVBox.pack_start(numberHBox, False, False, 2)
 		allVBox.pack_start(imgwidthHBox, False, False, 2)
 		allVBox.pack_end(expHBox, False, False, 2)
 
