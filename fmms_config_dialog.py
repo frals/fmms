@@ -203,13 +203,16 @@ class APNConfigDialog():
 		self.config = fMMSconf.fMMS_config()
 		self.cont = fMMSController.fMMS_controller()
 		
+		pan = hildon.PannableArea()
+		pan.set_property("mov-mode", hildon.MOVEMENT_MODE_VERT)
+		
+		
 		allVBox = gtk.VBox()
 		
 		labelwidth = 16
 
-		inputs = [('Access point name', 'apn'), ('Username', 'user'),
-			  ('Password', 'pass'), ('Proxy', 'proxy'), ('Proxy Port', 'proxyport'),
-			  ('MMSC', 'mmsc')]
+		inputs = [('Access point name', 'apn'), ('MMSC', 'mmsc'), ('Username', 'user'),
+			  ('Password', 'pass'), ('Proxy', 'proxy'), ('Proxy Port', 'proxyport')]
 		
 		entries = {}
 		
@@ -233,7 +236,8 @@ class APNConfigDialog():
 			label = gtk.Label(labelname)
 			label.set_width_chars(labelwidth)
 			label.set_alignment(0, 0.5)
-			vars()[var] = gtk.Entry()
+			#vars()[var] = gtk.Entry()
+			vars()[var] = hildon.Entry(gtk.HILDON_SIZE_FINGER_HEIGHT)
 			if var == "proxyport":
 				vars()[var].set_property('hildon-input-mode', gtk.HILDON_GTK_INPUT_MODE_NUMERIC)
 			if current:
@@ -244,20 +248,11 @@ class APNConfigDialog():
 			box.pack_start(vars()[var], True, True, 0)
 			allVBox.pack_start(box, False, False, 2)
 
-		box = gtk.HBox()
-		label = gtk.Label("In 99/100 cases you don't need to change anything in advanced.")
-		#label.set_width_chars(labelwidth)
-		label.set_line_wrap(True)
-		button = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
-		button.set_label("Advanced")
-		button.connect('clicked', self.create_advanced_config, dialog)
-		box.pack_start(label, True, True, 0)
-		box.pack_start(button, True, True, 0)
-		
-		allVBox.pack_end(box, False, False, 2)
-
-		allVBox.show_all()
-		dialog.vbox.add(allVBox)
+		pan.add_with_viewport(allVBox)
+		pan.set_size_request_policy(hildon.SIZE_REQUEST_CHILDREN)
+		dialog.vbox.add(pan)
+		dialog.show_all()
+		dialog.add_button("Advanced", 999)
 		dialog.add_button("Save", gtk.RESPONSE_APPLY)
 		
 		while 1:
@@ -266,6 +261,8 @@ class APNConfigDialog():
 			for val in entries:
 				settings[val] = vars()[val].get_text()
 
+			if ret == 999:
+				self.create_advanced_config(dialog)
 			if ret == gtk.RESPONSE_APPLY:
 				# We can hardcode the checks here since
 				# the fields have to exist here
@@ -284,7 +281,7 @@ class APNConfigDialog():
 		
 		dialog.destroy()
 		
-	def create_advanced_config(self, widget, spawnedby):
+	def create_advanced_config(self, spawnedby):
 		dialog = gtk.Dialog()
 		dialog.set_title("Advanced Configuration")
 
@@ -314,7 +311,8 @@ class APNConfigDialog():
 			label = gtk.Label(labelname)
 			label.set_width_chars(labelwidth)
 			label.set_alignment(0, 0.5)
-			vars()[var] = gtk.Entry()
+			#vars()[var] = gtk.Entry()
+			vars()[var] = hildon.Entry(gtk.HILDON_SIZE_FINGER_HEIGHT)
 			if current:
 				if current.get(var, None):
 					vars()[var].set_text(str(current[var]))
