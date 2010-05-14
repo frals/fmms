@@ -139,6 +139,10 @@ class fMMS_SenderUI(hildon.Program):
 		
 		self.window.add(align)
 		self.window.show_all()
+		
+		self.menu = self.cont.create_menu(self.window)
+		self.window.set_app_menu(self.menu)
+		
 		self.add_window(self.window)
 		
 		# so appearently throwing an exception here

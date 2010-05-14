@@ -10,6 +10,7 @@ Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
 import StringIO
 
 import gtk
+import hildon
 
 import controller
 
@@ -22,7 +23,61 @@ MSG_UNREAD = 0
 MSG_READ = 1
 
 class fMMS_controllerGTK(controller.fMMS_controller):
+	
+	def import_configdialog(self):
+		""" This is used to import configdialog only when we need it
+		    as its quite a hog """
+		try:
+			if not self.cdimported:
+				import fmms_config_dialog as fMMSConfigDialog
+				global fMMSConfigDialog
+				self.cdimported = True
+		except:
+			import fmms_config_dialog as fMMSConfigDialog
+			global fMMSConfigDialog
+			self.cdimported = True
+	
+	def create_menu(self, parent=None):
+		""" Creates the application menu. """
+		menu = hildon.AppMenu()
 
+		config = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
+		config.set_label("Configuration")
+		config.connect('clicked', self.menu_button_clicked, parent)
+
+		about = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
+		about.set_label("About")
+		about.connect('clicked', self.menu_button_clicked, parent)
+
+		menu.append(config)
+		menu.append(about)
+
+		menu.show_all()
+
+		return menu
+
+	def menu_button_clicked(self, button, parent):
+		""" Determine what button was clicked in the app menu. """
+		buttontext = button.get_label()
+		if buttontext == "Configuration":
+			self.import_configdialog()
+			fMMSConfigDialog.fMMS_ConfigDialog(parent)
+		elif buttontext == "About":
+			self.create_about_dialog()
+
+	def create_about_dialog(self):
+		""" Create and display the About dialog. """
+		dialog = gtk.AboutDialog()
+		dialog.set_name("fMMS")
+		fmms_logo = gtk.gdk.pixbuf_new_from_file("/opt/fmms/fmms.png")
+		dialog.set_logo(fmms_logo)
+		dialog.set_comments('MMS send and receive support for Fremantle')
+		dialog.set_version(self.config.get_version())
+		dialog.set_copyright("By Nick Leppänen Larsson (aka frals)")
+		gtk.about_dialog_set_url_hook(lambda dialog, link: self.osso_rpc.rpc_run_with_defaults("osso_browser", "open_new_window", (link,)))
+		dialog.set_website("http://mms.frals.se/")
+		dialog.connect("response", lambda d, r: d.destroy())
+		dialog.show()
 		
 	def get_primary_font(self):
 		return self.get_font_desc('SystemFont')

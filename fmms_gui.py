@@ -40,7 +40,6 @@ class fMMS_GUI(hildon.Program):
 		self.refreshlistview = True
 		self.viewerimported = False
 		self.senderimported = False
-		self.cdimported = False
 		
 		self.avatarlist = {}
 		self.namelist = {}
@@ -127,7 +126,7 @@ class fMMS_GUI(hildon.Program):
 		
 		self.window.add(align)
 	
-		self.menu = self.create_menu()
+		self.menu = self.cont.create_menu(self.window)
 		self.window.set_app_menu(self.menu)
 		
 		self.window.connect('focus-in-event', self.cb_on_focus)
@@ -150,14 +149,6 @@ class fMMS_GUI(hildon.Program):
 			import fmms_sender_ui as fMMSSenderUI
 			global fMMSSenderUI
 			self.senderimported = True
-
-	def import_configdialog(self):
-		""" This is used to import configdialog only when we need it
-		    as its quite a hog """
-		if not self.cdimported:
-			import fmms_config_dialog as fMMSConfigDialog
-			global fMMSConfigDialog
-			self.cdimported = True
 
 	def take_ss(self):
 		""" Takes a screenshot of the application used by hildon to show while loading.
@@ -200,8 +191,8 @@ class fMMS_GUI(hildon.Program):
 					self.config.set_apn_settings(auto)
 					settings = self.config.get_apn_settings()
 				if settings.get('apn', '') == '' or settings.get('mmsc', '') == '':
-					self.import_configdialog()
-					fMMSConfigDialog.fMMS_ConfigDialog(self.window)
+					self.cont.import_configdialog()
+					self.cont.fMMSConfigDialog.fMMS_ConfigDialog(self.window)
 				self.config.set_firstlaunch(2)
 				log.info("Seems this is the first time we are running.")
 				self.config.switcharoo()
@@ -241,34 +232,6 @@ class fMMS_GUI(hildon.Program):
 			self.quit()
 		else:
 			return
-		
-	def create_menu(self):
-		""" Creates the application menu. """
-		menu = hildon.AppMenu()
-		
-		config = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
-		config.set_label("Configuration")
-		config.connect('clicked', self.menu_button_clicked)
-		
-		about = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
-		about.set_label("About")
-		about.connect('clicked', self.menu_button_clicked)
-		
-		menu.append(config)
-		menu.append(about)
-		
-		menu.show_all()
-		
-		return menu
-		
-	def menu_button_clicked(self, button):
-		""" Determine what button was clicked in the app menu. """
-		buttontext = button.get_label()
-		if buttontext == "Configuration":
-			self.import_configdialog()
-			fMMSConfigDialog.fMMS_ConfigDialog(self.window)
-		elif buttontext == "About":
-			self.create_about_dialog()
 			
 	def new_mms_button_clicked(self, button):
 		""" Fired when the 'New MMS' button is clicked. """
@@ -276,20 +239,6 @@ class fMMS_GUI(hildon.Program):
 		self.import_sender()
 		fMMSSenderUI.fMMS_SenderUI(self.window).run()
 		
-	def create_about_dialog(self):
-		""" Create and display the About dialog. """
-		dialog = gtk.AboutDialog()                                                 
-		dialog.set_name("fMMS")
-		fmms_logo = gtk.gdk.pixbuf_new_from_file("/opt/fmms/fmms.png")
-		dialog.set_logo(fmms_logo)                                   
-		dialog.set_comments('MMS send and receive support for Fremantle')                      
-		dialog.set_version(self.config.get_version())                                                
-		dialog.set_copyright("By Nick Leppänen Larsson (aka frals)")
-		gtk.about_dialog_set_url_hook(lambda dialog, link: self.osso_rpc.rpc_run_with_defaults("osso_browser", "open_new_window", (link,)))
-		dialog.set_website("http://mms.frals.se/")                                  
-		dialog.connect("response", lambda d, r: d.destroy())                      
-		dialog.show() 
-
 	def add_buttons_liststore(self):
 		""" Adds all messages to the liststore. """
 		icon_theme = gtk.icon_theme_get_default()
