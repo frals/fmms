@@ -7,6 +7,14 @@ import conic
 import fmms_config as fMMSconf
 import controller as fMMSController
 
+import logging
+log = logging.getLogger('fmms.%s' % __name__)
+
+CONNMODE_UGLYHACK = 1                                                          
+CONNMODE_ICDSWITCH = 2                                                         
+CONNMODE_FORCESWITCH = 3                                                       
+CONNMODE_NULL = 10
+
 class MasterConnector:
 	""" handles setting up and (might) take down connection(s) """
 

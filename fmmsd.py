@@ -35,7 +35,7 @@ class MMSHandler(dbus.service.Object):
 		#handler = PushHandler()
 		try:
 			#ret = handler._incoming_sms_push(source, srcport, dstport, header, payload)
-			pid = subprocess.Popen(["/opt/fmms/wappushhandler.py", (source, srcport, dstport, str(header), str(payload))])
+			pid = subprocess.Popen(["/opt/fmms/wappushhandler.py", str(source), str(srcport), str(dstport), str(header), str(payload)])
 			print pid
 		except:
 			raise

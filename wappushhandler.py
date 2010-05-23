@@ -91,7 +91,11 @@ class PushHandler:
 		except:
 			log.info("failed to fetch - notifying push...")
 			# Send a notify we got the SMS Push and parsed it A_OKEY!
-			self.notify_mms(sndr, "SMS Push for MMS received")
+			try:
+				self.notify_mms(sndr, "SMS Push for MMS received")
+			except:
+				log.exception("hej")
+			log.info("notified...")
 			raise
 		log.info("decoding mms... path: %s", path)
 		message = self.cont.decode_binary_mms(path)
@@ -126,7 +130,7 @@ class PushHandler:
 		note.show()
 
 	def _get_mms_message(self, location, transaction):
-		connector = MasterConnector()
+		connector = connectors.MasterConnector()
 		connector.connect(location)
 				
 		try:
@@ -243,7 +247,7 @@ class MMSSender:
 			self._sender = sender
 			self.createMMS()
 			if self.setupConn == True:
-				self.connector = MasterConnector()
+				self.connector = connectors.MasterConnector()
 				self.connector.connect()
 				
 	    
@@ -353,4 +357,7 @@ if __name__ == '__main__':
 	payload = sys.argv[5]
 	push = PushHandler()
 	print source, srcport, dstport, header, payload
-	push._incoming_sms_push(source, srcport, dstport, eval(header), eval(payload))
+	try:
+		push._incoming_sms_push(source, srcport, dstport, eval(header), eval(payload))
+	except:
+		pass
