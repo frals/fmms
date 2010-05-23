@@ -36,6 +36,15 @@ class ContactHandler:
 		self.glib = ctypes.CDLL('libglib-2.0.so.0')
 		t2 = time.clock()
 		log.info("loaded contacthandler in %s s" % round(t2-t1, 5))
+		
+	def get_displayname_from_number(self, sndr):
+		sndr = str(sndr).replace("/TYPE=PLMN", "")
+		senderuid = self.get_uid_from_number(sndr)
+		if senderuid != None:
+			sender = self.get_displayname_from_uid(senderuid)
+		if sender != None:
+			sndr = sender
+		return sndr
 	
 	def get_displayname_from_uid(self, uid):
 		contact = self.ab.get_contact(str(uid))

@@ -9,7 +9,6 @@ Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
 """
 import os
 import sys
-import dbus
 import urllib2
 import httplib
 import time
@@ -25,19 +24,12 @@ from mms.message import MMSMessage
 from mms import mms_pdu
 import fmms_config as fMMSconf
 import controller as fMMSController
+import contacts as ContactH
 import connectors
 
 import logging
 log = logging.getLogger('fmms.%s' % __name__)
 
-magic = 0xacdcacdc
-
-CONNMODE_UGLYHACK = 1
-CONNMODE_ICDSWITCH = 2
-CONNMODE_FORCESWITCH = 3
-CONNMODE_NULL = 10
-
-_DBG = True
 
 class PushHandler:
 	def __init__(self):
@@ -51,10 +43,9 @@ class PushHandler:
 
 	def _incoming_sms_push(self, source, src_port, dst_port, wsp_header, wsp_payload):
 		""" handle incoming push over sms """
-		#dbus_loop = DBusGMainLoop()
+		log.info("Incoming SMS Push!")
 		args = (source, src_port, dst_port, wsp_header, wsp_payload)
 		
-		# TODO: dont hardcode
 		if not os.path.isdir(self.config.get_imgdir()):
 			os.makedirs(self.config.get_imgdir())
 		
@@ -64,11 +55,8 @@ class PushHandler:
 		    f.write('\n')
 		f.close()
 
-		if(_DBG):
-			log.info("SRC: %s:%s", source, src_port)
-			log.info("DST: %s", dst_port)
-			#print "WSPHEADER: ", wsp_header
-			#print "WSPPAYLOAD: ", wsp_payload
+		log.info("SRC: %s:%s", source, src_port)
+		log.info("DST: %s", dst_port)
 
 		binarydata = []
 		# throw away the wsp_header!
@@ -81,6 +69,10 @@ class PushHandler:
 		log.info("decoding...")
 		
 		(data, sndr, url, trans_id) = self.cont.decode_mms_from_push(binarydata)
+		
+		
+		ch = ContactH.ContactHandler()
+		sndr = ch.get_displayname_from_number(sndr)
 		
 		log.info("saving...")
 		# Controller should save it
@@ -103,14 +95,14 @@ class PushHandler:
 		self.cont.store_mms_message(pushid, message, transactionId=trans_id)
 		log.info("notifying mms...")
 		self.notify_mms(sndr, "New MMS", trans_id)
+		log.info("done, returning!")
 		return 0
 
 	# TODO: implement this
 	def _incoming_ip_push(self, src_ip, dst_ip, src_port, dst_port, wsp_header, wsp_payload):
 		""" handle incoming ip push """
-		if(_DBG):
-			log.info("SRC: %s:%s", src_ip, src_port)
-			log.info("DST: %s:%s", dst_ip, dst_port)
+		log.info("SRC: %s:%s", src_ip, src_port)
+		log.info("DST: %s:%s", dst_ip, dst_port)
 
 	def notify_mms(self, sender, msg, path=None):
 		""" notifies the user with a org.freedesktop.Notifications.Notify, really fancy """
