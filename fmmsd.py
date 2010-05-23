@@ -14,8 +14,6 @@ import gobject
 import dbus.mainloop.glib
 import dbus.service
 
-from wappushhandler import PushHandler
-
 import logging
 log = logging.getLogger('fmms.fmmsd')
 
@@ -31,17 +29,12 @@ class MMSHandler(dbus.service.Object):
 	""" According to wappushd.h SMS PUSH is one less argument """
 	@dbus.service.method(dbus_interface='com.nokia.WAPPushHandler')
 	def HandleWAPPush(self, bearer, source, srcport, dstport, header, payload):
-		#print source, srcport, dstport, header, payload
-		#handler = PushHandler()
 		try:
-			#ret = handler._incoming_sms_push(source, srcport, dstport, header, payload)
-			pid = subprocess.Popen(["/usr/bin/run-standalone.sh", "/opt/fmms/wappushhandler.py", str(source), str(srcport), str(dstport), str(header), str(payload)])
-			print pid
+			subprocess.Popen(["/usr/bin/run-standalone.sh", "/opt/fmms/wappushhandler.py", str(source), str(srcport), str(dstport), str(header), str(payload)])
 		except:
 			raise
 		log.info("All done, signing off!")
-		# we shouldnt quit since there might be another message waiting
-		#loop.quit()
+
 
 	""" According to wappushd.h IP PUSH is one more argument 
 	@dbus.service.method(dbus_interface='com.nokia.WAPPushHandler')
