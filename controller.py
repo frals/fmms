@@ -43,13 +43,17 @@ class fMMS_controller():
 		self._outdir = self.config.get_outdir()
 		self.store = DBHandler.DatabaseHandler()
 	
+	def clean_url(self, url):
+		m = re.search(r"http\:\/\/(?i)", url)
+		if m:
+			url = url.replace(m.group(0), "http://")
+		return url
+	
 	def get_host_from_url(self, url):
 		""" gets the hostname from an url """
 		# change HTTP:// etc to lowercase because
 		# havoc connector depends on it
-		m = re.search(r"http\:\/\/(?i)", url)
-		if m:
-			url = url.replace(m.group(0), "http://")
+		url = self.clean_url(url)
 		if not url.startswith("http://"):
 			url = "http://%s" % url
 
