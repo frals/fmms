@@ -7,6 +7,8 @@ Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
 
 @license: GNU GPLv2, see COPYING file.
 """
+import subprocess
+
 import dbus
 import gobject
 import dbus.mainloop.glib
@@ -29,11 +31,14 @@ class MMSHandler(dbus.service.Object):
 	""" According to wappushd.h SMS PUSH is one less argument """
 	@dbus.service.method(dbus_interface='com.nokia.WAPPushHandler')
 	def HandleWAPPush(self, bearer, source, srcport, dstport, header, payload):
-		handler = PushHandler()
+		#print source, srcport, dstport, header, payload
+		#handler = PushHandler()
 		try:
-			ret = handler._incoming_sms_push(source, srcport, dstport, header, payload)
+			#ret = handler._incoming_sms_push(source, srcport, dstport, header, payload)
+			pid = subprocess.Popen(["/opt/fmms/wappushhandler.py", (source, srcport, dstport, str(header), str(payload))])
+			print pid
 		except:
-			pass
+			raise
 		log.info("All done, signing off!")
 		# we shouldnt quit since there might be another message waiting
 		#loop.quit()
