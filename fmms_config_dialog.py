@@ -179,7 +179,7 @@ class fMMS_ConfigDialog():
 	def config_menu_button_clicked(self, action):
 		""" Checks if we should save the Configuration options. """
 		if action == gtk.RESPONSE_APPLY:
-			self.config.set_phonenumber(self.number.get_text())
+			#self.config.set_phonenumber(self.number.get_text())
 			selectorlabel = self.imgwidth.get_selector().get_current_text()
 			size = 0
 			for (label, val) in self.imgmodes:
