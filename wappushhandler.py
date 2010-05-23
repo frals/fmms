@@ -107,7 +107,7 @@ class PushHandler:
 			log.info("SRC: %s:%s", src_ip, src_port)
 			log.info("DST: %s:%s", dst_ip, dst_port)
 
-	def notify_mms(self, sender, msg, path=None):
+	def notify_mms(self, msg, sender, path=None):
 		""" notifies the user with a org.freedesktop.Notifications.Notify, really fancy """
 		pynotify.init("fMMS")
 		note = pynotify.Notification(msg, sender, "fmms")
