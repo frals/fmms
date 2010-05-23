@@ -107,25 +107,22 @@ class PushHandler:
 			log.info("SRC: %s:%s", src_ip, src_port)
 			log.info("DST: %s:%s", dst_ip, dst_port)
 
-	def notify_mms(self, msg, sender, path=None):
+	def notify_mms(self, sender, msg, path=None):
 		""" notifies the user with a org.freedesktop.Notifications.Notify, really fancy """
 		pynotify.init("fMMS")
-		note = pynotify.Notification(msg, sender, "fmms")
+		note = pynotify.Notification(sender, msg, "fmms")
 		note.set_urgency(pynotify.URGENCY_CRITICAL)
 		note.set_hint("led-pattern", "PatternCommunicationEmail")
 		if path:
 			note.set_hint("dbus-callback-default", "se.frals.fmms /se/frals/fmms se.frals.fmms open_mms string:\"" + path + "\"")
 		else:
 			note.set_hint("dbus-callback-default", "se.frals.fmms /se/frals/fmms se.frals.fmms open_gui")
+		# we have to fake being an email for vibra/sound... oh well!
+		bus = dbus.SessionBus()
+		proxy = bus.get_object('com.nokia.HildonSVNotificationDaemon', '/com/nokia/HildonSVNotificationDaemon')
+		interface = dbus.Interface(proxy,dbus_interface='com.nokia.HildonSVNotificationDaemon')
+		interface.PlayEvent({'time': 0, 'category': 'email-message'}, "fmms")
 		note.show()
-		"""bus = dbus.SystemBus()
-		proxy = bus.get_object('org.freedesktop.Notifications', '/org/freedesktop/Notifications')
-		interface = dbus.Interface(proxy, dbus_interface='org.freedesktop.Notifications')
-		choices = ['default', 'cancel']
-		if path == None:
-			interface.Notify('MMS', 0, '', msg, sender, choices, {"category": "sms-message", "dialog-type": 4, "led-pattern": "PatternCommunicationEmail", "dbus-callback-default": "se.frals.fmms /se/frals/fmms se.frals.fmms open_gui"}, -1)
-		else:
-			interface.Notify("MMS", 0, '', msg, sender, choices, {"category": "email-message", "dialog-type": 4, "led-pattern": "PatternCommunicationEmail", "dbus-callback-default": "se.frals.fmms /se/frals/fmms se.frals.fmms open_mms string:\"" + path + "\""}, -1)"""
 
 	def _get_mms_message(self, location, transaction):
 		connector = MasterConnector()
