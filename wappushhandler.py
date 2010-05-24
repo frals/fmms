@@ -83,10 +83,7 @@ class PushHandler:
 		except:
 			log.info("failed to fetch - notifying push...")
 			# Send a notify we got the SMS Push and parsed it A_OKEY!
-			try:
-				self.notify_mms(sndr, "SMS Push for MMS received")
-			except:
-				log.exception("hej")
+			self.notify_mms(sndr, "SMS Push for MMS received")
 			log.info("notified...")
 			raise
 		log.info("decoding mms... path: %s", path)
@@ -122,6 +119,7 @@ class PushHandler:
 		note.show()
 
 	def _get_mms_message(self, location, transaction):
+		# this method should be a critical section
 		connector = connectors.MasterConnector()
 		connector.connect(location)
 				
