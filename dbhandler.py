@@ -9,10 +9,12 @@ Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
 """
 import sqlite3
 import os
+import array
 
 from gnome import gnomevfs
 
 import fmms_config as fMMSconf
+import controller as fMMSController
 
 import logging
 log = logging.getLogger('fmms.%s' % __name__)
@@ -34,7 +36,7 @@ class DatabaseHandler:
 		self.outdir = self.config.get_outdir()
 		self.db = self.config.get_db_path()
 		self.conn = sqlite3.connect(self.db)
-		self.conn.text_factory = str
+		self.conn.text_factory = sqlite3.OptimizedUnicode
 		self.conn.row_factory = sqlite3.Row
 		try:
 			c = self.conn.cursor()
@@ -119,6 +121,17 @@ class DatabaseHandler:
 		c.execute("""CREATE INDEX "push_headers.push_id" ON "push_headers"("push_id");""")
 		self.conn.commit()
 
+	def byteparse_to_unicode(self, indata):
+		arr = array.array('B')
+		try:
+			unidata = unicode(indata, 'utf-8')
+			for ch in unidata:
+				arr.append(ord(ch))
+
+			indata = arr.tostring().decode('utf-8')
+		except:
+			pass
+		return indata
 
 	def get_push_list(self, types=None):
 		""" gets all push messages from the db and returns as a list
@@ -311,7 +324,7 @@ class DatabaseHandler:
 		
 		# insert all headers
 		for line in mmslist:
-			vals = (mmsid, line, str(mmslist[line]))
+			vals = (mmsid, line, self.byteparse_to_unicode(str(mmslist[line])))
 			c.execute("insert into mms_headers (mms_id, header, value) VALUES (?, ?, ?)", vals)
 			conn.commit()
 		attachpaths = basedir + "/"
@@ -329,7 +342,7 @@ class DatabaseHandler:
 			conn.commit()
 		
 		try:
-			description = str(mmslist['Subject'])
+			description = self.byteparse_to_unicode(str(mmslist['Subject']))
 		except:
 			description = ""			
 			# get the textfiles
@@ -341,6 +354,7 @@ class DatabaseHandler:
 					description += filep.read()
 					filep.close()
 			
+
 		# insert the message to be shown in the mainview
 		vals = (mmsid, "Description", description)
 		log.info("inserting description: %s", description)

@@ -311,7 +311,7 @@ class fMMS_GUI(hildon.Program):
 			except:
 				description = varlist.get('Subject', '')
 
-			description = description.decode('utf-8', 'ignore')
+			description = description.encode('utf-8', 'ignore')
 			primarytext = ' <span font_desc="%s" foreground="%s"><sup>%s</sup></span>' % (secondarytxt, secondarycolor, mtime)
 			secondarytext = '\n<span font_desc="%s" foreground="%s">%s</span>' % (secondarytxt, secondarycolor, escape(description))
 			if not isread and direction == fMMSController.MSG_DIRECTION_IN:
