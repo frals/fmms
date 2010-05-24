@@ -32,7 +32,7 @@ class MMSHandler(dbus.service.Object):
 		try:
 			subprocess.Popen(["/usr/bin/run-standalone.sh", "/opt/fmms/wappushhandler.py", str(source), str(srcport), str(dstport), str(header), str(payload)])
 		except:
-			log.exception("failed to spawn subprocess for processing"
+			log.exception("failed to spawn subprocess for processing")
 		log.info("All done, signing off!")
 
 
