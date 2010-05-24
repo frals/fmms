@@ -10,6 +10,8 @@ import controller as fMMSController
 import logging
 log = logging.getLogger('fmms.%s' % __name__)
 
+magic = 0xacdcacdc
+
 CONNMODE_UGLYHACK = 1                                                          
 CONNMODE_ICDSWITCH = 2                                                         
 CONNMODE_FORCESWITCH = 3                                                       
