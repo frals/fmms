@@ -39,6 +39,7 @@ class ContactHandler:
 		
 	def get_displayname_from_number(self, sndr):
 		sndr = str(sndr).replace("/TYPE=PLMN", "")
+		sender = sndr
 		senderuid = self.get_uid_from_number(sndr)
 		if senderuid != None:
 			sender = self.get_displayname_from_uid(senderuid)
