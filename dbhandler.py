@@ -36,7 +36,7 @@ class DatabaseHandler:
 		self.outdir = self.config.get_outdir()
 		self.db = self.config.get_db_path()
 		self.conn = sqlite3.connect(self.db)
-		self.conn.text_factory = sqlite3.OptimizedUnicode
+		self.conn.text_factory = str
 		self.conn.row_factory = sqlite3.Row
 		try:
 			c = self.conn.cursor()
