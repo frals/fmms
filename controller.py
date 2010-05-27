@@ -76,11 +76,11 @@ class fMMS_controller():
 	def convert_timeformat(self, intime, format, hideToday=False):
 		mtime = intime
 		try:
-			mtime = time.strptime(mtime)
+			mtime = time.strptime(mtime, "%Y-%m-%d %H:%M:%S")
 		except ValueError, e:
 			#log.info("timeconversion stage1 failed: %s %s", type(e), e)
 			try:
-				mtime = time.strptime(mtime, "%Y-%m-%d %H:%M:%S")
+				mtime = time.strptime(mtime)
 			except ValueError, e:
 				#log.info("timeconversion stage2 failed: %s %s", type(e), e)
 				pass
