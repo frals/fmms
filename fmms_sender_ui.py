@@ -20,7 +20,6 @@ import osso
 from gnome import gnomevfs
 
 from wappushhandler import MMSSender
-import fmms_config as fMMSconf
 import contacts as ContactH
 import controller_gtk as fMMSController
 
@@ -32,9 +31,9 @@ class fMMS_SenderUI(hildon.Program):
 		hildon.Program.__init__(self)
 		program = hildon.Program.get_instance()
 		
-		self.config = fMMSconf.fMMS_config()
 		self.ch = ContactH.ContactHandler()
 		self.cont = fMMSController.fMMS_controllerGTK()
+		self.config = self.cont.config
 		self.subject = subject
 		
 		self.window = hildon.StackableWindow()

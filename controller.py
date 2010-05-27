@@ -41,7 +41,7 @@ class fMMS_controller():
 		self._mmsdir = self.config.get_mmsdir()
 		self._pushdir = self.config.get_pushdir()
 		self._outdir = self.config.get_outdir()
-		self.store = DBHandler.DatabaseHandler()
+		self.store = DBHandler.DatabaseHandler(self)
 	
 	def clean_url(self, url):
 		m = re.search(r"http\:\/\/(?i)", url)
@@ -193,6 +193,9 @@ class fMMS_controller():
 			raise
 		log.info("returning message!")
 		return message
+	
+	def get_filepath_for_mms_transid(self, filename):
+		return self.store.get_filepath_for_mms_transid(filename).replace("/message", "")
 	
 	def is_mms_read(self, transactionid):
 		return self.store.is_message_read(transactionid)

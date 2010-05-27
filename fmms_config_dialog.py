@@ -200,8 +200,8 @@ class APNConfigDialog():
 		dialog.set_transient_for(parent)
 		dialog.set_title("APN Configuration")
 		self.parent = parent
-		self.config = fMMSconf.fMMS_config()
 		self.cont = fMMSController.fMMS_controller()
+		self.config = self.cont.config
 		
 		pan = hildon.PannableArea()
 		pan.set_property("mov-mode", hildon.MOVEMENT_MODE_VERT)

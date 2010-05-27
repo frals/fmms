@@ -14,7 +14,6 @@ import array
 from gnome import gnomevfs
 
 import fmms_config as fMMSconf
-import controller as fMMSController
 
 import logging
 log = logging.getLogger('fmms.%s' % __name__)
@@ -29,8 +28,8 @@ MSG_READ = 1
 
 class DatabaseHandler:
 	
-	def __init__(self):
-		self.config = fMMSconf.fMMS_config()
+	def __init__(self, controller):
+		self.config = controller.config
 		self.pushdir = self.config.get_pushdir()
 		self.mmsdir = self.config.get_mmsdir()
 		self.outdir = self.config.get_outdir()

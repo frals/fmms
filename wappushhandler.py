@@ -22,7 +22,6 @@ import pynotify
 from mms import message
 from mms.message import MMSMessage
 from mms import mms_pdu
-import fmms_config as fMMSconf
 import controller as fMMSController
 import contacts as ContactH
 import connectors
@@ -34,7 +33,7 @@ log = logging.getLogger('fmms.%s' % __name__)
 class PushHandler:
 	def __init__(self):
 		self.cont = fMMSController.fMMS_controller()
-		self.config = fMMSconf.fMMS_config()
+		self.config = self.cont.config
 		self._mmsdir = self.config.get_mmsdir()
 		self._pushdir = self.config.get_pushdir()
 		self._apn = self.config.get_apn()

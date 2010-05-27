@@ -30,7 +30,7 @@ class fMMS_GUI(hildon.Program):
 	def __init__(self):
 		""" Initializes the GUI, creating all widgets. """
 		self.cont = fMMSController.fMMS_controllerGTK()
-		self.config = fMMSconf.fMMS_config()
+		self.config = self.cont.config
 		self.ch = ContactH.ContactHandler()
 		
 		self.osso_c = osso.Context("se.frals.fmms", self.config.get_version(), False)
@@ -198,7 +198,7 @@ class fMMS_GUI(hildon.Program):
 				self.config.switcharoo()
 
 			self.take_ss()
-			
+		gtk.main_quit()	
 		return True
 
 
@@ -275,14 +275,14 @@ class fMMS_GUI(hildon.Program):
 
 			sendernr = sender
 
-			senderuid = self.nrlist.get(sender, None)
-			if not senderuid:
+			senderuid = self.nrlist.get(sender, -1)
+			if not senderuid == -1:
 				senderuid = self.ch.get_uid_from_number(sender)
 				self.nrlist[sender] = senderuid
-
+			
 			avatar = default_avatar
-			# need to check against None as uid might be 0
-			if senderuid != None:
+			# compare with -1 as thats invalid contactuid
+			if not senderuid == -1:
 				sender = self.namelist.get(senderuid, None)
 				if not sender:
 					sender = self.ch.get_displayname_from_uid(senderuid)

@@ -5,7 +5,6 @@ import time
 import dbus
 import conic
 
-import fmms_config as fMMSconf
 import controller as fMMSController
 
 import logging
@@ -23,7 +22,7 @@ class MasterConnector:
 
 	def __init__(self):
 		self.cont = fMMSController.fMMS_controller()
-		self.config = fMMSconf.fMMS_config()
+		self.config = self.cont.config
 		self._apn = self.config.get_apn()
 		self._apn_nicename = self.config.get_apn_nicename()
 	

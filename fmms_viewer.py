@@ -17,11 +17,9 @@ import osso
 from gnome import gnomevfs
 import Image
 
-import fmms_config as fMMSconf
 import controller_gtk as fMMSController
 import fmms_sender_ui as fMMSSenderUI
 import contacts as ContactH
-import dbhandler as DBHandler
 
 import logging
 log = logging.getLogger('fmms.%s' % __name__)
@@ -32,8 +30,7 @@ class fMMS_Viewer(hildon.Program):
 		self.cont = fMMSController.fMMS_controllerGTK()
 		self.ch = ContactH.ContactHandler()
 		self.standalone = standalone
-		self.config = fMMSconf.fMMS_config()
-		self.store = DBHandler.DatabaseHandler()
+		self.config = self.cont.config
 		self._mmsdir = self.config.get_mmsdir()
 		self._pushdir = self.config.get_pushdir()
 		self._outdir = self.config.get_outdir()
@@ -266,7 +263,7 @@ class fMMS_Viewer(hildon.Program):
 		if direction == fMMSController.MSG_DIRECTION_OUT:
 			path = self._outdir + filename
 		else:
-			path = self.store.get_filepath_for_mms_transid(filename).replace("/message", "")
+			path = self.cont.get_filepath_for_mms_transid(filename)
 		
 		filelist = self.cont.get_mms_attachments(filename)
 		log.info("filelist: %s", filelist)
