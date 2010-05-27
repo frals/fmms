@@ -224,8 +224,8 @@ class MMSSender:
 	
 	def __init__(self, number=None, subject=None, msg=None, attachment=None, sender=None, customMMS=None, setupConn=False):
 		self.customMMS = customMMS
-		self.config = fMMSconf.fMMS_config()
 		self.cont = fMMSController.fMMS_controller()
+		self.config = self.cont.config
 		self.setupConn = setupConn
 		if customMMS == None:
 			self.number = number

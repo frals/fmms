@@ -54,6 +54,8 @@ class fMMS_Viewer(hildon.Program):
 
 		if not self.cont.is_mms_read(fname) and self._direction == fMMSController.MSG_DIRECTION_IN:
 			self.cont.mark_mms_read(fname)
+			if self.spawner:
+				self.spawner.refreshlistview = True
 
 		mms_menu = self.create_mms_menu(fname)
 		self.window.set_app_menu(mms_menu)
