@@ -198,7 +198,7 @@ class fMMS_GUI(hildon.Program):
 				self.config.switcharoo()
 
 			self.take_ss()
-		gtk.main_quit()	
+
 		return True
 
 
