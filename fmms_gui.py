@@ -267,22 +267,22 @@ class fMMS_GUI(hildon.Program):
 
 			isread = self.cont.is_mms_read(fname)
 
-			sender = varlist.get('From', '00000').replace("/TYPE=PLMN", "")
-
 			if direction == fMMSController.MSG_DIRECTION_OUT:
 				sender = self.cont.get_mms_headers(varlist['Transaction-Id'])
 				sender = sender['To'].replace("/TYPE=PLMN", "")
+			else:
+				sender = varlist.get('From', '00000').replace("/TYPE=PLMN", "")
 
 			sendernr = sender
 
 			senderuid = self.nrlist.get(sender, -1)
-			if not senderuid == -1:
+			if senderuid == -1:
 				senderuid = self.ch.get_uid_from_number(sender)
 				self.nrlist[sender] = senderuid
-			
+
 			avatar = default_avatar
 			# compare with -1 as thats invalid contactuid
-			if not senderuid == -1:
+			if senderuid != -1 and senderuid != None:
 				sender = self.namelist.get(senderuid, None)
 				if not sender:
 					sender = self.ch.get_displayname_from_uid(senderuid)
