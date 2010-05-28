@@ -92,6 +92,10 @@ class fMMS_Viewer(hildon.Program):
 		forward.set_label("Forward")
 		forward.connect('clicked', self.mms_menu_button_clicked, fname)
 		
+		copyb = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
+		copyb.set_label("Copy text")
+		copyb.connect('clicked', self.mms_menu_button_clicked, fname)
+		
 		delete = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
 		delete.set_label("Delete")
 		delete.connect('clicked', self.mms_menu_button_clicked, fname)
@@ -99,6 +103,7 @@ class fMMS_Viewer(hildon.Program):
 		menu.append(reply)
 		menu.append(replysms)
 		menu.append(forward)
+		menu.append(copyb)
 		menu.append(headers)
 		menu.append(delete)
 		menu.show_all()
@@ -161,7 +166,12 @@ class fMMS_Viewer(hildon.Program):
 			fMMSSenderUI.fMMS_SenderUI(spawner=self.window, withfile=fn, message=msg)
 		elif buttontext == "Delete":
 			self.delete_dialog(fname)
-
+		elif buttontext == "Copy text":
+			clip = gtk.Clipboard(display=gtk.gdk.display_get_default(), selection="CLIPBOARD")
+			tbuffer = self.textview.get_buffer()
+			msg = tbuffer.get_text(tbuffer.get_start_iter(), tbuffer.get_end_iter())
+			clip.set_text(msg, -1)
+			
 	def create_headers_dialog(self, fname):
 		""" show headers in a dialog """
 		dialog = gtk.Dialog()
@@ -250,18 +260,15 @@ class fMMS_Viewer(hildon.Program):
 		container.pack_start(sep, False, False, 0)
 		# TODO: add correct padding to first item in next container
 				
-		self.textview = gtk.TextView()
+		self.textview = hildon.TextView()
+		self.textview.set_property("name", "hildon-readonly-textview")
 		self.textview.set_editable(False)
 		self.textview.set_cursor_visible(False)
 		self.textview.set_wrap_mode(gtk.WRAP_WORD)
 		self.textview.set_justification(gtk.JUSTIFY_CENTER)
-		black = gtk.gdk.Color(red=0, green=0, blue=0)
-		self.textview.modify_base(gtk.STATE_NORMAL, black)
-		self.textview.modify_text(gtk.STATE_NORMAL, gtk.gdk.color_parse("white"))
 		textbuffer = gtk.TextBuffer()
 		direction = self.cont.get_direction_mms(filename)
 		
-		# TODO: get path from db instead
 		if direction == fMMSController.MSG_DIRECTION_OUT:
 			path = self._outdir + filename
 		else:
