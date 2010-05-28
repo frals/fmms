@@ -9,6 +9,7 @@ Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
 """
 import gtk
 import hildon
+import gettext
 import logging
 log = logging.getLogger('fmms.%s' % __name__)
 
@@ -25,39 +26,25 @@ class fMMS_ConfigDialog():
 		
 		dialog = gtk.Dialog()
 		dialog.set_transient_for(self.window)
-		dialog.set_title("Configuration")
+		dialog.set_title(gettext.ldgettext('rtcom-messaging-ui', "messaging_me_main_settings"))
 
 		allVBox = gtk.VBox()
 
-		labelwidth = 16
+		labelwidth = 18
 
 		apnHBox = gtk.HBox()
-		apn_label = gtk.Label("Access Point")
+		apn_label = gtk.Label(gettext.ldgettext('osso-connectivity-ui', "conn_mngr_me_int_conn"))
 		apn_label.set_width_chars(labelwidth)
 		apn_label.set_alignment(0, 0.5)
 		apn_button = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
-		apn_button.set_label("Configure")
+		apn_button.set_label(gettext.ldgettext('rtcom-messaging-ui', "messaging_me_main_settings"))
 		apn_button.connect('clicked', self.show_apn_config, dialog)
 
 		apnHBox.pack_start(apn_label, False, True, 0)
 		apnHBox.pack_start(apn_button, True, True, 0)
 
-		"""numberHBox = gtk.HBox()
-		number_label = gtk.Label("Your phonenumber")
-		number_label.set_width_chars(labelwidth)
-		number_label.set_alignment(0, 0.5)
-		self.number = hildon.Entry(gtk.HILDON_SIZE_FINGER_HEIGHT)
-		self.number.set_property('hildon-input-mode', gtk.HILDON_GTK_INPUT_MODE_TELE)
-		number_text = self.config.get_phonenumber()
-		if number_text != None:
-			self.number.set_text(number_text)
-		else:
-			self.number.set_text("")
-		numberHBox.pack_start(number_label, False, True, 0)
-		numberHBox.pack_start(self.number, True, True, 0)"""
-
 		imgwidthHBox = gtk.HBox()
-		imgwidth_label = gtk.Label("Resize image width")
+		imgwidth_label = gtk.Label(gettext.ldgettext('osso-imageviewer-ui', "imag_bd_resize_percentage_button"))
 		imgwidth_label.set_width_chars(labelwidth)
 		imgwidth_label.set_alignment(0, 0.5)
 		self.imgmodes = [('Small', '240'), ('Medium', '320'), ('Large', '640'), ('Original', '0')]
@@ -71,8 +58,9 @@ class fMMS_ConfigDialog():
 
 
 		expHBox = gtk.HBox()
-		exp_label = gtk.Label("Connection mode")
+		exp_label = gtk.Label(gettext.ldgettext('osso-connectivity-ui', "conn_fi_placeholder_iap_settings"))
 		exp_label.set_width_chars(labelwidth)
+		exp_label.set_line_wrap(True)
 		exp_label.set_alignment(0, 0.5)
 		# havoc = CONNMODE_UGLYHACK = 1
 		# polite = CONNMODE_ICDSWITCH = 2
