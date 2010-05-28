@@ -307,7 +307,7 @@ class fMMS_SenderUI(hildon.Program):
 		# TODO: let controller do this
 		try:
 			if self.subject == '' or self.subject == None:
-				subject = message[:10]
+				subject = message[:10].replace('\n', '')
 				if len(message) > 10:
 					subject += "..."
 				if len(subject) == 0:
@@ -322,7 +322,7 @@ class fMMS_SenderUI(hildon.Program):
 				if output['Response-Status'] == "Ok":
 					log.info("message seems to have sent AOK!")
 					banner = hildon.hildon_banner_show_information(self.spawner, "", \
-						 gettext.ldgettext('modest', "mcen_ib_message_sent"))
+						 gettext.dngettext('modest', 'mcen_ib_message_sent', 'mcen_ib_messages_sent', 1))
 			
 					if self.attachmentIsResized == True:
 						log.info("Removing temporary image: %s", attachment)
