@@ -47,6 +47,10 @@ class fMMS_config:
 		if imgdir == None:
 			imgdir = "/home/user/.fmms/temp/"
 			self.set_imgdir(imgdir)
+		lockfile = self.get_lockfile()
+		if lockfile == None:
+			lockfile = "/var/lock/fmms_dl.lock"
+			self.set_lockfile(lockfile)
 		if self.get_mmsc() == None:
 			self.set_mmsc("")
 		if self.get_phonenumber() == None:
@@ -99,6 +103,12 @@ class fMMS_config:
 	
 	def get_db_path(self):
 		return self.client.get_string(self._fmmsdir + "db")
+
+	def set_lockfile(self, path):
+		self.client.set_string(self._fmmsdir + "lockfile", path)
+	
+	def get_lockfile(self):
+		return self.client.get_string(self._fmmsdir + "lockfile")
 
 	def get_useragent(self):
 		return self.client.get_string(self._fmmsdir + "useragent")

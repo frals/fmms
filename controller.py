@@ -423,6 +423,35 @@ class fMMS_controller():
 				return settings
 		return False
 
+class Locker:
+	def __init__(self, fn):
+		self.fn = fn
+		self.fd = None
+		self.pid = os.getpid()
+	
+	def lock(self):
+		try:
+			self.fd = os.open(self.fn, os.O_CREAT | os.O_EXCL | os.O_RDWR)
+			os.write(self.fd, "%d" % self.pid)
+			return 1
+		except OSError:
+			# we failed to lock
+			self.fd = None
+			return 0
+	
+	def unlock(self):
+		if not self.fd:
+			return 0
+		try:
+			os.close(self.fd)
+			os.remove(self.fn)
+			return 1
+		except OSError:
+			return 0
+			
+	def __del__(self):
+		# deconstructor, make sure lock is released
+		self.unlock()
 
 if __name__ == '__main__':
 	c = fMMS_controller()

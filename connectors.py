@@ -25,8 +25,19 @@ class MasterConnector:
 		self.config = self.cont.config
 		self._apn = self.config.get_apn()
 		self._apn_nicename = self.config.get_apn_nicename()
+		self.lock = fMMSController.Locker(self.config.get_lockfile())
 	
 	def connect(self, location="0"):
+	
+		# this is to make sure only one process has passed connect() at a time
+		while 1:
+			if self.lock.lock():
+				log.info("i acquired lock (%d)" % os.getpid())
+				break
+			else:
+				# wait 2 sec before retrying
+				time.sleep(2)
+	
 		if (self.config.get_connmode() == CONNMODE_UGLYHACK):
 			log.info("RUNNING IN UGLYHACK MODE")
 
@@ -61,6 +72,7 @@ class MasterConnector:
 			self.connector = None
 	
 	def disconnect(self):
+		self.lock.unlock()
 		try:
 			if self.connector:
 				self.connector.disconnect()
