@@ -58,13 +58,10 @@ class fMMS_ConfigDialog():
 
 
 		expHBox = gtk.HBox()
-		exp_label = gtk.Label(gettext.ldgettext('osso-connectivity-ui', "conn_fi_placeholder_iap_settings"))
+		exp_label = gtk.Label(gettext.ldgettext('osso-connectivity-ui', "conn_set_iap_fi_wlan_ap_mode"))
 		exp_label.set_width_chars(labelwidth)
 		exp_label.set_line_wrap(True)
 		exp_label.set_alignment(0, 0.5)
-		# havoc = CONNMODE_UGLYHACK = 1
-		# polite = CONNMODE_ICDSWITCH = 2
-		# rude = CONNMODE_FORCESWITCH = 3
 		
 		hbox = gtk.HButtonBox()
 		hbox.set_property("name", "GtkHBox")
@@ -98,7 +95,7 @@ class fMMS_ConfigDialog():
 
 		allVBox.show_all()
 		dialog.vbox.add(allVBox)
-		dialog.add_button("Save", gtk.RESPONSE_APPLY)
+		dialog.add_button(gtk.STOCK_SAVE, 1)
 		ret = dialog.run()
 		self.config_menu_button_clicked(ret)
 		dialog.destroy()
@@ -166,7 +163,7 @@ class fMMS_ConfigDialog():
 
 	def config_menu_button_clicked(self, action):
 		""" Checks if we should save the Configuration options. """
-		if action == gtk.RESPONSE_APPLY:
+		if action == 1:
 			#self.config.set_phonenumber(self.number.get_text())
 			selectorlabel = self.imgwidth.get_selector().get_current_text()
 			size = 0
@@ -177,7 +174,8 @@ class fMMS_ConfigDialog():
 			log.info("Set image width to %s" % size)
 			self.config.set_connmode(self.connmode_option())
 			log.info("Set connection mode %s" % self.connmode_option())				
-			banner = hildon.hildon_banner_show_information(self.window, "", "Settings saved")
+			banner = hildon.hildon_banner_show_information(self.window, "", \
+				 gettext.ldgettext('osso-connectivity-ui', "conn_ib_settings_saved"))
 			return 0
 			
 			
@@ -186,7 +184,7 @@ class APNConfigDialog():
 	def __init__(self, parent):
 		dialog = gtk.Dialog()
 		dialog.set_transient_for(parent)
-		dialog.set_title("APN Configuration")
+		dialog.set_title(gettext.ldgettext('osso-connectivity-ui', "conn_fi_placeholder_iap_settings"))
 		self.parent = parent
 		self.cont = fMMSController.fMMS_controller()
 		self.config = self.cont.config
@@ -197,10 +195,15 @@ class APNConfigDialog():
 		
 		allVBox = gtk.VBox()
 		
-		labelwidth = 16
+		labelwidth = 20
 
-		inputs = [('Access point name', 'apn'), ('MMSC', 'mmsc'), ('Username', 'user'),
-			  ('Password', 'pass'), ('Proxy', 'proxy'), ('Proxy Port', 'proxyport')]
+		gettext.ldgettext('osso-connectivity-ui', "conn_set_iap_fi_username")
+		inputs = [(gettext.ldgettext('osso-connectivity-ui', "conn_set_iap_fi_accessp_name"), 'apn') , \
+			  ('MMSC', 'mmsc'), \
+			  (gettext.ldgettext('osso-connectivity-ui', "conn_set_iap_fi_username"), 'user'), \
+			  (gettext.ldgettext('osso-connectivity-ui', "conn_set_iap_fi_password"), 'pass'), \
+			  (gettext.ldgettext('osso-connectivity-ui', "conn_set_iap_fi_adv_proxies_http"), 'proxy'), \
+			  (gettext.ldgettext('osso-connectivity-ui', "conn_set_iap_fi_adv_proxies_port"), 'proxyport')]
 		
 		entries = {}
 		
@@ -240,8 +243,8 @@ class APNConfigDialog():
 		pan.set_size_request_policy(hildon.SIZE_REQUEST_CHILDREN)
 		dialog.vbox.add(pan)
 		dialog.show_all()
-		dialog.add_button("Advanced", 999)
-		dialog.add_button("Save", gtk.RESPONSE_APPLY)
+		dialog.add_button(gettext.ldgettext('osso-connectivity-ui', "conn_set_iap_bd_advanced"), 999)
+		dialog.add_button(gtk.STOCK_SAVE, gtk.RESPONSE_APPLY)
 		
 		while 1:
 			ret = dialog.run()
@@ -263,7 +266,8 @@ class APNConfigDialog():
 					settings['mmsc'] = self.cont.clean_url(settings['mmsc'])
 					self.config.set_apn_settings(settings)
 					log.info("Set APN settings: %s" % settings)
-					banner = hildon.hildon_banner_show_information(parent, "", "APN settings saved")
+					banner = hildon.hildon_banner_show_information(parent, "", \
+						 gettext.ldgettext('osso-connectivity-ui', "conn_ib_settings_saved"))
 					break
 			elif ret == -4:
 				break
@@ -278,7 +282,9 @@ class APNConfigDialog():
 
 		labelwidth = 16
 
-		inputs = [('IP', 'ip'), ('Primary DNS', 'pdns'), ('Secondary DNS', 'sdns')]
+		inputs = [(gettext.ldgettext('osso-connectivity-ui', 'conn_set_iap_fi_adv_ip_ip'), 'ip'), \
+			  (gettext.ldgettext('osso-connectivity-ui', 'conn_set_iap_fi_adv_ip_dns_prim'), 'pdns'), \
+			  (gettext.ldgettext('osso-connectivity-ui', 'conn_set_iap_fi_adv_ip_dns_sec'), 'sdns')]
 
 		entries = {}
 		
@@ -322,7 +328,8 @@ class APNConfigDialog():
 		if ret == gtk.RESPONSE_APPLY:
 			self.config.set_advanced_apn_settings(settings)
 			log.info("Set Advanced APN settings: %s" % settings)
-			banner = hildon.hildon_banner_show_information(self.parent, "", "Advanced settings saved")
+			banner = hildon.hildon_banner_show_information(self.parent, "", \
+				 gettext.ldgettext('osso-connectivity-ui', "conn_ib_settings_saved"))
 
 		dialog.destroy()
 		
