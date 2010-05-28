@@ -8,6 +8,7 @@ Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
 @license: GNU GPLv2, see COPYING file.
 """
 import StringIO
+import gettext
 
 import gtk
 import hildon
@@ -25,7 +26,7 @@ MSG_READ = 1
 class fMMS_controllerGTK(controller.fMMS_controller):
 	
 	def __init__(self):
-		super(fMMS_controllerGTK, self).__init__()
+		controller.fMMS_controller.__init__(self)
 		self.config_label = gettext.ldgettext('rtcom-messaging-ui', "messaging_me_main_settings")
 		self.about_label = gettext.ldgettext('hildon-libs', "ecdg_ti_aboutdialog_title")
 	
