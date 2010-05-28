@@ -11,6 +11,7 @@ import os
 import socket
 import re
 import Image
+import gettext
 from shutil import copy
 
 import gtk
@@ -37,7 +38,7 @@ class fMMS_SenderUI(hildon.Program):
 		self.subject = subject
 		
 		self.window = hildon.StackableWindow()
-		self.window.set_title("New MMS")
+		self.window.set_title(gettext.ldgettext('rtcom-messaging-ui', "messaging_ti_new_mms"))
 		program.add_window(self.window)
 		
 		self.window.connect("delete_event", self.quit)
@@ -51,7 +52,8 @@ class fMMS_SenderUI(hildon.Program):
 		""" Begin top section """
 		topHBox1 = gtk.HBox()
 		
-		bTo = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL, "To")
+		bTo = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL, \
+				     gettext.ldgettext('rtcom-messaging-ui', "messaging_fi_new_sms_to"))
 		bTo.connect('clicked', self.open_contacts_dialog)
 		bTo.set_size_request(128, gtk.HILDON_SIZE_FINGER_HEIGHT)
 		self.eNumber = hildon.Entry(gtk.HILDON_SIZE_FINGER_HEIGHT)
@@ -88,7 +90,7 @@ class fMMS_SenderUI(hildon.Program):
 		self.imageBoxContent = gtk.Fixed()
 		border = gtk.Image()
 		border.set_from_file("/opt/fmms/dotted_border.png")
-		addimglabel = gtk.Label("Tap to add image")
+		addimglabel = gtk.Label(gettext.ldgettext('modest', "mcen_me_editor_attach_inlineimage"))
 		addimglabel.set_justify(gtk.JUSTIFY_CENTER)
 		addimglabel.set_size_request(300, 50)
 		
@@ -215,10 +217,6 @@ class fMMS_SenderUI(hildon.Program):
 		""" thanks tomaszf for this function """
 		""" slightly modified by frals """
 		try:
-			
-			hildon.hildon_banner_show_information(self.window, "", "Resizing and sending...")
-			self.force_ui_update()
-			
 			img = Image.open(filename)
 			log.info("width %s", str(img.size[0]))
 			log.info("height %s", str(img.size[1]))
@@ -278,6 +276,10 @@ class fMMS_SenderUI(hildon.Program):
 		
 		attachment = self.attachmentFile
 		
+		hildon.hildon_banner_show_information(self.window, "", \
+							gettext.ldgettext('modest', "mcen_li_outbox_sending"))
+		self.force_ui_update()
+		
 		if attachment == "" or attachment == None:
 			attachment = None
 			self.attachmentIsResized = False
@@ -291,7 +293,8 @@ class fMMS_SenderUI(hildon.Program):
 					log.exception("resize failed: %s %s", type(e), e)
 					note = osso.SystemNote(self.osso_c)
 					errmsg = str(e.args)
-					note.system_note_dialog("Resizing failed:\nError: " + errmsg , 'notice')
+					errstr = gettext.ldgettext('hildon-common-strings', "sfil_ni_operation_failed")
+					note.system_note_dialog(errstr + "\n" + errmsg , 'notice')
 					raise
 		
 		to = self.eNumber.get_text()
@@ -318,7 +321,8 @@ class fMMS_SenderUI(hildon.Program):
 			if parsed == True and "Response-Status" in output:
 				if output['Response-Status'] == "Ok":
 					log.info("message seems to have sent AOK!")
-					banner = hildon.hildon_banner_show_information(self.spawner, "", "Message sent")
+					banner = hildon.hildon_banner_show_information(self.spawner, "", \
+						 gettext.ldgettext('modest', "mcen_ib_message_sent"))
 			
 					if self.attachmentIsResized == True:
 						log.info("Removing temporary image: %s", attachment)
@@ -329,13 +333,14 @@ class fMMS_SenderUI(hildon.Program):
 			
 			message = str(status) + "_" + str(reason)
 			reply = str(output)
-			banner = hildon.hildon_banner_show_information(self.window, "", "MMSC REPLIED:" + message + "\nBODY: " + reply)
+			banner = hildon.hildon_banner_show_information(self.window, "", "MMSC:" + message + "\nBODY: " + reply)
                         
 		except TypeError, exc:
 			log.exception("sender: %s %s", type(exc), exc)
 			note = osso.SystemNote(self.osso_c)
 			errmsg = "Invalid attachment"
-			note.system_note_dialog("Sending failed:\nError: " + errmsg + " \nPlease make sure the file is valid" , 'notice')
+			errstr = gettext.ldgettext('hildon-common-strings', "sfil_ni_operation_failed")
+			note.system_note_dialog(errstr + ":\n" + errmsg + " \n" , 'notice')
 			#raise
 		except socket.error, exc:
 			log.exception("sender: %s %s", type(exc), exc)
@@ -347,13 +352,15 @@ class fMMS_SenderUI(hildon.Program):
 				text = ""
 			note = osso.SystemNote(self.osso_c)
 			errmsg = "%s %s" % (code, text)
-			note.system_note_dialog("Sending failed:\nError: " + errmsg + " \nPlease make sure your APN settings are correct" , 'notice')
+			errstr = gettext.ldgettext('hildon-common-strings', "sfil_ni_operation_failed")
+			note.system_note_dialog(errstr +"\n" + errmsg + " \nPlease make sure your APN settings are correct" , 'notice')
 			#raise
 		except Exception, exc:
 			log.exception("Sender failed.")
 			note = osso.SystemNote(self.osso_c)
 			errmsg = "%s" % exc
-			note.system_note_dialog("Sending failed:\n%s" % errmsg, 'notice')
+			note.system_note_dialog("%s\n%s" % (gettext.ldgettext('hildon-common-strings', "sfil_ni_operation_failed"), \
+						errmsg), 'notice')
 			#raise
 		finally:
 			hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)

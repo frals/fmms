@@ -9,6 +9,7 @@ Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
 """
 import os
 import sys
+import gettext
 
 import gtk
 import hildon
@@ -38,7 +39,7 @@ class fMMS_Viewer(hildon.Program):
 		self.spawner = spawner
 		
 		self.window = hildon.StackableWindow()
-		self.window.set_title("Showing MMS")
+		self.window.set_title("MMS")
 		self.window.connect("delete_event", self.quit)
 		
 		vbox = gtk.VBox()
@@ -76,28 +77,34 @@ class fMMS_Viewer(hildon.Program):
 		""" create app menu for mms viewing window """
 		menu = hildon.AppMenu()
 		
+		self.headerstxt = "Headers"
 		headers = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
-		headers.set_label("Headers")
+		headers.set_label(self.headerstxt)
 		headers.connect('clicked', self.mms_menu_button_clicked, fname)
 		
+		self.replytxt = gettext.ldgettext('skype-ui', 'skype_ti_incoming_call_options')
 		reply = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
-		reply.set_label("Reply")
+		reply.set_label(self.replytxt)
 		reply.connect('clicked', self.mms_menu_button_clicked, fname)
 		
+		self.replysmstxt = "%s (%s)" % (gettext.ldgettext('skype-ui', 'skype_ti_incoming_call_options'), "SMS")
 		replysms = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
-		replysms.set_label("Reply via SMS")
+		replysms.set_label(self.replysmstxt)
 		replysms.connect('clicked', self.mms_menu_button_clicked, fname)
 		
+		self.forwardtxt = gettext.ldgettext('rtcom-messaging-ui', 'messaging_fi_forward')
 		forward = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
-		forward.set_label("Forward")
+		forward.set_label(self.forwardtxt)
 		forward.connect('clicked', self.mms_menu_button_clicked, fname)
 		
+		self.copytxt = "%s (%s)" % (gettext.ldgettext('rtcom-messaging-ui', 'messaging_fi_copy'), "Text")
 		copyb = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
-		copyb.set_label("Copy text")
+		copyb.set_label(self.copytxt)
 		copyb.connect('clicked', self.mms_menu_button_clicked, fname)
 		
+		self.deletetxt = gettext.ldgettext('hildon-libs', 'wdgt_bd_delete')
 		delete = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
-		delete.set_label("Delete")
+		delete.set_label(self.deletetxt)
 		delete.connect('clicked', self.mms_menu_button_clicked, fname)
 		
 		menu.append(reply)
@@ -112,10 +119,11 @@ class fMMS_Viewer(hildon.Program):
 	
 	def delete_dialog(self, filename):
 		dialog = gtk.Dialog()
-		dialog.set_title("Confirm")
+		confirmtxt = gettext.ldgettext('rtcom-messaging-ui', "messaging_fi_delete_1_sms")
+		dialog.set_title(confirmtxt)
 		dialog.add_button(gtk.STOCK_YES, 1)
 		dialog.add_button(gtk.STOCK_NO, 0)
-		label = gtk.Label("Are you sure you want to delete the message?")
+		label = gtk.Label(confirmtxt)
 		dialog.vbox.add(label)
 		dialog.show_all()
 		ret = dialog.run()
@@ -139,17 +147,18 @@ class fMMS_Viewer(hildon.Program):
 			self.window.destroy()
 		except Exception, e:
 			log.exception("%s %s", type(e), e)
-			banner = hildon.hildon_banner_show_information(self.window, "", "Failed to delete message.")
+			banner = hildon.hildon_banner_show_information(self.window, "", \
+					gettext.ldgettext('hildon-common-strings', "sfil_ni_operation_failed"))
 
 	def mms_menu_button_clicked(self, button, fname):
 		""" actions for mms menu """
 		buttontext = button.get_label()
-		if buttontext == "Headers":
+		if buttontext == self.headerstxt:
 			ret = self.create_headers_dialog(fname)
-		elif buttontext == "Reply":
+		elif buttontext == self.replytxt:
 			number = self.cont.get_replyuri_from_transid(fname)
 			fMMSSenderUI.fMMS_SenderUI(spawner=self.window, tonumber=number).run()
-		elif buttontext == "Reply via SMS":
+		elif buttontext == self.replysmstxt:
 			number = self.cont.get_replyuri_from_transid(fname)
 			if "@" in number:
 				note = osso.SystemNote(self.osso_c)
@@ -159,14 +168,14 @@ class fMMS_Viewer(hildon.Program):
 				nr = "sms:%s" % str(number)
 				args = (nr, "")
 				rpc.rpc_run('com.nokia.MessagingUI', '/com/nokia/MessagingUI', 'com.nokia.MessagingUI', 'messaging_ui_interface_start_sms', args, True, True)
-		elif buttontext == "Forward":
+		elif buttontext == self.forwardtxt:
 			tbuffer = self.textview.get_buffer()
 			msg = tbuffer.get_text(tbuffer.get_start_iter(), tbuffer.get_end_iter())
 			fn = self.attachment
 			fMMSSenderUI.fMMS_SenderUI(spawner=self.window, withfile=fn, message=msg)
-		elif buttontext == "Delete":
+		elif buttontext == self.deletetxt:
 			self.delete_dialog(fname)
-		elif buttontext == "Copy text":
+		elif buttontext == self.copytxt:
 			clip = gtk.Clipboard(display=gtk.gdk.display_get_default(), selection="CLIPBOARD")
 			tbuffer = self.textview.get_buffer()
 			msg = tbuffer.get_text(tbuffer.get_start_iter(), tbuffer.get_end_iter())
@@ -175,7 +184,7 @@ class fMMS_Viewer(hildon.Program):
 	def create_headers_dialog(self, fname):
 		""" show headers in a dialog """
 		dialog = gtk.Dialog()
-		dialog.set_title("Headers")
+		dialog.set_title(self.headerstxt)
 		
 		dialogVBox = gtk.VBox()
 		
@@ -213,7 +222,8 @@ class fMMS_Viewer(hildon.Program):
 		self.force_ui_update()
 		
 		if not self.cont.is_fetched_push_by_transid(filename):
-			banner = hildon.hildon_banner_show_information(self.window, "", "Trying to download MMS...")
+			msgstr = gettext.ldgettext('hildon-application-manager', "ai_nw_downloading") % "MMS"
+			banner = hildon.hildon_banner_show_information(self.window, "", msgstr)
 			self.force_ui_update()
 			self.cont.get_mms_from_push(filename)
 			self.cont.mark_mms_read(filename)
@@ -224,10 +234,12 @@ class fMMS_Viewer(hildon.Program):
 		topbox = gtk.HBox()
 		
 		if self._direction == fMMSController.MSG_DIRECTION_IN:
-			label = gtk.Label('<span foreground="#666666">From</span>')
+			label = gtk.Label('<span foreground="#666666">%s</span>' \
+					  % gettext.ldgettext('modest', 'mail_va_from'))
 			sender = headerlist.get('From', "0").replace("/TYPE=PLMN", "")
 		else:
-			label = gtk.Label('<span foreground="#666666">To</span>')
+			label = gtk.Label('<span foreground="#666666">%s</span>' \
+					  % gettext.ldgettext('rtcom-messaging-ui', 'messaging_fi_new_sms_to'))
 			sender = headerlist['To'].replace("/TYPE=PLMN", "")
 		
 		label.set_use_markup(True)
@@ -356,7 +368,7 @@ class fMMS_Viewer(hildon.Program):
 		menu = gtk.Menu()
 		menu.set_property("name", "hildon-context-sensitive-menu")
 
-		openItem = gtk.MenuItem("Open")
+		openItem = gtk.MenuItem(gettext.ldgettext('hildon-fm', 'ckdg_ti_open_file'))
 		menu.append(openItem)
 		openItem.connect("activate", self.mms_img_clicked, data)
 		openItem.show()
