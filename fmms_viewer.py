@@ -288,7 +288,7 @@ class fMMS_Viewer(hildon.Program):
 				if filetype != None:
 					if filetype.startswith("image") or filetype.startswith("sketch"):
 						isImage = True
-					if filetype.startswith("text"):
+					if filetype.startswith("text") and not "x-vcard" in filetype:
 						isText = True
 			except Exception, e:
 				filetype = None
@@ -340,6 +340,9 @@ class fMMS_Viewer(hildon.Program):
 			elif file_mimetype.startswith("image"):
 				rpc = osso.Rpc(self.osso_c)
 				ret = rpc.rpc_run("com.nokia.image_viewer", "/com/nokia/image_viewer", "com.nokia.image_viewer", "mime_open", (str, path))
+			elif "vcard" in file_mimetype:
+				rpc = osso.Rpc(self.osso_c)
+				ret = rpc.rpc_run("com.nokia.osso_addressbook", "/com/nokia/osso_addressbook", "com.nokia.osso_addressbook", "mime_open", (str, path))
 		else:
 			# TODO: how to solve this?
 			# move .mms to ~/MyDocs? change button to copy file to ~/MyDocs?
