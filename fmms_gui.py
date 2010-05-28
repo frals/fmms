@@ -15,6 +15,7 @@ import gtk
 import hildon
 import osso
 import gobject
+import gettext
 
 import controller_gtk as fMMSController
 import contacts as ContactH
@@ -103,7 +104,7 @@ class fMMS_GUI(hildon.Program):
 		envelopeImage = gtk.Image()
 		envelopeImage.set_from_pixbuf(envelopePixbuf)
 		envelopeImage.set_alignment(1, 0.5)
-		mmsLabel = gtk.Label("New MMS")
+		mmsLabel = gtk.Label(gettext.ldgettext('rtcom-messaging-ui', "messaging_ti_new_mms"))
 		mmsLabel.set_alignment(0, 0.5)
 		
 		mmsBox.pack_start(envelopeImage, True, True, 0)
@@ -344,7 +345,7 @@ class fMMS_GUI(hildon.Program):
 			self.cont.wipe_message(fname)
 		except Exception, e:
 			log.exception("failed to delete push mms")
-			hildon.hildon_banner_show_information(self.window, "", "Failed to delete message.")
+			hildon.hildon_banner_show_information(self.window, "", gettext.ldgettext('hildon-common-strings', "sfil_ni_operation_failed"))
 
 	def liststore_delete_clicked(self, widget):
 		""" Shows a confirm dialog when Delete menu is clicked.
@@ -360,11 +361,13 @@ class fMMS_GUI(hildon.Program):
 		# the 4th value is the transactionid (start counting at 0)
 		filename = model.get_value(miter, 3)
 		
+		confirmtxt = gettext.ldgettext('rtcom-messaging-ui', "messaging_fi_delete_1_sms")
+		
 		dialog = gtk.Dialog()
-		dialog.set_title("Confirm")
+		dialog.set_title(confirmtxt)
 		dialog.add_button(gtk.STOCK_YES, 1)
 		dialog.add_button(gtk.STOCK_NO, 0)
-		label = gtk.Label("Are you sure you want to delete the message?")
+		label = gtk.Label(confirmtxt)
 		dialog.vbox.add(label)
 		dialog.show_all()
 		ret = dialog.run()
@@ -380,7 +383,7 @@ class fMMS_GUI(hildon.Program):
 		menu = gtk.Menu()
 		menu.set_property("name", "hildon-context-sensitive-menu")
 
-		openItem = gtk.MenuItem("Delete")
+		openItem = gtk.MenuItem(gettext.ldgettext('hildon-libs', "wdgt_bd_delete"))
 		menu.append(openItem)
 		openItem.connect("activate", self.liststore_delete_clicked)
 		openItem.show()
@@ -429,12 +432,12 @@ class fMMS_GUI(hildon.Program):
 		label = gtk.Label("Would you like me to terminate your current connection to fetch the MMS?")
 		label.set_line_wrap(True)
 		dialog.vbox.add(label)
-		dialog.add_button("Yes", gtk.RESPONSE_YES)
-		dialog.add_button("No", gtk.RESPONSE_NO)
+		dialog.add_button(gtk.STOCK_YES, 1)
+		dialog.add_button(gtk.STOCK_NO, 0)
 		dialog.vbox.show_all()
 		ret = dialog.run()
 		switch = False
-		if ret == gtk.RESPONSE_YES:
+		if ret == 1:
 			switch = True
 		dialog.destroy()
 		self.force_ui_update()
