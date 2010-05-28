@@ -24,6 +24,11 @@ MSG_READ = 1
 
 class fMMS_controllerGTK(controller.fMMS_controller):
 	
+	def __init__(self):
+		super(fMMS_controllerGTK, self).__init__()
+		self.config_label = gettext.ldgettext('rtcom-messaging-ui', "messaging_me_main_settings")
+		self.about_label = gettext.ldgettext('hildon-libs', "ecdg_ti_aboutdialog_title")
+	
 	def import_configdialog(self):
 		""" This is used to import configdialog only when we need it
 		    as its quite a hog """
@@ -42,13 +47,13 @@ class fMMS_controllerGTK(controller.fMMS_controller):
 		menu = hildon.AppMenu()
 
 		config = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
-		config.set_label("Configuration")
+		config.set_label(self.config_label)
 		config.connect('clicked', self.menu_button_clicked, parent)
-
+		
 		about = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
-		about.set_label("About")
+		about.set_label(self.about_label)
 		about.connect('clicked', self.menu_button_clicked, parent)
-
+		
 		menu.append(config)
 		menu.append(about)
 
@@ -59,10 +64,10 @@ class fMMS_controllerGTK(controller.fMMS_controller):
 	def menu_button_clicked(self, button, parent):
 		""" Determine what button was clicked in the app menu. """
 		buttontext = button.get_label()
-		if buttontext == "Configuration":
+		if buttontext == self.config_label:
 			self.import_configdialog()
 			fMMSConfigDialog.fMMS_ConfigDialog(parent)
-		elif buttontext == "About":
+		elif buttontext == self.about_label:
 			self.create_about_dialog()
 
 	def create_about_dialog(self):
