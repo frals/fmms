@@ -390,6 +390,7 @@ class fMMS_GUI(hildon.Program):
 
 	def show_mms(self, treeview, path):
 		""" Shows the message at the current selection in the treeview. """
+		self.treeview.set_sensitive(False)
 		# Show loading indicator
 		hildon.hildon_gtk_window_set_progress_indicator(self.window, 1)
 		self.force_ui_update()
@@ -417,6 +418,7 @@ class fMMS_GUI(hildon.Program):
 			log.exception("Failed to open viewer with transaction id: %s" % transactionid)
 			#raise
 		hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
+		self.treeview.set_sensitive(True)
 
 	def show_switch_conn_dialog(self):
 		""" Show confirmation dialog asking if we should disconnect """
