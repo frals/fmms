@@ -79,7 +79,7 @@ class fMMS_controllerGTK(controller.fMMS_controller):
 		dialog.set_logo(fmms_logo)
 		dialog.set_comments('MMS send and receive support for Fremantle')
 		dialog.set_version(self.config.get_version())
-		dialog.set_copyright("By Nick Leppänen Larsson (aka frals)")
+		dialog.set_copyright("© Nick Leppänen Larsson (aka frals)")
 		gtk.about_dialog_set_url_hook(lambda dialog, link: self.osso_rpc.rpc_run_with_defaults("osso_browser", "open_new_window", (link,)))
 		dialog.set_website("http://mms.frals.se/")
 		dialog.connect("response", lambda d, r: d.destroy())

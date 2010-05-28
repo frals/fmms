@@ -280,7 +280,7 @@ class APNConfigDialog():
 
 		allVBox = gtk.VBox()
 
-		labelwidth = 16
+		labelwidth = 20
 
 		inputs = [(gettext.ldgettext('osso-connectivity-ui', 'conn_set_iap_fi_adv_ip_ip'), 'ip'), \
 			  (gettext.ldgettext('osso-connectivity-ui', 'conn_set_iap_fi_adv_ip_dns_prim'), 'pdns'), \

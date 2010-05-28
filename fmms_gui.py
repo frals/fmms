@@ -427,7 +427,7 @@ class fMMS_GUI(hildon.Program):
 		""" Show confirmation dialog asking if we should disconnect """
 		self.refreshlistview = False
 		dialog = gtk.Dialog()
-		dialog.set_title("Switch connection?")
+		dialog.set_title(gettext.ldgettext('osso-connectivity-ui', 'conn_mngr_me_int_conn_change_iap'))
 		dialog.set_transient_for(self.window)
 		label = gtk.Label("Would you like me to terminate your current connection to fetch the MMS?")
 		label.set_line_wrap(True)

@@ -9,6 +9,7 @@ Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
 """
 import time
 import ctypes
+import gettext
 
 import evolution
 import gtk
@@ -55,7 +56,8 @@ class ContactHandler:
 
 	def contact_chooser_dialog(self):
 		capi = PyGObjectCPAI()
-		c_chooser = self.osso_abook.osso_abook_contact_chooser_new(None, "Choose a contact")
+		c_chooser = self.osso_abook.osso_abook_contact_chooser_new(None, \
+				gettext.ldgettext('osso-addressbook', "addr_ti_dia_select_contacts"))
 		chooser = capi.pygobject_new(c_chooser)
 		chooser.run()
 		chooser.hide()

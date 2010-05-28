@@ -15,6 +15,7 @@ import time
 import socket
 import array
 import subprocess
+import gettext
 
 import dbus
 import pynotify
@@ -82,7 +83,8 @@ class PushHandler:
 		except:
 			log.info("failed to fetch - notifying push...")
 			# Send a notify we got the SMS Push and parsed it A_OKEY!
-			self.notify_mms(sndr, "SMS Push for MMS received")
+			msgstr = "%s (%s)" % (gettext.ldgettext('rtcom-messaging-ui', "messaging_ti_new_mms"), "Push")
+			self.notify_mms(sndr, msgstr)
 			log.info("notified...")
 			raise
 		log.info("decoding mms... path: %s", path)
@@ -90,7 +92,7 @@ class PushHandler:
 		log.info("storing mms...")
 		self.cont.store_mms_message(pushid, message, transactionId=trans_id)
 		log.info("notifying mms...")
-		self.notify_mms(sndr, "New MMS", trans_id)
+		self.notify_mms(sndr, gettext.ldgettext('rtcom-messaging-ui', "messaging_ti_new_mms"), trans_id)
 		log.info("done, returning!")
 		return 0
 
@@ -188,7 +190,7 @@ class PushHandler:
 			bus = dbus.SystemBus()
 			proxy = bus.get_object('org.freedesktop.Notifications', '/org/freedesktop/Notifications')
 			interface = dbus.Interface(proxy, dbus_interface='org.freedesktop.Notifications')
-			interface.SystemNoteInfoprint ("Failed to download MMS message.")
+			interface.SystemNoteInfoprint(gettext.ldgettext('modest', "mail_ni_ui_folder_get_msg_folder_error"))
 			raise
 		
 		return dirname
