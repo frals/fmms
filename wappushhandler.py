@@ -70,7 +70,6 @@ class PushHandler:
 		
 		(data, sndr, url, trans_id) = self.cont.decode_mms_from_push(binarydata)
 		
-		
 		ch = ContactH.ContactHandler()
 		sndr = ch.get_displayname_from_number(sndr)
 		

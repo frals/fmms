@@ -31,10 +31,9 @@ class fMMSStatusPlugin(StatusMenuItem):
 
 		self.button = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_VERTICAL)
 		self.button.set_image(img)
-		self.button.set_text("fMMS", "Wreaking HAVOC")
+		self.button.set_text("fMMS", '')
 		self.button.set_image_position(gtk.POS_LEFT)
 		self.button.set_alignment(0.0, 0.5, 1, 1)
-		#self.show_all()
 		
 	def update(self, *args):
 		status = -1

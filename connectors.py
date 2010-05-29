@@ -1,6 +1,7 @@
 import os
 import subprocess
 import time
+import shlex
 
 import dbus
 import conic
@@ -200,6 +201,17 @@ class UglyHackHandler:
 		log.info("fmms_magic retcode: %s" % retcode)
 		
 	def connect(self):
+		if self.mmsc2 == "0":
+			args = "/usr/bin/dbus-send --type=signal /se/frals/fmms/statusmenu se.frals.fmms.statusmenu.Show boolean:true string:'Sending'"
+		else:
+			args = "/usr/bin/dbus-send --type=signal /se/frals/fmms/statusmenu se.frals.fmms.statusmenu.Show boolean:true string:'Downloading'"
+
+		try:
+			args = shlex.split(args)
+			subprocess.Popen(args)
+		except:
+			pass
+	
 		bus = dbus.SystemBus()
 		gprs = dbus.Interface(bus.get_object("com.nokia.csd", "/com/nokia/csd/gprs"), "com.nokia.csd.GPRS")
 		obj = gprs.QuickConnect(self.apn, "IP", self.username, self.password)
@@ -214,6 +226,13 @@ class UglyHackHandler:
 		
 	def disconnect(self):
 		log.info("UglyHackHandler running disconnect")
+		args = "/usr/bin/dbus-send --type=signal /se/frals/fmms/statusmenu se.frals.fmms.statusmenu.Show boolean:false"
+		try:
+			args = shlex.split(args)
+			subprocess.Popen(args)
+		except:
+			pass
+		
 		(apn, ctype, self.iface, self.ipaddr, connected, self.tx, self.rx) = self.conn.GetStatus()
 		args = "STOP %s" % self.iface
 		retcode = subprocess.call(["/opt/fmms/fmms_magic", args])
