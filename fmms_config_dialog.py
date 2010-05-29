@@ -276,7 +276,7 @@ class APNConfigDialog():
 		
 	def create_advanced_config(self, spawnedby):
 		dialog = gtk.Dialog()
-		dialog.set_title("Advanced Configuration")
+		dialog.set_title(gettext.ldgettext('osso-connectivity-ui', 'conn_set_iap_ti_adv'))
 
 		allVBox = gtk.VBox()
 
@@ -318,7 +318,7 @@ class APNConfigDialog():
 
 		allVBox.show_all()
 		dialog.vbox.add(allVBox)
-		dialog.add_button("Save", gtk.RESPONSE_APPLY)
+		dialog.add_button(gtk.STOCK_SAVE, gtk.RESPONSE_APPLY)
 		ret = dialog.run()
 		
 		settings = {}
