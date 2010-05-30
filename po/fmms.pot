@@ -21,7 +21,7 @@ msgstr ""
 
 #: fmms_gui.py:433
 msgid ""
-"To retrieve the MMS your active connection will need to changed. Switch "
+"To retrieve the MMS your active connection will need to be changed. Switch "
 "connection?"
 msgstr ""
 
