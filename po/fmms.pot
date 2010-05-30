@@ -8,40 +8,81 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fMMS\n"
 "Report-Msgid-Bugs-To: http://bugs.maemo.org/enter_bug.cgi?product=fMMS\n"
-"POT-Creation-Date: 2010-05-30 21:37+0200\n"
+"POT-Creation-Date: 2010-05-30 22:38+0200\n"
 "Last-Translator: Nick Leppänen Larsson <frals@frals.se>\n"
 "Language-Team: English <>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+#: fmms_viewer.py:82
+msgid "Headers"
+msgstr ""
+
+#: fmms_gui.py:433
+msgid ""
+"To retrieve the MMS your active connection will need to changed. Switch "
+"connection?"
+msgstr ""
+
 #: heaboutdialog.py:42
 msgid "About"
-msgstr "Om"
+msgstr ""
 
 #: heaboutdialog.py:86
 #, python-format
 msgid "About %s"
-msgstr "Om %s"
+msgstr ""
 
 #: heaboutdialog.py:102
 msgid "Visit website"
-msgstr "Besök hemsida"
+msgstr ""
 
 #: heaboutdialog.py:107
 msgid "Report bug"
-msgstr "Rapportera bug"
+msgstr ""
 
 #: heaboutdialog.py:112
 msgid "Donate"
-msgstr "Donera"
+msgstr ""
 
-#: fmms_sender_ui.py:325
-msgid "mcen_ib_message_sent"
-msgid_plural "mcen_ib_messages_sent"
-msgstr[0] ""
-msgstr[1] ""
+#: fmms_sender_ui.py:206
+#, python-format
+msgid "Attachment is too large (limit is %s)."
+msgstr ""
+
+#: fmms_sender_ui.py:350
+msgid "Please check your settings."
+msgstr ""
 
 #: controller_gtk.py:83
 msgid "Send and receive MMS on your N900."
-msgstr "Skicka och ta emot MMS på din N900."
+msgstr ""
+
+#: fmms_config_dialog.py:52
+msgid "Small"
+msgstr ""
+
+#: fmms_config_dialog.py:52
+msgid "Medium"
+msgstr ""
+
+#: fmms_config_dialog.py:52
+msgid "Large"
+msgstr ""
+
+#: fmms_config_dialog.py:52
+msgid "Original"
+msgstr ""
+
+#: fmms_config_dialog.py:71
+msgid "Havoc"
+msgstr ""
+
+#: fmms_config_dialog.py:74
+msgid "Rude"
+msgstr ""
+
+#: fmms_config_dialog.py:77
+msgid "Polite"
+msgstr ""
