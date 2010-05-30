@@ -14,6 +14,7 @@ import gtk
 import hildon
 
 import controller
+import heaboutdialog
 
 import logging
 log = logging.getLogger('fmms.%s' % __name__)
@@ -22,6 +23,8 @@ MSG_DIRECTION_IN = 0
 MSG_DIRECTION_OUT = 1
 MSG_UNREAD = 0
 MSG_READ = 1
+
+_ = gettext.gettext
 
 class fMMS_controllerGTK(controller.fMMS_controller):
 	
@@ -69,21 +72,20 @@ class fMMS_controllerGTK(controller.fMMS_controller):
 			self.import_configdialog()
 			fMMSConfigDialog.fMMS_ConfigDialog(parent)
 		elif buttontext == self.about_label:
-			self.create_about_dialog()
+			self.create_about_dialog(parent)
 
-	def create_about_dialog(self):
+	def create_about_dialog(self, parent=None):
 		""" Create and display the About dialog. """
-		dialog = gtk.AboutDialog()
-		dialog.set_name("fMMS")
-		fmms_logo = gtk.gdk.pixbuf_new_from_file("/opt/fmms/fmms.png")
-		dialog.set_logo(fmms_logo)
-		dialog.set_comments('MMS send and receive support for Fremantle')
-		dialog.set_version(self.config.get_version())
-		dialog.set_copyright("© Nick Leppänen Larsson (aka frals)")
-		gtk.about_dialog_set_url_hook(lambda dialog, link: self.osso_rpc.rpc_run_with_defaults("osso_browser", "open_new_window", (link,)))
-		dialog.set_website("http://mms.frals.se/")
-		dialog.connect("response", lambda d, r: d.destroy())
-		dialog.show()
+		heaboutdialog.HeAboutDialog.present(parent,
+					'fMMS',
+					'fmms',
+					self.config.get_version(),
+					_('Send and receive MMS on your N900.'),
+					'© Nick Leppänen Larsson',
+					'http://mms.frals.se/',
+					'http://bugs.maemo.org/enter_bug.cgi?product=fMMS',
+					'https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=AZKC7ZRYKEY76&lc=SE&item_name=frals_mms&item_number=fmms_app&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted')
+		
 		
 	def get_primary_font(self):
 		return self.get_font_desc('SystemFont')
