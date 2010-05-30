@@ -19,6 +19,7 @@ import re
 import time
 import urlparse
 import subprocess
+import gettext
 
 import dbus
 
@@ -115,7 +116,7 @@ class fMMS_controller():
 			log.info("transid: %s", trans_id)
 		except Exception, e:
 			log.exception("no content-location/transid in push; aborting: %s %s", type(e), e)
-			interface.SystemNoteInfoprint("Failed to parse SMS PUSH.")
+			interface.SystemNoteInfoprint(gettext.ldgettext('modest', "mail_ni_ui_folder_get_msg_folder_error"))
 			raise
 		try:
 			sndr = wsplist["From"]

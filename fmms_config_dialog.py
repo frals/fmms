@@ -16,6 +16,8 @@ log = logging.getLogger('fmms.%s' % __name__)
 import fmms_config as fMMSconf
 import controller as fMMSController
 
+_ = gettext.gettext
+
 class fMMS_ConfigDialog():
 
 	def __init__(self, spawner):
@@ -47,7 +49,7 @@ class fMMS_ConfigDialog():
 		imgwidth_label = gtk.Label(gettext.ldgettext('osso-imageviewer-ui', "imag_bd_resize_percentage_button"))
 		imgwidth_label.set_width_chars(labelwidth)
 		imgwidth_label.set_alignment(0, 0.5)
-		self.imgmodes = [('Small', '240'), ('Medium', '320'), ('Large', '640'), ('Original', '0')]
+		self.imgmodes = [(_('Small'), '240'), (_('Medium'), '320'), (_('Large'), '640'), (_('Original'), '0')]
 		self.active_imgselector_index = 0
 		self.imgselector = self.create_img_selector()
 		self.imgwidth = hildon.PickerButton(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
@@ -66,13 +68,13 @@ class fMMS_ConfigDialog():
 		hbox = gtk.HButtonBox()
 		hbox.set_property("name", "GtkHBox")
 		self.havocbutton = hildon.GtkToggleButton(gtk.HILDON_SIZE_FINGER_HEIGHT)
-		self.havocbutton.set_label("Havoc")
+		self.havocbutton.set_label(_("Havoc"))
 		self.havocsignal = self.havocbutton.connect('toggled', self.conn_mode_toggled)
 		self.rudebutton = hildon.GtkToggleButton(gtk.HILDON_SIZE_FINGER_HEIGHT)
-		self.rudebutton.set_label("Rude")
+		self.rudebutton.set_label(_("Rude"))
 		self.rudesignal = self.rudebutton.connect('toggled', self.conn_mode_toggled)
 		self.icdbutton = hildon.GtkToggleButton(gtk.HILDON_SIZE_FINGER_HEIGHT)
-		self.icdbutton.set_label("Polite")
+		self.icdbutton.set_label(_("Polite"))
 		self.icdsignal = self.icdbutton.connect('toggled', self.conn_mode_toggled)
 		
 		# Set the correct button to be active

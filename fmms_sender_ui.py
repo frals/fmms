@@ -203,7 +203,8 @@ class fMMS_SenderUI(hildon.Program):
 			### TODO: dont hardcode filesize check
 			filesize = os.path.getsize(fcd.get_filename()) / 1024
 			if filesize > 10240:
-				banner = hildon.hildon_banner_show_information(self.window, "", "10MB attachment limit in effect, please try another file")
+				errhelp = _("Attachment is too large (limit is %s)." % "10 MB")
+				banner = hildon.hildon_banner_show_information(self.window, "", errhelp)
 			else:
 				self.attachmentFile = fcd.get_filename()
 				self.set_thumbnail(self.attachmentFile)
@@ -271,7 +272,7 @@ class fMMS_SenderUI(hildon.Program):
 		to = self.eNumber.get_text()
 		if not self.cont.validate_phonenumber_email(to) or to == "":
 			note = osso.SystemNote(self.osso_c)
-			note.system_note_dialog("Invalid phonenumber, must only contain + and digits" , 'notice')
+			note.system_note_dialog(gettext.ldgettext('rtcom-messaging-ui', "messaging_fi_smsc_invalid_chars"), 'notice')
 			return
 		
 		attachment = self.attachmentFile
@@ -294,7 +295,7 @@ class fMMS_SenderUI(hildon.Program):
 					note = osso.SystemNote(self.osso_c)
 					errmsg = str(e.args)
 					errstr = gettext.ldgettext('hildon-common-strings', "sfil_ni_operation_failed")
-					note.system_note_dialog(errstr + "\n" + errmsg , 'notice')
+					note.system_note_dialog("%s\n%s" % (errmsg, errstr) , 'notice')
 					raise
 		
 		to = self.eNumber.get_text()
@@ -335,13 +336,6 @@ class fMMS_SenderUI(hildon.Program):
 			reply = str(output)
 			banner = hildon.hildon_banner_show_information(self.window, "", "MMSC:" + message + "\nBODY: " + reply)
                         
-		except TypeError, exc:
-			log.exception("sender: %s %s", type(exc), exc)
-			note = osso.SystemNote(self.osso_c)
-			errmsg = "Invalid attachment"
-			errstr = gettext.ldgettext('hildon-common-strings', "sfil_ni_operation_failed")
-			note.system_note_dialog(errstr + ":\n" + errmsg + " \n" , 'notice')
-			#raise
 		except socket.error, exc:
 			log.exception("sender: %s %s", type(exc), exc)
 			try:
@@ -353,7 +347,8 @@ class fMMS_SenderUI(hildon.Program):
 			note = osso.SystemNote(self.osso_c)
 			errmsg = "%s %s" % (code, text)
 			errstr = gettext.ldgettext('hildon-common-strings', "sfil_ni_operation_failed")
-			note.system_note_dialog(errstr +"\n" + errmsg + " \nPlease make sure your APN settings are correct" , 'notice')
+			errhelp = _("Please check your settings.")
+			note.system_note_dialog("%s\n%s\n%s" % (errstr, errmsg, errhelp), 'notice')
 			#raise
 		except Exception, exc:
 			log.exception("Sender failed.")

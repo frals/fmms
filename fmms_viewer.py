@@ -25,6 +25,8 @@ import contacts as ContactH
 import logging
 log = logging.getLogger('fmms.%s' % __name__)
 
+_ = gettext.gettext
+
 class fMMS_Viewer(hildon.Program):
 
 	def __init__(self, fname, standalone=False, spawner=None):
@@ -77,7 +79,7 @@ class fMMS_Viewer(hildon.Program):
 		""" create app menu for mms viewing window """
 		menu = hildon.AppMenu()
 		
-		self.headerstxt = "Headers"
+		self.headerstxt = _("Headers")
 		headers = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
 		headers.set_label(self.headerstxt)
 		headers.connect('clicked', self.mms_menu_button_clicked, fname)
@@ -162,7 +164,7 @@ class fMMS_Viewer(hildon.Program):
 			number = self.cont.get_replyuri_from_transid(fname)
 			if "@" in number:
 				note = osso.SystemNote(self.osso_c)
-				note.system_note_dialog("Reply address does not look like a phone number, sorry." , 'notice')
+				note.system_note_dialog(gettext.ldgettext('rtcom-messaging-ui', "messaging_fi_smsc_invalid_chars") , 'notice')
 			else:
 				rpc = osso.Rpc(self.osso_c)
 				nr = "sms:%s" % str(number)

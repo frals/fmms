@@ -22,8 +22,9 @@ import contacts as ContactH
 import fmms_config as fMMSconf
 
 import logging
-
 log = logging.getLogger('fmms.%s' % __name__)
+
+_ = gettext.gettext
 
 class fMMS_GUI(hildon.Program):
 	""" GUI class for the application. """
@@ -429,7 +430,7 @@ class fMMS_GUI(hildon.Program):
 		dialog = gtk.Dialog()
 		dialog.set_title(gettext.ldgettext('osso-connectivity-ui', 'conn_mngr_me_int_conn_change_iap'))
 		dialog.set_transient_for(self.window)
-		label = gtk.Label("Would you like me to terminate your current connection to fetch the MMS?")
+		label = gtk.Label(_("Would you like me to terminate your current connection and connect to the correct one for fetching the MMS?"))
 		label.set_line_wrap(True)
 		dialog.vbox.add(label)
 		dialog.add_button(gtk.STOCK_YES, 1)

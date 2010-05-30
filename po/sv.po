@@ -1,0 +1,48 @@
+# UI translation for fMMS
+# Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
+# This file is distributed under the same license as the fMMS package.
+# Nick Leppänen Larsson <frals@frals.se>, 2010.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: fMMS\n"
+"Report-Msgid-Bugs-To: http://bugs.maemo.org/enter_bug.cgi?product=fMMS\n"
+"POT-Creation-Date: 2010-05-30 21:37+0200\n"
+"Last-Translator:  <frals@frals.se>\n"
+"Language-Team: Swedish\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2010-05-30 21:43+0200\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: heaboutdialog.py:42
+msgid "About"
+msgstr ""
+
+#: heaboutdialog.py:86
+#, python-format
+msgid "About %s"
+msgstr ""
+
+#: heaboutdialog.py:102
+msgid "Visit website"
+msgstr ""
+
+#: heaboutdialog.py:107
+msgid "Report bug"
+msgstr ""
+
+#: heaboutdialog.py:112
+msgid "Donate"
+msgstr ""
+
+#: fmms_sender_ui.py:325
+msgid "mcen_ib_message_sent"
+msgid_plural "mcen_ib_messages_sent"
+msgstr[0] ""
+msgstr[1] ""
+
+#: controller_gtk.py:83
+msgid "Send and receive MMS on your N900."
+msgstr ""
