@@ -27,6 +27,9 @@ import logging
 log = logging.getLogger('fmms.%s' % __name__)
 
 _ = gettext.gettext
+gettext.bindtextdomain('fmms','/opt/fmms/share/locale/')
+gettext.textdomain('fmms')
+
 
 class fMMS_SenderUI(hildon.Program):
 	def __init__(self, spawner=None, tonumber=None, withfile=None, subject=None, message=None):

@@ -37,6 +37,8 @@ MSG_UNREAD = 0
 MSG_READ = 1
 
 _ = gettext.gettext
+gettext.bindtextdomain('fmms','/opt/fmms/share/locale/')
+gettext.textdomain('fmms')
 
 class fMMS_controller():
 	

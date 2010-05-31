@@ -25,6 +25,8 @@ import logging
 log = logging.getLogger('fmms.%s' % __name__)
 
 _ = gettext.gettext
+gettext.bindtextdomain('fmms','/opt/fmms/share/locale/')
+gettext.textdomain('fmms')
 
 class fMMS_GUI(hildon.Program):
 	""" GUI class for the application. """

@@ -26,6 +26,9 @@ import gtk
 import dbus
 
 _ = gettext.gettext
+gettext.bindtextdomain('fmms','/opt/fmms/share/locale/')
+gettext.textdomain('fmms')
+
 
 class HeAboutDialog(gtk.Dialog):
     RESPONSE_WEBSITE, \
