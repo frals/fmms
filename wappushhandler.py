@@ -30,7 +30,6 @@ import connectors
 import logging
 log = logging.getLogger('fmms.%s' % __name__)
 
-
 class PushHandler:
 	def __init__(self):
 		self.cont = fMMSController.fMMS_controller()
@@ -230,8 +229,16 @@ class MMSSender:
 		self.setupConn = setupConn
 		if customMMS == None:
 			self.number = number
-			self.subject = subject
+			if msg == None:
+				msg = ""
 			self.message = msg
+			if subject == '' or subject == None:
+				subject = self.message[:15].replace('\n', '')
+				if len(self.message) > 15:
+					subject += "..."
+				if len(subject) == 0:
+					subject = "MMS"
+			self.subject = subject
 			self.attachment = attachment
 			self._mms = None
 			self._sender = sender
@@ -289,7 +296,6 @@ class MMSSender:
 		socket.setdefaulttimeout(120)
 		
 		headers = {'Content-Type':'application/vnd.wap.mms-message', 'User-Agent' : self.config.get_useragent(), 'x-wap-profile' : 'http://mms.frals.se/n900.rdf'}
-		#headers = {'Content-Type':'application/vnd.wap.mms-message'}
 		if proxyurl == "" or proxyurl == None:
 			print "connecting without proxy"
 			mmsc = mmsc.lower()
@@ -308,7 +314,7 @@ class MMSSender:
 			conn.request('POST', mmsc, mms, headers)
 
 		if customData == None:			
-			cont = fMMSController.fMMS_controller()
+			cont = self.cont
 			path = cont.save_binary_outgoing_mms(mms, self._mms.transactionID)
 			message = cont.decode_binary_mms(path)
 			mmsid = cont.store_outgoing_mms(message)	
@@ -329,11 +335,9 @@ class MMSSender:
 				if outparsed['Response-Status'] == "Ok":
 					pushid = cont.store_outgoing_push(outparsed)
 					cont.link_push_mms(pushid, mmsid)
-				
 		except Exception, e:
-			print type(e), e
+			#print type(e), e
 			outparsed = out
-			
 		log.info("MMSC RESPONDED: %s", outparsed)
 		
 		return res.status, res.reason, outparsed, parsed

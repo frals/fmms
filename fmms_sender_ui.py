@@ -20,12 +20,13 @@ import gobject
 import osso
 from gnome import gnomevfs
 
-from wappushhandler import MMSSender
 import contacts as ContactH
 import controller_gtk as fMMSController
 
 import logging
 log = logging.getLogger('fmms.%s' % __name__)
+
+_ = gettext.gettext
 
 class fMMS_SenderUI(hildon.Program):
 	def __init__(self, spawner=None, tonumber=None, withfile=None, subject=None, message=None):
@@ -36,6 +37,7 @@ class fMMS_SenderUI(hildon.Program):
 		self.cont = fMMSController.fMMS_controllerGTK()
 		self.config = self.cont.config
 		self.subject = subject
+		self.osso_c = osso.Context("fMMS", "1.0", False)
 		
 		self.window = hildon.StackableWindow()
 		self.window.set_title(gettext.ldgettext('rtcom-messaging-ui', "messaging_ti_new_mms"))
@@ -77,13 +79,9 @@ class fMMS_SenderUI(hildon.Program):
 		
 		""" Begin midsection """
 		pan = hildon.PannableArea()
-		pan.set_property("mov-mode", hildon.MOVEMENT_MODE_BOTH)		
-		
+		pan.set_property("mov-mode", hildon.MOVEMENT_MODE_BOTH)
 		midBox = gtk.VBox()
-		
 		centerBox = gtk.HBox()
-		
-		
 		self.imageBox = gtk.EventBox()
 		self.imageBox.set_size_request(400, 200)
 		
@@ -158,8 +156,8 @@ class fMMS_SenderUI(hildon.Program):
 				invalue = re.sub(r'[^\d|\+]+', '', invalue)
 			self.eNumber.set_text(invalue)
 
-	""" forces ui update, kinda... god this is AWESOME """
 	def force_ui_update(self):
+		""" forces ui update, kinda... god this is AWESOME """
 		while gtk.events_pending():
 			gtk.main_iteration(False)	
 
@@ -261,18 +259,19 @@ class fMMS_SenderUI(hildon.Program):
 		self.send_mms(widget)
 		hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
 		self.bSend.set_sensitive(True)
+		
+	def show_system_note(self, msg):
+		note = osso.SystemNote(self.osso_c)
+		note.system_note_dialog(msg, 'notice')
 	
-	""" sends the message (no shit?) """
 	def send_mms(self, widget):
+		""" sends the message (no shit?) """
 		hildon.hildon_gtk_window_set_progress_indicator(self.window, 1)
 		self.force_ui_update()
 		
-		self.osso_c = osso.Context("fMMS", "0.1.0", False)
-		
 		to = self.eNumber.get_text()
 		if not self.cont.validate_phonenumber_email(to) or to == "":
-			note = osso.SystemNote(self.osso_c)
-			note.system_note_dialog(gettext.ldgettext('rtcom-messaging-ui', "messaging_fi_smsc_invalid_chars"), 'notice')
+			self.show_system_note(gettext.ldgettext('rtcom-messaging-ui', "messaging_fi_smsc_invalid_chars"))
 			return
 		
 		attachment = self.attachmentFile
@@ -292,10 +291,9 @@ class fMMS_SenderUI(hildon.Program):
 					attachment = self.resize_img(attachment)
 				except Exception, e:
 					log.exception("resize failed: %s %s", type(e), e)
-					note = osso.SystemNote(self.osso_c)
 					errmsg = str(e.args)
 					errstr = gettext.ldgettext('hildon-common-strings', "sfil_ni_operation_failed")
-					note.system_note_dialog("%s\n%s" % (errmsg, errstr) , 'notice')
+					self.show_system_note("%s\n%s" % (errstr, errmsg))
 					raise
 		
 		to = self.eNumber.get_text()
@@ -304,62 +302,22 @@ class fMMS_SenderUI(hildon.Program):
 		message = tb.get_text(tb.get_start_iter(), tb.get_end_iter())
 		log.info("attachment: %s message: %s", attachment, message)
 
-		""" Construct and send the message, off you go! """
-		# TODO: let controller do this
-		try:
-			if self.subject == '' or self.subject == None:
-				subject = message[:10].replace('\n', '')
-				if len(message) > 10:
-					subject += "..."
-				if len(subject) == 0:
-					subject = "MMS"
-			else:
-				subject = self.subject
-			sender = MMSSender(to, subject, message, attachment, sender, setupConn=True)
-			(status, reason, output, parsed) = sender.sendMMS()
-			### TODO: Clean up and make this look decent
-			
-			if parsed == True and "Response-Status" in output:
-				if output['Response-Status'] == "Ok":
-					log.info("message seems to have sent AOK!")
-					banner = hildon.hildon_banner_show_information(self.spawner, "", \
+		(status, msg) = self.cont.send_mms(to, self.subject, message, attachment, sender)
+		
+		if status == 0:
+			banner = hildon.hildon_banner_show_information(self.spawner, "", \
 						 gettext.dngettext('modest', 'mcen_ib_message_sent', 'mcen_ib_messages_sent', 1))
-			
-					if self.attachmentIsResized == True:
-						log.info("Removing temporary image: %s", attachment)
-						os.remove(attachment)
-
-					self.quit()
-					return
-			
-			message = str(status) + "_" + str(reason)
-			reply = str(output)
-			banner = hildon.hildon_banner_show_information(self.window, "", "MMSC:" + message + "\nBODY: " + reply)
-                        
-		except socket.error, exc:
-			log.exception("sender: %s %s", type(exc), exc)
-			try:
-				code = str(exc.args[0])
-				text = str(exc.args[1])
-			except:
-				code = exc
-				text = ""
-			note = osso.SystemNote(self.osso_c)
-			errmsg = "%s %s" % (code, text)
-			errstr = gettext.ldgettext('hildon-common-strings', "sfil_ni_operation_failed")
-			errhelp = _("Please check your settings.")
-			note.system_note_dialog("%s\n%s\n%s" % (errstr, errmsg, errhelp), 'notice')
-			#raise
-		except Exception, exc:
-			log.exception("Sender failed.")
-			note = osso.SystemNote(self.osso_c)
-			errmsg = "%s" % exc
-			note.system_note_dialog("%s\n%s" % (gettext.ldgettext('hildon-common-strings', "sfil_ni_operation_failed"), \
-						errmsg), 'notice')
-			#raise
-		finally:
-			hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
-			self.bSend.set_sensitive(True)
+		
+			if self.attachmentIsResized == True:
+				log.info("Removing temporary image: %s", attachment)
+				os.remove(attachment)
+			self.quit()
+			return
+		elif status == -1:
+			self.show_system_note(msg)
+		
+		hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
+		self.bSend.set_sensitive(True)
 
 	def from_sharing_service(self):
 		try:

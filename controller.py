@@ -20,6 +20,7 @@ import time
 import urlparse
 import subprocess
 import gettext
+import socket
 
 import dbus
 
@@ -27,12 +28,15 @@ import fmms_config as fMMSconf
 import dbhandler as DBHandler
 from mms.message import MMSMessage
 from mms import mms_pdu
+from wappushhandler import MMSSender
 
 #TODO: constants.py?
 MSG_DIRECTION_IN = 0
 MSG_DIRECTION_OUT = 1
 MSG_UNREAD = 0
 MSG_READ = 1
+
+_ = gettext.gettext
 
 class fMMS_controller():
 	
@@ -98,15 +102,39 @@ class fMMS_controller():
 			mtime = intime
 		return mtime
 	
+	def send_mms(self, to, subject, message, attachment, sender):
+		sender = MMSSender(to, subject, message, attachment, sender, setupConn=True)
+		try:
+			(status, reason, output, parsed) = sender.sendMMS()
+
+			if parsed == True and "Response-Status" in output:
+				if output['Response-Status'] == "Ok":
+					log.info("message seems to have sent AOK!")
+					return (0, "OK")
+
+			errstr = gettext.ldgettext('hildon-common-strings', "sfil_ni_operation_failed")
+			message = str(status) + "_" + str(reason)
+			reply = str(output)
+			msg = "%s\nMMSC: %s\nBODY: %s" % (errstr, message, reply)
+			return (-1, msg)
+		except socket.error, exc:
+			log.exception("sender failed due to connection error")
+			errstr = gettext.ldgettext('hildon-common-strings', "sfil_ni_operation_failed")
+			errhelp = _("Please check your settings.")
+			msg = "%s\n%s\n%s" % (errstr, exc, errhelp)
+			return (-1, msg)
+			#raise
+		except Exception, exc:
+			log.exception("Sender failed.")
+			msg = "%s\n%s" % (gettext.ldgettext('hildon-common-strings', "sfil_ni_operation_failed"), exc)
+			return (-1, msg)
+			#raise
+	
 	def decode_mms_from_push(self, binarydata):
 		""" decodes the given mms """
 		decoder = mms_pdu.MMSDecoder()
 		wsplist = decoder.decodeCustom(binarydata)
-
 		sndr, url, trans_id = None, None, None
-		bus = dbus.SystemBus()
-		proxy = bus.get_object('org.freedesktop.Notifications', '/org/freedesktop/Notifications')
-		interface = dbus.Interface(proxy, dbus_interface='org.freedesktop.Notifications')
 
 		try:
 			url = wsplist["Content-Location"]
@@ -116,6 +144,9 @@ class fMMS_controller():
 			log.info("transid: %s", trans_id)
 		except Exception, e:
 			log.exception("no content-location/transid in push; aborting: %s %s", type(e), e)
+			bus = dbus.SystemBus()
+			proxy = bus.get_object('org.freedesktop.Notifications', '/org/freedesktop/Notifications')
+			interface = dbus.Interface(proxy, dbus_interface='org.freedesktop.Notifications')
 			interface.SystemNoteInfoprint(gettext.ldgettext('modest', "mail_ni_ui_folder_get_msg_folder_error"))
 			raise
 		try:
