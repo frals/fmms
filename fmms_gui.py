@@ -430,7 +430,7 @@ class fMMS_GUI(hildon.Program):
 		dialog = gtk.Dialog()
 		dialog.set_title(gettext.ldgettext('osso-connectivity-ui', 'conn_mngr_me_int_conn_change_iap'))
 		dialog.set_transient_for(self.window)
-		label = gtk.Label(_("To retrieve the MMS your active connection will need to be changed. Switch connection?"))
+		label = gtk.Label(_("To retrieve the MMS your active connection will need to change. Switch connection?"))
 		label.set_line_wrap(True)
 		dialog.vbox.add(label)
 		dialog.add_button(gtk.STOCK_YES, 1)
