@@ -46,8 +46,7 @@ class MasterConnector:
 					log.info("probable deadlock, kill me please!")
 				if loop > 30:
 					log.info("time to die. bye!")
-					break
-					raise
+					raise Exception('Timeout while waiting for lock')
 	
 		if (self.config.get_connmode() == CONNMODE_UGLYHACK):
 			log.info("RUNNING IN UGLYHACK MODE")
