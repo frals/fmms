@@ -31,6 +31,7 @@ class MasterConnector:
 	def connect(self, location="0"):
 	
 		# this is to make sure only one process has passed connect() at a time
+		loop = 0
 		while 1:
 			if self.lock.lock():
 				log.info("i acquired lock (%d)" % os.getpid())
@@ -38,6 +39,13 @@ class MasterConnector:
 			else:
 				# wait 2 sec before retrying
 				time.sleep(2)
+				loop += 1
+				if loop == 5:
+					log.info("probable deadlock, kill me please!")
+				if loop > 30:
+					log.info("time to die. bye!")
+					break
+					raise
 	
 		if (self.config.get_connmode() == CONNMODE_UGLYHACK):
 			log.info("RUNNING IN UGLYHACK MODE")
