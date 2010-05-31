@@ -89,6 +89,15 @@ class MasterConnector:
 		except:
 			log.exception("Failed to close connection.")
 
+	def __del__(self):
+		try:
+			self.lock.unlock()
+		except:
+			pass
+		try:
+			self.connector.disconnect()
+		except:
+			pass
 
 class ICDConnector:
 	""" this is the 'nice' autoconnecter, only goes online on
