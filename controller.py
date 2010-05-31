@@ -462,6 +462,7 @@ class Locker:
 		self.fn = fn
 		self.fd = None
 		self.pid = os.getpid()
+		self.failcounter = 0
 	
 	def lock(self):
 		try:
@@ -471,6 +472,16 @@ class Locker:
 		except OSError:
 			# we failed to lock
 			self.fd = None
+			self.failcounter += 1
+			# after 5 unsuccessful locks we check the owner
+			# is still alive
+			if self.failcounter > 4:
+				pid = open(self.fn, 'r').read()
+				try:
+					os.kill(int(pid), 0)
+				except OSError, e:
+					# no such process, remove the lock
+					os.remove(self.fn)
 			return 0
 	
 	def unlock(self):
