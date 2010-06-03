@@ -211,12 +211,16 @@ class UglyHackHandler:
 		self.rx = 0
 		self.tx = 0
 		log.info("UglyHackHandler UP!\nAPN: %s user: %s pass: %s proxyip: %s mmsc1: %s mmsc2: %s" % (self.apn, self.username, self.password, self.proxyip, self.mmsc1, self.mmsc2))
-		self.conn = self.connect()
+		self.conn = None
 
 	def start(self):
-		args = "START %s %s %s %s %s %s" % (self.iface, self.ipaddr, self.mmsc1, self.mmsc2, self.dnsip, self.proxyip)
-		retcode = subprocess.call(["/opt/fmms/fmms_magic", args])
-		log.info("fmms_magic retcode: %s" % retcode)
+		try:
+			self.conn = self.connect()
+			args = "START %s %s %s %s %s %s" % (self.iface, self.ipaddr, self.mmsc1, self.mmsc2, self.dnsip, self.proxyip)
+			retcode = subprocess.call(["/opt/fmms/fmms_magic", args])
+			log.info("fmms_magic retcode: %s" % retcode)
+		except:
+			log.exception("connect/fmms_magic failed")
 		
 	def connect(self):
 		if self.mmsc2 == "0":
