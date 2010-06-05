@@ -224,9 +224,9 @@ class UglyHackHandler:
 		
 	def connect(self):
 		if self.mmsc2 == "0":
-			args = "/usr/bin/dbus-send --type=signal /se/frals/fmms/statusmenu se.frals.fmms.statusmenu.Show boolean:true string:'Sending'"
+			args = "/usr/bin/dbus-send --type=signal /se/frals/fmms/statusmenu se.frals.fmms.statusmenu.Send"
 		else:
-			args = "/usr/bin/dbus-send --type=signal /se/frals/fmms/statusmenu se.frals.fmms.statusmenu.Show boolean:true string:'Downloading'"
+			args = "/usr/bin/dbus-send --type=signal /se/frals/fmms/statusmenu se.frals.fmms.statusmenu.Download"
 
 		try:
 			args = shlex.split(args)
@@ -248,7 +248,7 @@ class UglyHackHandler:
 		
 	def disconnect(self):
 		log.info("UglyHackHandler running disconnect")
-		args = "/usr/bin/dbus-send --type=signal /se/frals/fmms/statusmenu se.frals.fmms.statusmenu.Show boolean:false"
+		args = "/usr/bin/dbus-send --type=signal /se/frals/fmms/statusmenu se.frals.fmms.statusmenu.Disconnect"
 		try:
 			args = shlex.split(args)
 			subprocess.Popen(args)
