@@ -56,7 +56,11 @@ class fMMS_Viewer(hildon.Program):
 		self._parse_mms(fname, vbox)
 
 		pan.add_with_viewport(vbox)
-		self.window.add(pan)
+		
+		align = gtk.Alignment(1, 1, 1, 1)
+		align.set_padding(2, 2, 10, 10)
+		align.add(pan)
+		self.window.add(align)
 
 		if not self.cont.is_mms_read(fname) and self._direction == fMMSController.MSG_DIRECTION_IN:
 			self.cont.mark_mms_read(fname)
@@ -268,9 +272,9 @@ class fMMS_Viewer(hildon.Program):
 		timelabel.set_use_markup(True)
 		timelabel.set_alignment(1, 0.5)
 
-		topbox.pack_start(label, False, False, 20)
-		topbox.pack_start(namelabel, True, True, 0)
-		topbox.pack_end(timelabel, False, False, 10)
+		topbox.pack_start(label, False, False, 0)
+		topbox.pack_start(namelabel, True, True, 10)
+		topbox.pack_end(timelabel, False, False, 0)
 		
 		container.pack_start(topbox, False, False, 5)
 		sep = gtk.HSeparator()
@@ -282,7 +286,7 @@ class fMMS_Viewer(hildon.Program):
 		self.textview.set_editable(False)
 		self.textview.set_cursor_visible(False)
 		self.textview.set_wrap_mode(gtk.WRAP_WORD)
-		self.textview.set_justification(gtk.JUSTIFY_CENTER)
+		self.textview.set_justification(gtk.JUSTIFY_LEFT)
 		textbuffer = gtk.TextBuffer()
 		direction = self.cont.get_direction_mms(filename)
 		
