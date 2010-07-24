@@ -379,6 +379,9 @@ class fMMS_GUI(hildon.Program):
 			self.delete_push_mms(filename)
 			self.liststore.remove(miter)
 		dialog.destroy()
+		hildon.hildon_gtk_window_take_screenshot(self.window, False)
+		hildon.hildon_gtk_window_take_screenshot(self.window, True)
+		self.force_ui_update()
 		return
 	
 	def liststore_mms_menu(self):
