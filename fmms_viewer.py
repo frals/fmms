@@ -315,7 +315,7 @@ class fMMS_Viewer(hildon.Program):
 			except Exception, e:
 				filetype = None
 				log.exception("%s %s", type(e), e)
-			
+
 			if isImage or ext == ".wbmp":
 				""" insert the image in an eventbox so we can get signals """
 				ebox = gtk.EventBox()
@@ -334,10 +334,12 @@ class fMMS_Viewer(hildon.Program):
 				self.attachment = fnpath
 			elif isText or ext.startswith(".txt"):
 				try:
-					fp = codecs.open(path + "/" + fname, 'r', 'latin-1')
-				except:
 					fp = codecs.open(path + "/" + fname, 'r', 'utf-8')
-				contents = fp.read()
+					contents = fp.read()
+				except:
+					fp = codecs.open(path + "/" + fname, 'r', 'latin-1')
+					contents = fp.read()
+				
 				fp.close()
 				textbuffer.insert(textbuffer.get_end_iter(), contents)
 			elif name != "message" and name != "headers" and not ext.startswith(".smil") and filetype != "application/smil":
