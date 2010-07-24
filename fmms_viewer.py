@@ -10,6 +10,7 @@ Copyright (C) 2010 Nick Leppänen Larsson <frals@frals.se>
 import os
 import sys
 import gettext
+import codecs
 
 import gtk
 import hildon
@@ -332,7 +333,10 @@ class fMMS_Viewer(hildon.Program):
 				container.add(ebox)
 				self.attachment = fnpath
 			elif isText or ext.startswith(".txt"):
-				fp = open(path + "/" + fname, 'r')
+				try:
+					fp = codecs.open(path + "/" + fname, 'r', 'latin-1')
+				except:
+					fp = codecs.open(path + "/" + fname, 'r', 'utf-8')
 				contents = fp.read()
 				fp.close()
 				textbuffer.insert(textbuffer.get_end_iter(), contents)
