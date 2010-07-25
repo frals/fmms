@@ -11,6 +11,8 @@ import os
 import sys
 import gettext
 import codecs
+import os.path
+import shutil
 
 import gtk
 import hildon
@@ -107,7 +109,7 @@ class fMMS_Viewer(hildon.Program):
 		forward.set_label(self.forwardtxt)
 		forward.connect('clicked', self.mms_menu_button_clicked, fname)
 		
-		self.copytxt = "%s (%s)" % (gettext.ldgettext('rtcom-messaging-ui', 'messaging_fi_copy'), "Text")
+		self.copytxt = "%s" % gettext.ldgettext('rtcom-messaging-ui', 'messaging_fi_copy')
 		copyb = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
 		copyb.set_label(self.copytxt)
 		copyb.connect('clicked', self.mms_menu_button_clicked, fname)
@@ -117,10 +119,16 @@ class fMMS_Viewer(hildon.Program):
 		delete.set_label(self.deletetxt)
 		delete.connect('clicked', self.mms_menu_button_clicked, fname)
 		
+		self.saveattachments = gettext.ldgettext('modest', 'mcen_me_viewer_save_attachments')
+		saveattach = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
+		saveattach.set_label(self.saveattachments)
+		saveattach.connect('clicked', self.mms_menu_button_clicked, fname)
+		
 		menu.append(reply)
 		menu.append(replysms)
-		menu.append(forward)
+		menu.append(saveattach)
 		menu.append(copyb)
+		menu.append(forward)
 		menu.append(headers)
 		menu.append(delete)
 		menu.show_all()
@@ -190,6 +198,8 @@ class fMMS_Viewer(hildon.Program):
 			tbuffer = self.textview.get_buffer()
 			msg = tbuffer.get_text(tbuffer.get_start_iter(), tbuffer.get_end_iter())
 			clip.set_text(msg, -1)
+		elif buttontext == self.saveattachments:
+			self.save_attachments(fname)
 			
 	def create_headers_dialog(self, fname):
 		""" show headers in a dialog """
@@ -389,6 +399,76 @@ class fMMS_Viewer(hildon.Program):
 		openItem.show()
 		menu.show_all()
 		return menu
+		
+	def save_attachments(self, filename):
+		src = self.cont.get_filepath_for_mms_transid(filename)
+		attachments = self.cont.get_mms_attachments(filename)
+		selector = hildon.TouchSelector(text=True)
+		for fn in attachments:
+			print fn
+			selector.append_text(fn)
+
+		selector.set_column_selection_mode(hildon.TOUCH_SELECTOR_SELECTION_MODE_MULTIPLE)
+		selector.unselect_all(0)
+		pan = hildon.PannableArea()
+		pan.set_property("mov-mode", hildon.MOVEMENT_MODE_VERT)
+		pan.add_with_viewport(selector)
+		pan.set_size_request_policy(hildon.SIZE_REQUEST_CHILDREN)
+
+		diag = gtk.Dialog()
+		diag.set_title(self.saveattachments)
+		diag.vbox.add(pan)
+		diag.set_size_request(-1, 320)
+		diag.add_button(gtk.STOCK_SAVE, gtk.RESPONSE_APPLY)
+		diag.show_all()
+		ret = diag.run()
+		selection = selector.get_current_text()
+		sel_count = len(selector.get_selected_rows(0))
+		diag.destroy()
+		if ret == gtk.RESPONSE_APPLY and sel_count > 0:
+			self.choose_your_destiny(src, attachments, selection, sel_count)
+		
+	def choose_your_destiny(self, src, attachments, current_text, current_count):
+		current_text = current_text.replace('(', '').replace(')','')
+		fcd = hildon.FileChooserDialog(self.window, action=gtk.FILE_CHOOSER_ACTION_SAVE)
+		fcd.set_current_folder("/home/user/MyDocs")
+		fcd.set_default_response(gtk.RESPONSE_OK)
+		if current_count == 1:
+			fn = current_text
+			fcd.set_current_name(fn)
+			fcd.set_title(gettext.ldgettext('hildon-fm', 'sfil_ti_save_file'))
+		else:
+			strng = 'sfil_va_number_of_objects_attachment'
+			txt = gettext.ldngettext('hildon-fm',strng, strng, current_count) % current_count
+			fcd.set_property('save-multiple', txt)
+			fcd.set_title(gettext.ldgettext('hildon-fm', 'sfil_ti_save_objects_files'))
+		ret = fcd.run()
+		cur_folder = fcd.get_current_folder_uri()
+		cur_uri = fcd.get_uri()
+		fcd.destroy()
+		if ret == gtk.RESPONSE_OK:
+			dst = cur_uri.replace('file://', '')
+			if current_count == 1:
+				# dst is fullpath + fn here
+				srcfn = "%s/%s" % (src, fn)
+				self.copy_file(srcfn, dst)
+			else:
+				# dst is only fullpath here
+				files = current_text.split(',')
+				for fn in files:
+					dstfn = "%s/%s" % (dst, fn)
+					srcfn = "%s/%s" % (src, fn)
+					self.copy_file(srcfn, dstfn)
+
+
+	def copy_file(self, src, dst):
+		if not os.path.isfile(dst):
+			log.info("copying %s -> %s" % (src, dst))
+			shutil.copy(src, dst)
+		else:
+			log.info("copy failed: file exists (%s -> %s)" % (src, dst))
+			banner = hildon.hildon_banner_show_information(self.window, "", \
+					gettext.ldgettext('hildon-common-strings', "sfil_ni_operation_failed"))
 
 	def run(self):
 		self.window.show_all()
