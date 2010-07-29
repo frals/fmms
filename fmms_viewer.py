@@ -431,7 +431,8 @@ class fMMS_Viewer(hildon.Program):
 	def choose_your_destiny(self, src, attachments, current_text, current_count):
 		current_text = current_text.replace('(', '').replace(')','')
 		fcd = hildon.FileChooserDialog(self.window, action=gtk.FILE_CHOOSER_ACTION_SAVE)
-		fcd.set_current_folder("/home/user/MyDocs")
+		if os.path.isdir("/home/user/MyDocs/")
+			fcd.set_current_folder("/home/user/MyDocs/")
 		fcd.set_default_response(gtk.RESPONSE_OK)
 		if current_count == 1:
 			fn = current_text

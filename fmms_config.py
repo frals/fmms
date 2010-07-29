@@ -97,6 +97,12 @@ class fMMS_config:
 		
 	def get_connmode(self):
 		return self.client.get_int(self._fmmsdir + "connmode")
+		
+	def get_last_ui_dir(self):
+		return self.client.get_string(self._fmmsdir + "lastuidir")
+		
+	def set_last_ui_dir(self, path):
+		self.client.set_string(self._fmmsdir + "lastuidir", path)
 	
 	def set_db_path(self, path):
 		self.client.set_string(self._fmmsdir + "db", path)

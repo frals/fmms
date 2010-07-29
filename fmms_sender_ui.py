@@ -197,8 +197,13 @@ class fMMS_SenderUI(hildon.Program):
 		# this shouldnt issue a warning according to the pymaemo mailing list, but does
 		# anyway, nfc why :(
 		# TODO: set default dir to Camera
-		fcd = gobject.new(hildon.FileChooserDialog, action=gtk.FILE_CHOOSER_ACTION_OPEN)
+		#fcd = gobject.new(hildon.FileChooserDialog, self.window, action=gtk.FILE_CHOOSER_ACTION_OPEN)
+		fcd = hildon.FileChooserDialog(self.window, gtk.FILE_CHOOSER_ACTION_OPEN)
 		fcd.set_default_response(gtk.RESPONSE_OK)
+		folder = self.config.get_last_ui_dir()
+		if folder:
+			if os.path.isdir(folder):
+				fcd.set_current_folder(folder)
 		ret = fcd.run()
 		if ret == gtk.RESPONSE_OK:
 			### TODO: dont hardcode filesize check
@@ -209,6 +214,8 @@ class fMMS_SenderUI(hildon.Program):
 			else:
 				self.attachmentFile = fcd.get_filename()
 				self.set_thumbnail(self.attachmentFile)
+			folder = fcd.get_current_folder()
+			self.config.set_last_ui_dir(folder)
 			fcd.destroy()
 		else:
 			fcd.destroy()
