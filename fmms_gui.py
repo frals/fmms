@@ -224,7 +224,7 @@ class fMMS_GUI(hildon.Program):
 			return
 		elif method == 'send_mms':
 			log.info("launching sender with args: %s", args)
-			self.refreshlistview = True
+			self.refreshlistview = False
 			self.import_sender()
 			fMMSSenderUI.fMMS_SenderUI(tonumber=args[0]).run()
 			return
