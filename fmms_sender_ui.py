@@ -44,6 +44,11 @@ class fMMS_SenderUI(hildon.Program):
 		
 		self.window = hildon.StackableWindow()
 		self.window.set_title(gettext.ldgettext('rtcom-messaging-ui', "messaging_ti_new_mms"))
+		if subject:
+			try:
+				self.window.set_title(subject)
+			except:
+				pass
 		program.add_window(self.window)
 		
 		self.window.connect("delete_event", self.quit)
