@@ -60,6 +60,7 @@ class HeAboutDialog(gtk.Dialog):
         self.label_version.set_alignment(0, 1)
         self.label_description.set_alignment(0, 0)
         self.label_copyright.set_alignment(0, 1)
+        self.label_copyright.set_line_wrap(True)
         self.label_version.set_padding(10, 0)
         self.label_copyright.set_padding(0, 5)
         self.image_icon.set_padding(5, 5)
