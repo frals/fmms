@@ -405,7 +405,6 @@ class fMMS_Viewer(hildon.Program):
 		attachments = self.cont.get_mms_attachments(filename)
 		selector = hildon.TouchSelector(text=True)
 		for fn in attachments:
-			print fn
 			selector.append_text(fn)
 
 		selector.set_column_selection_mode(hildon.TOUCH_SELECTOR_SELECTION_MODE_MULTIPLE)
@@ -466,6 +465,8 @@ class fMMS_Viewer(hildon.Program):
 		if not os.path.isfile(dst):
 			log.info("copying %s -> %s" % (src, dst))
 			shutil.copy(src, dst)
+			banner = hildon.hildon_banner_show_information(self.window, "", \
+					gettext.ldgettext('hildon-libs', "wdgt_bd_done"))
 		else:
 			log.info("copy failed: file exists (%s -> %s)" % (src, dst))
 			banner = hildon.hildon_banner_show_information(self.window, "", \
