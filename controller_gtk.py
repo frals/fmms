@@ -81,7 +81,15 @@ class fMMS_controllerGTK(controller.fMMS_controller):
 					'fmms',
 					self.config.get_version(),
 					_('Send and receive MMS on your N900.'),
-					'© Nick Leppänen Larsson',
+					'Copyright (C) 2010 Nick Leppänen Larsson.\n' +
+					'This program is free software; you can redistribute it and/or' +
+					 ' modify it under the terms of the GNU General Public License' +
+					 ' as published by the Free Software Foundation; either version 2' +
+					 ' of the License, or (at your option) any later version.\n' +
+					 'This program is distributed in the hope that it will be useful,' +
+					 ' but WITHOUT ANY WARRANTY; without even the implied warranty of' +
+					 ' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the' +
+					 ' GNU General Public License for more details.',
 					'http://mms.frals.se/',
 					'http://bugs.maemo.org/enter_bug.cgi?product=fMMS',
 					'https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=AZKC7ZRYKEY76&lc=SE&item_name=frals_mms&item_number=fmms_app&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted')
