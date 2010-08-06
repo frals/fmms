@@ -58,11 +58,10 @@ class fMMS_SenderUI(hildon.Program):
 		if spawner != None:
 			self.spawner = spawner
 			(tonumber, message, tmpfn) = self.cont.get_draft()
-			if tmpfn != "" and tmpfn != "None":
+			if tmpfn != "" and tmpfn != "None" and os.path.isfile(tmpfn):
 				withfile = tmpfn
 				self.attachmentFile = tmpfn
 				draftfile = True
-			print "got stuff: %s, %s, %s" % (tonumber, message, withfile)
 		else:
 			self.spawner = self.window
 		allBox = gtk.VBox()
@@ -180,7 +179,10 @@ class fMMS_SenderUI(hildon.Program):
 			gtk.main_iteration(False)	
 
 	def set_thumbnail(self, filename):
-		filetype = gnomevfs.get_mime_type(filename)
+		try:
+			filetype = gnomevfs.get_mime_type(filename)
+		except:
+			filetype = "unknown"
 		if filetype.startswith("image") or filetype.startswith("sketch"):
 			im = Image.open(filename)
 			im.thumbnail((256, 256), Image.NEAREST)
@@ -198,7 +200,10 @@ class fMMS_SenderUI(hildon.Program):
 			image = gtk.Image()
 			image.set_from_pixbuf(pixbuf)
 		else:
-			return
+			icon_theme = gtk.icon_theme_get_default()
+			pixbuf = icon_theme.load_icon("tasklaunch_file_manager", 128, 0)
+			image = gtk.Image()
+			image.set_from_pixbuf(pixbuf)
 		
 		self.imageBox.remove(self.imageBoxContent)
 		self.imageBoxContent = image
@@ -207,11 +212,8 @@ class fMMS_SenderUI(hildon.Program):
 		return
 		
 	def open_file_dialog(self, button, data=None):
-		#fsm = hildon.FileSystemModel()
-		#fcd = hildon.FileChooserDialog(self.window, gtk.FILE_CHOOSER_ACTION_OPEN, fsm)
 		# this shouldnt issue a warning according to the pymaemo mailing list, but does
 		# anyway, nfc why :(
-		# TODO: set default dir to Camera
 		#fcd = gobject.new(hildon.FileChooserDialog, self.window, action=gtk.FILE_CHOOSER_ACTION_OPEN)
 		fcd = hildon.FileChooserDialog(self.window, gtk.FILE_CHOOSER_ACTION_OPEN)
 		fcd.set_default_response(gtk.RESPONSE_OK)
@@ -229,6 +231,7 @@ class fMMS_SenderUI(hildon.Program):
 			else:
 				self.attachmentFile = fcd.get_filename()
 				self.set_thumbnail(self.attachmentFile)
+
 			folder = fcd.get_current_folder()
 			self.config.set_last_ui_dir(folder)
 			fcd.destroy()
@@ -357,7 +360,7 @@ class fMMS_SenderUI(hildon.Program):
 			to = self.eNumber.get_text()
 			tb = self.tvMessage.get_buffer()
 			message = tb.get_text(tb.get_start_iter(), tb.get_end_iter())
-			self.cont.save_draft(to, message, self.attachmentFile)
+			self.cont.save_draft(to, message, "")
 		else:
 			self.cont.save_draft("", "", "")
 
