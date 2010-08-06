@@ -334,6 +334,18 @@ class fMMS_controller():
 		self.delete_mms_message(transactionid)
 		self.delete_push_message(transactionid)
 	
+	def save_draft(self, rcpt, text, attachment):
+		if not rcpt:
+			rcpt = ""
+		if not text:
+			text = ""
+		if not attachment:
+			attachment = ""
+		self.store.save_draft(rcpt, text, attachment)
+
+	def get_draft(self):
+		return self.store.get_draft()
+
 	def validate_phonenumber_email(self, nr):
 		nr = str(nr)
 		nr = nr.replace("+", "")
@@ -443,7 +455,7 @@ class fMMS_controller():
 		mcc = str(int(mcc))
 		mnc = str(int(mnc))
 		if mcc == "240" and mnc == "7":
-			if operatorname == "Tele2" or operatorname == "Comviq":
+			if "Tele2" in operatorname:
 				settings = {}
 				settings['apn'] = "internet.tele2.se"
 				settings['user'] = ""

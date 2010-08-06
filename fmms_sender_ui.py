@@ -52,9 +52,17 @@ class fMMS_SenderUI(hildon.Program):
 		program.add_window(self.window)
 		
 		self.window.connect("delete_event", self.quit)
+		self.attachmentFile = ""
 		
+		draftfile = False
 		if spawner != None:
 			self.spawner = spawner
+			(tonumber, message, tmpfn) = self.cont.get_draft()
+			if tmpfn != "" and tmpfn != "None":
+				withfile = tmpfn
+				self.attachmentFile = tmpfn
+				draftfile = True
+			print "got stuff: %s, %s, %s" % (tonumber, message, withfile)
 		else:
 			self.spawner = self.window
 		allBox = gtk.VBox()
@@ -122,10 +130,8 @@ class fMMS_SenderUI(hildon.Program):
 		
 		pan.add_with_viewport(midBox)
 		
-		self.attachmentFile = ""
-		
 		# Copy the file to our tempdir in case sharing service removes it
-		if withfile:
+		if withfile and not draftfile:
 			filename = os.path.basename(withfile)
 			dst = "%s/%s" % (self.config.get_imgdir(), filename)
 			log.info("Copying file to: %s" % dst)
@@ -133,7 +139,11 @@ class fMMS_SenderUI(hildon.Program):
 			self.attachmentFile = dst
 			self.fromSharingService = True
 			self.fromSharingFile = dst
-			self.set_thumbnail(self.attachmentFile)
+		if withfile or draftfile:
+			try:
+				self.set_thumbnail(self.attachmentFile)
+			except:
+				log.exception("wtf: %s" % self.attachmentFile)
 
 		""" Show it all! """
 		allBox.pack_start(topHBox1, False, False)
@@ -326,7 +336,7 @@ class fMMS_SenderUI(hildon.Program):
 			if self.attachmentIsResized == True:
 				log.info("Removing temporary image: %s", attachment)
 				os.remove(attachment)
-			self.quit()
+			self.quit("clean")
 			return
 		elif status == -1:
 			self.show_system_note(msg)
@@ -342,8 +352,17 @@ class fMMS_SenderUI(hildon.Program):
 		except:
 			pass
 
-	def quit(self, *args):
+	def quit(self, args, *kargs):
+		if args != "clean":
+			to = self.eNumber.get_text()
+			tb = self.tvMessage.get_buffer()
+			message = tb.get_text(tb.get_start_iter(), tb.get_end_iter())
+			self.cont.save_draft(to, message, self.attachmentFile)
+		else:
+			self.cont.save_draft("", "", "")
+
 		self.from_sharing_service()
+
 		if self.window == self.spawner:		
 			gtk.main_quit()
 		else:

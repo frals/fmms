@@ -41,15 +41,24 @@ class DatabaseHandler:
 			c = self.conn.cursor()
 			c.execute("SELECT * FROM revision")
 			for row in c:
-				if row['version'] != 1:
+				if row['version'] < 1:
 					self.create_database_layout()
-		except:
+				elif row['version'] == 1:
+					self.update_database_layout()
+					log.info("updated database to version 2")
+		except Exception, e:
+			log.exception("failed some part of db detection, creating a new one")
 			self.create_database_layout()
 
-	def alter_database_layout_1(self):
+	def update_database_layout(self):
 		c = self.conn
-		c.execute("""UPDATE """)
-		c.execute("""ALTER TABLE """)
+		c.execute("""UPDATE "revision" set version = 2 where version = 1""")
+		c.execute("""CREATE TABLE "draft" (
+			  "draftid" INTEGER PRIMARY KEY NOT NULL,
+			  "text" TEXT NULL,
+			  "rcpt" TEXT NULL,
+			  "attachment" TEXT NULL
+			  );""")
 		
 	def create_database_layout(self):
 		c = self.conn
@@ -477,7 +486,30 @@ class DatabaseHandler:
 			c.execute("delete from push_headers where push_id == ?", (pushid,))
 			self.conn.commit()	
 
+	def save_draft(self, rcpt, text, attachment):
+		vals = (1, text, rcpt, attachment)
+		c = self.conn.cursor()
+		log.info("saving draft: %s %s %s" % (rcpt, text, attachment))
+		try:
+			c.execute("insert into draft (draftid, text, rcpt, attachment) VALUES (?, ?, ?, ?)", vals)
+		except:
+			vals = (text, rcpt, attachment)
+			try:
+				c.execute("update draft set text = ?, rcpt = ?, attachment = ? where draftid = 1", vals)
+			except:
+				log.exception("failed to save draft")
+		self.conn.commit()
+
+	def get_draft(self):
+		c = self.conn.cursor()
+		try:
+			c.execute("select * from draft")
+			res = c.fetchone()
+			return res['rcpt'], res['text'], res['attachment']
+		except:
+			return "", "", ""
+
 
 if __name__ == '__main__':
-	db = DatabaseHandler()
+	db = DatabaseHandler("cont")
 	c = db.conn.cursor()
