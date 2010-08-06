@@ -217,6 +217,7 @@ class fMMS_SenderUI(hildon.Program):
 		#fcd = gobject.new(hildon.FileChooserDialog, self.window, action=gtk.FILE_CHOOSER_ACTION_OPEN)
 		fcd = hildon.FileChooserDialog(self.window, gtk.FILE_CHOOSER_ACTION_OPEN)
 		fcd.set_default_response(gtk.RESPONSE_OK)
+		fcd.set_transient_for(self.window)
 		folder = self.config.get_last_ui_dir()
 		if folder:
 			if os.path.isdir(folder):

@@ -416,6 +416,7 @@ class fMMS_Viewer(hildon.Program):
 
 		diag = gtk.Dialog()
 		diag.set_title(self.saveattachments)
+		diag.set_transient_for(self.window)
 		diag.vbox.add(pan)
 		diag.set_size_request(-1, 320)
 		diag.add_button(gtk.STOCK_SAVE, gtk.RESPONSE_APPLY)
@@ -430,6 +431,7 @@ class fMMS_Viewer(hildon.Program):
 	def choose_your_destiny(self, src, attachments, current_text, current_count):
 		current_text = current_text.replace('(', '').replace(')','')
 		fcd = hildon.FileChooserDialog(self.window, action=gtk.FILE_CHOOSER_ACTION_SAVE)
+		fcd.set_transient_for(self.window)
 		if os.path.isdir("/home/user/MyDocs/"):
 			fcd.set_current_folder("/home/user/MyDocs/")
 		fcd.set_default_response(gtk.RESPONSE_OK)
