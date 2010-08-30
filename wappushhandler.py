@@ -19,6 +19,7 @@ import gettext
 
 import dbus
 import pynotify
+from gnome import gnomevfs
 
 from mms import message
 from mms.message import MMSMessage
@@ -251,7 +252,16 @@ class MMSSender:
 	def createMMS(self):
 		slide = message.MMSMessagePage()
 		if self.attachment != None:
-			slide.addImage(self.attachment)
+			try:
+				filetype = gnomevfs.get_mime_type(self.attachment)
+			except:
+				filetype = "unknown"
+			if filetype.startswith("audio"):
+				slide.addAudio(self.attachment)
+			elif filetype.startswith("video"):
+				slide.addVideo(self.attachment)
+			else:
+				slide.addImage(self.attachment)
 		slide.addText(self.message)
 
 		self._mms = message.MMSMessage()

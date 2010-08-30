@@ -172,6 +172,23 @@ class MMSMessage:
                     textNode.setAttribute('begin', str(begin))
                     textNode.setAttribute('end', str(end))
                 parNode.appendChild(textNode)
+            if page.video != None:
+                part, begin, end = page.video
+                if 'Content-Location' in part.headers:
+                    src = part.headers['Content-Location']
+                elif 'Content-ID' in part.headers:
+                    src = part.headers['Content-ID']
+                    pass
+                else:
+                    src = part.data
+                videoNode = smilDoc.createElement('video')
+                videoNode.setAttribute('src', src)
+                if begin > 0 or end > 0:
+                    if end > page.duration:
+                        end = page.duration
+                    videoNode.setAttribute('begin', str(begin)) 
+                    videoNode.setAttribute('end', str(end))
+                parNode.appendChild(videoNode)
             if page.audio != None:
                 part, begin, end = page.audio
                 if 'Content-Location' in part.headers:
@@ -188,7 +205,6 @@ class MMSMessage:
                         end = page.duration
                     audioNode.setAttribute('begin', str(begin)) 
                     audioNode.setAttribute('end', str(end))
-                parNode.appendChild(textNode)
                 parNode.appendChild(audioNode)
             bodyNode.appendChild(parNode)
         smilDoc.documentElement.appendChild(bodyNode)
@@ -273,6 +289,7 @@ class MMSMessagePage:
     def __init__(self):
         self.duration = 4000
         self.image = None
+        self.video = None
         self.audio = None
         self.text = None
     
@@ -357,6 +374,34 @@ class MMSMessagePage:
         if timeEnd > 0 and timeEnd < timeBegin:
             raise ValueError, 'timeEnd cannot be lower than timeBegin'
         self.audio = (DataPart(filename), timeBegin, timeEnd)
+
+    def addVideo(self, filename, timeBegin=0, timeEnd=0):
+        """ Adds a video clip to this slide.
+        @param filename: The name of the video file to add.
+        @type filename: str
+        @param timeBegin: The time (in milliseconds) during the duration of 
+                          this slide to begin playback of the video clip. If
+                          this is 0 or less, the video clip will be played the
+                          moment the slide is opened.
+        @type timeBegin: int
+        @param timeEnd: The time (in milliseconds) during the duration of this
+                        slide at which to stop playing (i.e. mute) the video
+                        clip. If this is 0 or less, or if it is greater than
+                        the actual duration of this slide, the entire video
+                        clip will be played, or until the next slide is
+                        accessed.
+        @type timeEnd: int
+        
+        @raise TypeError: An inappropriate variable type was passed in of the
+                          parameters
+        """
+        if type(filename) != str or type(timeBegin) != type(timeEnd) != int:
+            raise TypeError
+        if not os.path.isfile(filename):
+            raise OSError
+        if timeEnd > 0 and timeEnd < timeBegin:
+            raise ValueError, 'timeEnd cannot be lower than timeBegin'
+        self.video = (DataPart(filename), timeBegin, timeEnd)
     
     def addText(self, text, timeBegin=0, timeEnd=0):
         """ Adds a block of text to this slide.
