@@ -869,7 +869,15 @@ class MMSEncoder(wsp_pdu.Encoder):
         for hdr in headersToEncode:
             if hdr == 'Content-Type':
                 continue
-            messageHeader.extend(MMSEncoder.encodeHeader(hdr, headersToEncode[hdr]))
+            elif hdr == 'To' or hdr == 'Cc' or hdr == 'Bcc':
+            	splitt = headersToEncode[hdr].split(";")
+            	if len(splitt) > 1:
+            		for val in splitt:
+            			messageHeader.extend(MMSEncoder.encodeHeader(hdr, val))
+            	else:
+            		messageHeader.extend(MMSEncoder.encodeHeader(hdr, headersToEncode[hdr]))
+            else:	
+	        messageHeader.extend(MMSEncoder.encodeHeader(hdr, headersToEncode[hdr]))
         
         # Ok, now only "Content-type" should be left
         # No content-type if it's a notifyresp-ind

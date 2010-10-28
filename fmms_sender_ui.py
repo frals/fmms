@@ -171,7 +171,11 @@ class fMMS_SenderUI(hildon.Program):
 			invalue = invalue.replace(" ", "")
 			if not "@" in invalue:
 				invalue = re.sub(r'[^\d|\+]+', '', invalue)
-			self.eNumber.set_text(invalue)
+			if self.eNumber.get_text() == "":
+				self.eNumber.set_text(invalue)
+			else:
+				self.eNumber.set_text(self.eNumber.get_text() + ';' + invalue)
+			self.eNumber.set_position(-1)
 
 	def force_ui_update(self):
 		""" forces ui update, kinda... god this is AWESOME """

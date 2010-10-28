@@ -268,6 +268,12 @@ class MMSSender:
 		self._mms.headers['Subject'] = self.subject
 		if "@" in self.number:
 			self._mms.headers['To'] = str(self.number)
+		elif ";" in self.number:
+			fullnr = "";
+			nr = self.number.split(";")
+			for val in nr:
+				fullnr = "%s%s" % (fullnr, (val.strip() + '/TYPE=PLMN;'))
+			self._mms.headers['To'] = str(fullnr).rstrip(";")
 		else:
 			self._mms.headers['To'] = str(self.number) + '/TYPE=PLMN'
 		if self._sender == '0':
