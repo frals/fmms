@@ -8,81 +8,121 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fMMS\n"
 "Report-Msgid-Bugs-To: http://bugs.maemo.org/enter_bug.cgi?product=fMMS\n"
-"POT-Creation-Date: 2010-05-30 22:38+0200\n"
+"POT-Creation-Date: 2010-11-08 22:02+0200\n"
 "Last-Translator: Nick Leppänen Larsson <frals@frals.se>\n"
 "Language-Team: English <>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: fmms_viewer.py:82
-msgid "Headers"
-msgstr ""
-
-#: fmms_gui.py:433
-msgid ""
-"To retrieve the MMS your active connection will need to be changed. Switch "
-"connection?"
-msgstr ""
-
-#: heaboutdialog.py:42
-msgid "About"
-msgstr ""
-
-#: heaboutdialog.py:86
+#: fmms_sender_ui.py:234
 #, python-format
-msgid "About %s"
-msgstr ""
-
-#: heaboutdialog.py:102
-msgid "Visit website"
-msgstr ""
-
-#: heaboutdialog.py:107
-msgid "Report bug"
-msgstr ""
-
-#: heaboutdialog.py:112
-msgid "Donate"
-msgstr ""
-
-#: fmms_sender_ui.py:206
-#, python-format
+# Shown when the user tries to attach a file
+# exceeding 10MB (current limit)
 msgid "Attachment is too large (limit is %s)."
 msgstr ""
 
-#: fmms_sender_ui.py:350
-msgid "Please check your settings."
-msgstr ""
-
-#: controller_gtk.py:83
-msgid "Send and receive MMS on your N900."
-msgstr ""
-
 #: fmms_config_dialog.py:52
+# Resize image to: Small
 msgid "Small"
 msgstr ""
 
 #: fmms_config_dialog.py:52
+# Resize image to: Medium
 msgid "Medium"
 msgstr ""
 
 #: fmms_config_dialog.py:52
+# Resize image to: Large
 msgid "Large"
 msgstr ""
 
 #: fmms_config_dialog.py:52
+# Shown when not resizing image at all
 msgid "Original"
 msgstr ""
 
 #: fmms_config_dialog.py:71
+# Note: Keep this string as short as possible
+# Limit around 8-10 chars
 msgid "Havoc"
 msgstr ""
 
 #: fmms_config_dialog.py:74
+# Note: Keep this string as short as possible
+# Limit around 8-10 chars
 msgid "Rude"
 msgstr ""
 
 #: fmms_config_dialog.py:77
+# Note: Keep this string as short as possible
+# Limit around 8-10 chars
 msgid "Polite"
+msgstr ""
+
+#: controller_gtk.py:34 controller_gtk.py:88
+# Menu choice to reset fmms settings to null
+msgid "Reset settings"
+msgstr ""
+
+#: controller_gtk.py:91
+# Shown when user confirms reseting application settings
+msgid "Are you sure you want to reset all settings?"
+msgstr ""
+
+#: controller_gtk.py:99
+msgid "Application will close after settings are removed"
+msgstr ""
+
+#: controller_gtk.py:111
+# Description of the application, should not be much
+# longer than the msgid.
+msgid "Send and receive MMS on your N900."
+msgstr ""
+
+#: fmms_gui.py:439
+# Shown when the active connection is wrong when
+# trying to download an MMS from the main view
+msgid ""
+"To retrieve the MMS your active connection will need to change. Switch "
+"connection?"
+msgstr ""
+
+#: fmms_viewer.py:92
+# 'Headers' as in 'Message headers' 
+msgid "Headers"
+msgstr ""
+
+#: heaboutdialog.py:45
+# About, in the About dialog
+msgid "About"
+msgstr ""
+
+#: heaboutdialog.py:90
+#, python-format
+# Example: About fMMS
+msgid "About %s"
+msgstr ""
+
+#: heaboutdialog.py:106
+# Note: This string should NOT be longer than
+# ~14 chars to fit in the button
+msgid "Visit website"
+msgstr ""
+
+#: heaboutdialog.py:111
+# Note: This string should NOT be longer than
+# ~14 chars to fit in the button
+msgid "Report bug"
+msgstr ""
+
+#: heaboutdialog.py:116
+# Note: This string should NOT be longer than
+# ~14 chars to fit in the button
+msgid "Donate"
+msgstr ""
+
+#: controller.py:125
+# Catch all (connection) error message
+msgid "Please check your settings."
 msgstr ""
