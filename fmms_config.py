@@ -301,7 +301,9 @@ class fMMS_config:
 	def create_new_apn(self):
 		""" Create a new APN for MMS usage. """
 		# gconf_list_all_dirs is pretty random...
-		apn = "0000-0000-0000-0000"
+		#apn = "0000-0000-0000-0000"
+		import uuid
+		apn = str(uuid.uuid4())
 		self.client.add_dir('/system/osso/connectivity/IAP/' + apn, gconf.CLIENT_PRELOAD_NONE)
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + "/type", "GPRS")
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + "/name", "MMS")
@@ -434,6 +436,14 @@ class fMMS_config:
 			self.set_apn(secondary)
 		else:
 			return iaps[0]
+
+	def reset_all_settings(self):
+		log.info("removing connectivity settings: /system/osso/connectivity/IAP/%s" % self.get_apn())
+		self.client.recursive_unset('/system/osso/connectivity/IAP/' + self.get_apn(), gconf.UNSET_INCLUDING_SCHEMA_NAMES)
+		fmmsdir = self._fmmsdir.rstrip('/')
+		log.info("removing fmms application settings: %s" % fmmsdir)
+		self.client.recursive_unset(fmmsdir, gconf.UNSET_INCLUDING_SCHEMA_NAMES)
+		return True
 		
 if __name__ == '__main__':
 	config = fMMS_config()

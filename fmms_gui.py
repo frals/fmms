@@ -367,6 +367,7 @@ class fMMS_GUI(hildon.Program):
 		confirmtxt = gettext.ldgettext('rtcom-messaging-ui', "messaging_fi_delete_1_sms")
 		
 		dialog = gtk.Dialog()
+		dialog.set_transient_for(self.window)
 		dialog.set_title(confirmtxt)
 		dialog.add_button(gtk.STOCK_YES, 1)
 		dialog.add_button(gtk.STOCK_NO, 0)

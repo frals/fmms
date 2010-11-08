@@ -469,6 +469,10 @@ class fMMS_controller():
 				return settings
 		return False
 
+	def reset_all_settings(self):
+		self.config.reset_all_settings()
+
+
 class Locker:
 	def __init__(self, fn):
 		self.fn = fn

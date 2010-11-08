@@ -31,6 +31,7 @@ class fMMS_controllerGTK(controller.fMMS_controller):
 	def __init__(self):
 		controller.fMMS_controller.__init__(self)
 		self.config_label = gettext.ldgettext('rtcom-messaging-ui', "messaging_me_main_settings")
+		self.reset_label = _('Reset settings')
 		self.about_label = gettext.ldgettext('hildon-libs', "ecdg_ti_aboutdialog_title")
 	
 	def import_configdialog(self):
@@ -45,7 +46,7 @@ class fMMS_controllerGTK(controller.fMMS_controller):
 			import fmms_config_dialog as fMMSConfigDialog
 			global fMMSConfigDialog
 			self.cdimported = True
-	
+
 	def create_menu(self, parent=None):
 		""" Creates the application menu. """
 		menu = hildon.AppMenu()
@@ -54,11 +55,16 @@ class fMMS_controllerGTK(controller.fMMS_controller):
 		config.set_label(self.config_label)
 		config.connect('clicked', self.menu_button_clicked, parent)
 		
+		reset = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
+		reset.set_label(self.reset_label)
+		reset.connect('clicked', self.menu_button_clicked, parent)
+
 		about = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
 		about.set_label(self.about_label)
 		about.connect('clicked', self.menu_button_clicked, parent)
 		
 		menu.append(config)
+		menu.append(reset)
 		menu.append(about)
 
 		menu.show_all()
@@ -73,6 +79,28 @@ class fMMS_controllerGTK(controller.fMMS_controller):
 			fMMSConfigDialog.fMMS_ConfigDialog(parent)
 		elif buttontext == self.about_label:
 			self.create_about_dialog(parent)
+		elif buttontext == self.reset_label:
+			self.create_reset_dialog(parent)
+
+	def create_reset_dialog(self, parent=None):
+		dialog = gtk.Dialog()
+		dialog.set_transient_for(parent)
+		dialog.set_title(_('Reset settings'))
+		dialog.add_button(gtk.STOCK_YES, 1)
+		dialog.add_button(gtk.STOCK_NO, 0)
+		label = gtk.Label(_('Are you sure you want to reset all settings?'))
+		dialog.vbox.add(label)
+		dialog.show_all()
+		ret = dialog.run()
+		if ret == 1:
+			import osso
+			self.osso_c = osso.Context("fMMS", "1.0", False)
+			note = osso.SystemNote(self.osso_c)
+			note.system_note_dialog(_('Application will close after settings are removed'), 'notice')
+			self.reset_all_settings()
+			import sys
+			sys.exit(0)
+		dialog.destroy()
 
 	def create_about_dialog(self, parent=None):
 		""" Create and display the About dialog. """
