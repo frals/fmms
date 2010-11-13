@@ -32,7 +32,7 @@ gettext.textdomain('fmms')
 
 
 class fMMS_SenderUI(hildon.Program):
-	def __init__(self, spawner=None, tonumber=None, withfile=None, subject=None, message=None):
+	def __init__(self, spawner=None, tonumber=None, withfile=None, subject=None, message=None, forward=None):
 		hildon.Program.__init__(self)
 		program = hildon.Program.get_instance()
 		
@@ -55,7 +55,7 @@ class fMMS_SenderUI(hildon.Program):
 		self.attachmentFile = ""
 		
 		draftfile = False
-		if spawner != None:
+		if spawner != None and forward == None:
 			self.spawner = spawner
 			(tonumber, message, tmpfn) = self.cont.get_draft()
 			if tmpfn != "" and tmpfn != "None" and os.path.isfile(tmpfn):

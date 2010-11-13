@@ -190,7 +190,7 @@ class fMMS_Viewer(hildon.Program):
 			tbuffer = self.textview.get_buffer()
 			msg = tbuffer.get_text(tbuffer.get_start_iter(), tbuffer.get_end_iter())
 			fn = self.attachment
-			fMMSSenderUI.fMMS_SenderUI(spawner=self.window, withfile=fn, message=msg)
+			fMMSSenderUI.fMMS_SenderUI(spawner=self.window, withfile=fn, message=msg, forward=True)
 		elif buttontext == self.deletetxt:
 			self.delete_dialog(fname)
 		elif buttontext == self.copytxt:
