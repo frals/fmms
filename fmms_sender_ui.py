@@ -62,6 +62,8 @@ class fMMS_SenderUI(hildon.Program):
 				withfile = tmpfn
 				self.attachmentFile = tmpfn
 				draftfile = True
+		elif spawner != None and forward:
+			self.spawner = spawner
 		else:
 			self.spawner = self.window
 		allBox = gtk.VBox()
@@ -336,7 +338,7 @@ class fMMS_SenderUI(hildon.Program):
 		log.info("attachment: %s message: %s", attachment, message)
 
 		(status, msg) = self.cont.send_mms(to, self.subject, message, attachment, sender)
-		
+
 		if status == 0:
 			banner = hildon.hildon_banner_show_information(self.spawner, "", \
 						 gettext.dngettext('modest', 'mcen_ib_message_sent', 'mcen_ib_messages_sent', 1))
@@ -371,7 +373,7 @@ class fMMS_SenderUI(hildon.Program):
 
 		self.from_sharing_service()
 
-		if self.window == self.spawner:		
+		if self.window == self.spawner:
 			gtk.main_quit()
 		else:
 			self.window.destroy()
