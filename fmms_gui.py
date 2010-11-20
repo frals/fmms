@@ -70,7 +70,7 @@ class fMMS_GUI(hildon.Program):
 		textcell.set_property('mode', gtk.CELL_RENDERER_MODE_INERT)
 		textcell.set_property('xalign', 0.0)
 		
-		self.liststore = gtk.ListStore(gtk.gdk.Pixbuf, str, gtk.gdk.Pixbuf, str, str)
+		self.liststore = gtk.ListStore(gtk.gdk.Pixbuf, str, gtk.gdk.Pixbuf, str, str, str)
 		self.treeview = hildon.GtkTreeView(gtk.HILDON_UI_MODE_NORMAL)
 		self.treeview.set_property("fixed-height-mode", True)
 		self.treeview.set_model(self.liststore)
@@ -121,12 +121,23 @@ class fMMS_GUI(hildon.Program):
 		actionbox = self.treeview.get_action_area_box()
 		self.treeview.set_action_area_visible(True)
 		actionbox.add(newMsgButton)
-		
+
 		pan.add(self.treeview)
+
+		self.livefilter = hildon.LiveSearch()
+		modelfilter = self.liststore.filter_new()
+		modelfilter.set_visible_func(self.cb_filter_row)
+		self.treeview.set_model(modelfilter)
+		self.livefilter.set_filter(modelfilter)
+		self.livefilter.widget_hook(self.window, self.treeview)
+
+		contBox = gtk.VBox()
+		contBox.pack_start(pan, True, True, 0)
+		contBox.pack_start(self.livefilter, False, False, 0)
 
 		align = gtk.Alignment(1, 1, 1, 1)
 		align.set_padding(2, 2, 10, 10)		
-		align.add(pan)
+		align.add(contBox)
 		
 		self.window.add(align)
 	
@@ -137,6 +148,15 @@ class fMMS_GUI(hildon.Program):
 		
 		self.window.show_all()
 		self.add_window(self.window)
+
+	def cb_filter_row(self, model, iter, user_data=None):
+		txt = str(model.get_value(iter, 4)).lower()
+		desc = str(model.get_value(iter, 5)).lower()
+		filter = str(self.livefilter.get_text()).lower()
+		if filter in txt or filter in desc:
+			return True
+		else:
+			return False
 
 	def import_viewer(self):
 		""" This is used to import viewer only when we need it
@@ -187,6 +207,10 @@ class fMMS_GUI(hildon.Program):
 			t2 = time.clock()
 			log.info("liststore time: %s" % round(t2-t1, 3))
 			self.refreshlistview = False
+			modelfilter = self.liststore.filter_new()
+			modelfilter.set_visible_func(self.cb_filter_row)
+			self.treeview.set_model(modelfilter)
+			self.livefilter.set_filter(modelfilter)
 			
 			if self.config.get_firstlaunch() < 2:
 				settings = self.config.get_apn_settings()
@@ -203,7 +227,7 @@ class fMMS_GUI(hildon.Program):
 
 			self.take_ss()
 
-		return True
+		return False
 
 
 	def cb_open_fmms(self, interface, method, args, user_data):
@@ -323,7 +347,7 @@ class fMMS_GUI(hildon.Program):
 			else:
 				sender = escape(sender)
 			stringline = "%s%s%s" % (sender, primarytext, secondarytext)
-			self.liststore.append([icon, stringline, avatar, fname, sender])
+			self.liststore.append([icon, stringline, avatar, fname, sender, description])
 
 	def quit(self, *args):
 		""" Quits the application. """
