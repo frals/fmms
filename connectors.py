@@ -8,8 +8,6 @@ import shlex
 import dbus
 import conic
 
-import controller as fMMSController
-
 import logging
 log = logging.getLogger('fmms.%s' % __name__)
 
@@ -23,14 +21,36 @@ CONNMODE_NULL = 10
 class MasterConnector:
 	""" handles setting up and (might) take down connection(s) """
 
-	def __init__(self):
-		self.cont = fMMSController.fMMS_controller()
+	def __init__(self, controller=0):
+		if controller == 0:
+			import controller as fMMSController
+			self.cont = fMMSController.fMMS_controller()
+		else:
+			self.cont = controller
 		self.config = self.cont.config
 		self._apn = self.config.get_apn()
 		self._apn_nicename = self.config.get_apn_nicename()
 		self.lock = fMMSController.Locker(self.config.get_lockfile())
 	
 	def connect(self, location="0"):
+	
+		# first check roaming status
+		bus = dbus.SystemBus()
+		phoneobj = bus.get_object('com.nokia.phone.net', '/com/nokia/phone/net')
+		phoneif = dbus.Interface(phoneobj, 'Phone.Net')
+		statusarr = phoneif.get_registration_status()
+		if statusarr != 0:
+			log.info("not in home network, not downloading..")
+			print "not in home network"
+			print "controller ui enabled: %s" % str(self.cont.ui)
+			if self.cont.ui:
+				if not self.cont.continue_download_roaming():
+					return	
+			else:
+				self.connector = None
+				#raise Exception('User is roaming, not downloading')
+				return
+				
 	
 		# this is to make sure only one process has passed connect() at a time
 		loop = 0
@@ -46,7 +66,8 @@ class MasterConnector:
 					log.info("probable deadlock, kill me please!")
 				if loop > 30:
 					log.info("time to die. bye!")
-					raise Exception('Timeout while waiting for lock')
+					#raise Exception('Timeout while waiting for lock')
+					return
 	
 		if (self.config.get_connmode() == CONNMODE_UGLYHACK):
 			log.info("RUNNING IN UGLYHACK MODE")

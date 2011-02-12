@@ -30,6 +30,7 @@ class fMMS_controllerGTK(controller.fMMS_controller):
 	
 	def __init__(self):
 		controller.fMMS_controller.__init__(self)
+		self.ui = True
 		self.config_label = gettext.ldgettext('rtcom-messaging-ui', "messaging_me_main_settings")
 		self.reset_label = _('Reset settings')
 		self.about_label = gettext.ldgettext('hildon-libs', "ecdg_ti_aboutdialog_title")
@@ -179,3 +180,21 @@ class fMMS_controllerGTK(controller.fMMS_controller):
 			except:
 				log.exception("Failed to convert")
 				raise
+	
+	""" ask user about download while roaming """
+	def continue_download_roaming(self):
+		dialog = gtk.Dialog()
+		dialog.set_title(gettext.ldgettext('osso-connectivity-ui', 'conn_fi_phone_network_data_roam'))
+		#dialog.set_transient_for(self.window)
+		label = gtk.Label(_("To retrieve the MMS your active connection you need to connect to the internet, proceed?"))
+		label.set_line_wrap(True)
+		dialog.vbox.add(label)
+		dialog.add_button(gtk.STOCK_YES, 1)
+		dialog.add_button(gtk.STOCK_NO, 0)
+		dialog.vbox.show_all()
+		ret = dialog.run()
+		switch = False
+		if ret == 1:
+			switch = True
+		dialog.destroy()
+		return switch

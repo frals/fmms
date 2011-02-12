@@ -118,8 +118,10 @@ class PushHandler:
 		interface.PlayEvent({'time': 0, 'category': 'email-message'}, "fmms")
 		note.show()
 
-	def _get_mms_message(self, location, transaction):
+	def _get_mms_message(self, location, transaction, controller=0):
 		# this method should be a critical section
+		if controller != 0:
+			self.cont = controller
 		connector = connectors.MasterConnector()
 		connector.connect(location)
 				

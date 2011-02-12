@@ -49,6 +49,7 @@ class fMMS_controller():
 		self._pushdir = self.config.get_pushdir()
 		self._outdir = self.config.get_outdir()
 		self.store = DBHandler.DatabaseHandler(self)
+		self.ui = False
 	
 	def clean_url(self, url):
 		m = re.search(r"http\:\/\/(?i)", url)
@@ -276,7 +277,7 @@ class fMMS_controller():
 		
 		from wappushhandler import PushHandler
 		p = PushHandler()
-		path = p._get_mms_message(url, trans_id)
+		path = p._get_mms_message(url, trans_id, self)
 		log.info("decoding mms... %s", trans_id)
 		message = self.decode_binary_mms(path)
 		log.info("storing mms...%s", trans_id)
