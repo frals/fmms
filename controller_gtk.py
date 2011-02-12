@@ -197,4 +197,6 @@ class fMMS_controllerGTK(controller.fMMS_controller):
 		if ret == 1:
 			switch = True
 		dialog.destroy()
+		while gtk.events_pending():
+			gtk.main_iteration(False)
 		return switch

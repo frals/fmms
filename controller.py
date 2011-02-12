@@ -106,7 +106,11 @@ class fMMS_controller():
 		return mtime
 	
 	def send_mms(self, to, subject, message, attachment, sender):
-		sender = MMSSender(to, subject, message, attachment, sender, setupConn=True)
+		try:
+			sender = MMSSender(to, subject, message, attachment, sender, setupConn=True, controller=self)
+		except:
+			msg = "%s" % (gettext.ldgettext('hildon-common-strings', "sfil_ni_operation_failed"))
+			return (-1, msg)
 		try:
 			(status, reason, output, parsed) = sender.sendMMS()
 

@@ -18,12 +18,14 @@ CONNMODE_ICDSWITCH = 2
 CONNMODE_FORCESWITCH = 3                                                       
 CONNMODE_NULL = 10
 
+import controller as fMMSController
+
 class MasterConnector:
 	""" handles setting up and (might) take down connection(s) """
 
 	def __init__(self, controller=0):
 		if controller == 0:
-			import controller as fMMSController
+			import controller
 			self.cont = fMMSController.fMMS_controller()
 		else:
 			self.cont = controller
@@ -33,23 +35,22 @@ class MasterConnector:
 		self.lock = fMMSController.Locker(self.config.get_lockfile())
 	
 	def connect(self, location="0"):
-	
 		# first check roaming status
 		bus = dbus.SystemBus()
 		phoneobj = bus.get_object('com.nokia.phone.net', '/com/nokia/phone/net')
 		phoneif = dbus.Interface(phoneobj, 'Phone.Net')
-		statusarr = phoneif.get_registration_status()
+		statusarr = phoneif.get_registration_status()[]
 		if statusarr != 0:
 			log.info("not in home network, not downloading..")
-			print "not in home network"
-			print "controller ui enabled: %s" % str(self.cont.ui)
 			if self.cont.ui:
 				if not self.cont.continue_download_roaming():
+					log.info("user declined to download while roaming")
+					raise Exception('User is roaming, not downloading')
 					return	
 			else:
 				self.connector = None
-				#raise Exception('User is roaming, not downloading')
-				return
+				raise Exception('User is roaming, not downloading')
+				#return
 				
 	
 		# this is to make sure only one process has passed connect() at a time

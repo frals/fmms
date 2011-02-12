@@ -122,9 +122,9 @@ class PushHandler:
 		# this method should be a critical section
 		if controller != 0:
 			self.cont = controller
-		connector = connectors.MasterConnector()
+		connector = connectors.MasterConnector(self.cont)
 		connector.connect(location)
-				
+		return 0		
 		try:
 			dirname = self.__get_mms_message(location, transaction)
 		except:
@@ -225,9 +225,13 @@ class PushHandler:
 class MMSSender:
 	""" class for sending an mms """
 	
-	def __init__(self, number=None, subject=None, msg=None, attachment=None, sender=None, customMMS=None, setupConn=False):
+	def __init__(self, number=None, subject=None, msg=None, attachment=None, sender=None, customMMS=None, setupConn=False, controller=0):
 		self.customMMS = customMMS
-		self.cont = fMMSController.fMMS_controller()
+		if controller != 0:
+			self.cont = controller
+			print "controller: %s" % str(self.cont)
+		else:
+			self.cont = fMMSController.fMMS_controller()
 		self.config = self.cont.config
 		self.setupConn = setupConn
 		if customMMS == None:
@@ -247,10 +251,12 @@ class MMSSender:
 			self._sender = sender
 			self.createMMS()
 			if self.setupConn == True:
-				self.connector = connectors.MasterConnector()
-				self.connector.connect()
-				
-	    
+				self.connector = connectors.MasterConnector(self.cont)
+				try:
+					self.connector.connect()
+				except:
+					raise
+
 	def createMMS(self):
 		slide = message.MMSMessagePage()
 		if self.attachment != None:
