@@ -39,7 +39,7 @@ class MasterConnector:
 		bus = dbus.SystemBus()
 		phoneobj = bus.get_object('com.nokia.phone.net', '/com/nokia/phone/net')
 		phoneif = dbus.Interface(phoneobj, 'Phone.Net')
-		statusarr = phoneif.get_registration_status()[]
+		statusarr = phoneif.get_registration_status()[0]
 		if statusarr != 0:
 			log.info("not in home network, not downloading..")
 			if self.cont.ui:
