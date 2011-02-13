@@ -229,7 +229,6 @@ class MMSSender:
 		self.customMMS = customMMS
 		if controller != 0:
 			self.cont = controller
-			print "controller: %s" % str(self.cont)
 		else:
 			self.cont = fMMSController.fMMS_controller()
 		self.config = self.cont.config
@@ -321,7 +320,7 @@ class MMSSender:
 		
 		headers = {'Content-Type':'application/vnd.wap.mms-message', 'User-Agent' : self.config.get_useragent(), 'x-wap-profile' : 'http://mms.frals.se/n900.rdf'}
 		if proxyurl == "" or proxyurl == None:
-			print "connecting without proxy"
+			log.info("connecting without proxy")
 			mmsc = mmsc.lower()
 			mmsc = mmsc.replace("http://", "")
 			mmsc = mmsc.rstrip('/')

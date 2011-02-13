@@ -11,6 +11,8 @@ import conic
 import logging
 log = logging.getLogger('fmms.%s' % __name__)
 
+import controller as fMMSController
+
 magic = 0xacdcacdc
 
 CONNMODE_UGLYHACK = 1                                                          
@@ -18,14 +20,11 @@ CONNMODE_ICDSWITCH = 2
 CONNMODE_FORCESWITCH = 3                                                       
 CONNMODE_NULL = 10
 
-import controller as fMMSController
-
 class MasterConnector:
 	""" handles setting up and (might) take down connection(s) """
 
 	def __init__(self, controller=0):
 		if controller == 0:
-			import controller
 			self.cont = fMMSController.fMMS_controller()
 		else:
 			self.cont = controller
