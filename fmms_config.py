@@ -60,7 +60,7 @@ class fMMS_config:
 		if self.get_version() == None:
 			self.set_version("Unknown")
 		if self.get_connmode() == None:
-			self.set_connmode(CONNMODE_ICDSWITCH)
+			self.set_connmode(CONNMODE_FORCESWITCH)
 		if self.get_db_path() == None:
 			self.set_db_path("/home/user/.fmms/mms.db")
 		if not self.get_useragent():
@@ -81,7 +81,7 @@ class fMMS_config:
 		if self.get_firstlaunch() == 0:
 			self.set_firstlaunch(1)
 			self.set_img_resize_width(240)
-			self.set_connmode(CONNMODE_ICDSWITCH)
+			self.set_connmode(CONNMODE_FORCESWITCH)
 
 	def get_old_mmsc(self):
 		return self.client.get_string(self._fmmsdir + 'mmsc')
@@ -242,6 +242,7 @@ class fMMS_config:
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/gprs_accesspointname', settings['apn'])
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/gprs_username', settings['user'])
 		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/gprs_password', settings['pass'])
+		self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/type', "GPRS")
 		
 		if settings.get('proxy', "") == "" or not settings.get('proxy'):
 			self.client.set_string('/system/osso/connectivity/IAP/' + apn + '/proxytype', "NONE")
