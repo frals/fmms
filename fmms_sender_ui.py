@@ -55,14 +55,16 @@ class fMMS_SenderUI(hildon.Program):
 		self.attachmentFile = ""
 		
 		draftfile = False
-		if spawner != None and forward == None:
+		# got spawner and not a forward and not a reply
+		if spawner != None and forward == None and tonumber == None:
 			self.spawner = spawner
 			(tonumber, message, tmpfn) = self.cont.get_draft()
 			if tmpfn != "" and tmpfn != "None" and os.path.isfile(tmpfn):
 				withfile = tmpfn
 				self.attachmentFile = tmpfn
 				draftfile = True
-		elif spawner != None and forward:
+		# forwarding/replying message
+		elif spawner != None and (forward or tonumber != None):
 			self.spawner = spawner
 		else:
 			self.spawner = self.window
