@@ -450,6 +450,7 @@ class fMMS_GUI(hildon.Program):
 			fMMSViewer.fMMS_Viewer(transactionid, spawner=self)
 		except Exception, e:
 			log.exception("Failed to open viewer with transaction id: %s" % transactionid)
+			hildon.hildon_banner_show_information(self.window, "", gettext.ldgettext('hildon-common-strings', "sfil_ni_operation_failed"))
 			#raise
 		hildon.hildon_gtk_window_set_progress_indicator(self.window, 0)
 		self.treeview.set_sensitive(True)
