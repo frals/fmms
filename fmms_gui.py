@@ -383,7 +383,7 @@ class fMMS_GUI(hildon.Program):
 		if self.curPath == None:
 			return
 			
-		model = self.treeview.get_model()
+		model = self.treeview.get_model().get_model()
 		miter = model.get_iter(self.curPath)
 		# the 4th value is the transactionid (start counting at 0)
 		filename = model.get_value(miter, 3)
@@ -402,7 +402,7 @@ class fMMS_GUI(hildon.Program):
 		if ret == 1:
 			log.info("Deleting %s", filename)
 			self.delete_push_mms(filename)
-			self.liststore.remove(miter)
+			model.remove(miter)
 		dialog.destroy()
 		hildon.hildon_gtk_window_take_screenshot(self.window, False)
 		hildon.hildon_gtk_window_take_screenshot(self.window, True)
