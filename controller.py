@@ -224,7 +224,7 @@ class fMMS_controller():
 		""" decodes and saves the binary mms"""
 		# Decode the specified file
 		# This also creates all the parts as files in path
-		log.info("decode_binary_mms running")
+		log.info("decode_binary_mms running: %s", str(path))
 		try:
 			message = MMSMessage.fromFile(path + "/message")
 		except Exception, e:
@@ -282,7 +282,7 @@ class fMMS_controller():
 		from wappushhandler import PushHandler
 		p = PushHandler()
 		path = p._get_mms_message(url, trans_id, self)
-		log.info("decoding mms... %s", trans_id)
+		log.info("path: %s", path)
 		message = self.decode_binary_mms(path)
 		log.info("storing mms...%s", trans_id)
 		mmsid = self.store_mms_message(pushid, message)

@@ -124,7 +124,7 @@ class PushHandler:
 			self.cont = controller
 		connector = connectors.MasterConnector(self.cont)
 		connector.connect(location)
-		return 0		
+		
 		try:
 			dirname = self.__get_mms_message(location, transaction)
 		except:
