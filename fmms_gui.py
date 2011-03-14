@@ -44,6 +44,7 @@ class fMMS_GUI(hildon.Program):
 		self.refreshlistview = True
 		self.viewerimported = False
 		self.senderimported = False
+		self._screenwidth = 800
 		
 		self.avatarlist = {}
 		self.namelist = {}
@@ -53,48 +54,30 @@ class fMMS_GUI(hildon.Program):
 		program = hildon.Program.get_instance()
 			
 		self.window = hildon.StackableWindow()
+		hildon.hildon_gtk_window_set_portrait_flags(self.window, hildon.PORTRAIT_MODE_SUPPORT)
 		gtk.set_application_name("fMMS")
 		self.window.set_title("fMMS")
 		program.add_window(self.window)
-		
 		self.window.connect("delete_event", self.quit)
 		
-		pan = hildon.PannableArea()
-		pan.set_property("mov-mode", hildon.MOVEMENT_MODE_VERT)
+		self.pan = hildon.PannableArea()
+		self.pan.set_property("mov-mode", hildon.MOVEMENT_MODE_VERT)
 		
-		### TODO: dont hardcode the values here.. oh well
-		iconcell = gtk.CellRendererPixbuf()
-		photocell = gtk.CellRendererPixbuf()
-		textcell = gtk.CellRendererText()
-		photocell.set_property('xalign', 1.0)
-		textcell.set_property('mode', gtk.CELL_RENDERER_MODE_INERT)
-		textcell.set_property('xalign', 0.0)
-		
+		# wonder how much memory this is wasting
+		self.iconcell = gtk.CellRendererPixbuf()
+		self.photocell = gtk.CellRendererPixbuf()
+		self.textcell = gtk.CellRendererText()
+		self.photocell.set_property('xalign', 1.0)
+		self.textcell.set_property('mode', gtk.CELL_RENDERER_MODE_INERT)
+		self.textcell.set_property('xalign', 0.0)
+
 		self.liststore = gtk.ListStore(gtk.gdk.Pixbuf, str, gtk.gdk.Pixbuf, str, str, str)
 		self.treeview = hildon.GtkTreeView(gtk.HILDON_UI_MODE_NORMAL)
 		self.treeview.set_property("fixed-height-mode", True)
 		self.treeview.set_model(self.liststore)
-
-		icon_col = gtk.TreeViewColumn('Icon')
-		sender_col = gtk.TreeViewColumn('Sender')
-		placeholder_col = gtk.TreeViewColumn('Photo')
-
-		icon_col.pack_start(iconcell, False)
-		icon_col.set_attributes(iconcell, pixbuf=0)
-		icon_col.set_fixed_width(64)
-		icon_col.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
-		sender_col.pack_start(textcell, True)
-		sender_col.set_attributes(textcell, markup=1)
-		sender_col.set_fixed_width(640)
-		sender_col.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
-		placeholder_col.pack_end(photocell, False)
-		placeholder_col.set_attributes(photocell, pixbuf=2)
-		placeholder_col.set_fixed_width(64)
-		placeholder_col.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
 		
-		self.treeview.append_column(icon_col)
-		self.treeview.append_column(sender_col)
-		self.treeview.append_column(placeholder_col)
+		# create ui
+		self._create_ui()
 
 		self.treeview.tap_and_hold_setup(self.liststore_mms_menu())
 		self.treeview.tap_and_hold_setup(None)
@@ -109,11 +92,11 @@ class fMMS_GUI(hildon.Program):
 		envelopeImage.set_alignment(1, 0.5)
 		mmsLabel = gtk.Label(gettext.ldgettext('rtcom-messaging-ui', "messaging_ti_new_mms"))
 		mmsLabel.set_alignment(0, 0.5)
-		
+
 		mmsBox.pack_start(envelopeImage, True, True, 0)
 		mmsBox.pack_start(mmsLabel, True, True, 0)
 		newMsgButton = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT, hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
-		
+
 		newMsgButton.add(mmsBox)
 		newMsgButton.connect('clicked', self.new_mms_button_clicked)
 
@@ -122,7 +105,7 @@ class fMMS_GUI(hildon.Program):
 		self.treeview.set_action_area_visible(True)
 		actionbox.add(newMsgButton)
 
-		pan.add(self.treeview)
+		self.pan.add(self.treeview)
 
 		self.livefilter = hildon.LiveSearch()
 		modelfilter = self.liststore.filter_new()
@@ -132,22 +115,56 @@ class fMMS_GUI(hildon.Program):
 		self.livefilter.widget_hook(self.window, self.treeview)
 
 		contBox = gtk.VBox()
-		contBox.pack_start(pan, True, True, 0)
+		contBox.pack_start(self.pan, True, True, 0)
 		contBox.pack_start(self.livefilter, False, False, 0)
 
 		align = gtk.Alignment(1, 1, 1, 1)
 		align.set_padding(2, 2, 10, 10)		
 		align.add(contBox)
-		
 		self.window.add(align)
-	
-		self.menu = self.cont.create_menu(self.window)
-		self.window.set_app_menu(self.menu)
-		
+
+		menu = self.cont.create_menu(self.window)
+		self.window.set_app_menu(menu)
 		self.window.connect('focus-in-event', self.cb_on_focus)
-		
+		self.window.connect('configure-event', self._onOrientationChange)
 		self.window.show_all()
 		self.add_window(self.window)
+	
+	def _onOrientationChange(self, window, event):
+		newwidth = window.get_screen().get_width()
+		if newwidth == self._screenwidth:
+			return
+		else:
+			self._screenwidth = newwidth
+		self._create_ui()
+
+	def _create_ui(self):
+		for col in self.treeview.get_columns():
+			self.treeview.remove_column(col)
+	
+		icon_col = gtk.TreeViewColumn('Icon')
+		placeholder_col = gtk.TreeViewColumn('Photo')
+		self.sender_col = gtk.TreeViewColumn('Sender')
+
+		icon_col.pack_start(self.iconcell, False)
+		icon_col.set_attributes(self.iconcell, pixbuf=0)
+		icon_col.set_fixed_width(64)
+		icon_col.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+
+		self.sender_col.pack_start(self.textcell, True)
+		self.sender_col.set_attributes(self.textcell, markup=1)
+		# this is kinda ugly
+		self.sender_col.set_fixed_width(self._screenwidth - 64 - 64 - 32)
+		self.sender_col.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+
+		placeholder_col.pack_end(self.photocell, False)
+		placeholder_col.set_attributes(self.photocell, pixbuf=2)
+		placeholder_col.set_fixed_width(64)
+		placeholder_col.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+
+		self.treeview.append_column(icon_col)
+		self.treeview.append_column(self.sender_col)
+		self.treeview.append_column(placeholder_col)
 
 	def cb_filter_row(self, model, iter, user_data=None):
 		txt = str(model.get_value(iter, 4)).lower()
